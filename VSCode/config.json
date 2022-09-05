@@ -60,8 +60,10 @@
 
   // _________________________________________________________________________
   //? _______________________EDITIOR SETTINGS____________________________
-  "editor.stickyScroll.enabled": true, //5 Sep-2022
-
+  "editor.stickyScroll.enabled": false, //5 Sep-2022
+  "editor.stickyScroll.maxLineCount": 5,
+  "editor.tabSize": 2, //5 Sep-2022
+  "editor.hover.sticky": true, //5 Sep-2022 Keep popup open if moused move over it
   "editor.multiCursorModifier": "ctrlCmd",
   "editor.suggestSelection": "first",
   "editor.inlineSuggest.enabled": true, //* Show Suggestions
