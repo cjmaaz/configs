@@ -1,0 +1,315 @@
+{
+  // ___________________TELEMENTRIES___________________________________
+  //?___________________PRIVACY THREATS_______________________________
+
+  /*________________ Deprecated_________________
+  "telemetry.enableTelemetry": false,
+  "telemetry.enableCrashReporter": false,*/
+  "telemetry.telemetryLevel": "off",
+  "salesforcedx-vscode-core.telemetry.enabled": false,
+  "redhat.telemetry.enabled": false,
+
+  //__________________________________________________________________________
+  //? ____________________EMMET AND INTELLISENSE AND WORKBENCH___________________________
+  "emmet.showSuggestionsAsSnippets": true,
+  "emmet.includeLanguages": {
+    "cmp": "html"
+  },
+  "emmet.triggerExpansionOnTab": true,
+  //"vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
+  "vsintellicode.modify.editor.suggestSelection": "enabled",
+  "workbench.colorCustomizations": {
+    "editorCursor.foreground": "#ffe657",
+    "terminalCursor.foreground": "#ff0a54",
+    "editorIndentGuide.activeBackground": "#ff0000",
+    "editorIndentGuide.background": "#555",
+    "[Material Theme Darker]": {
+      "activityBarBadge.background": "#2979FF",
+      "activityBar.activeBorder": "#2979FF",
+      "list.activeSelectionForeground": "#2979FF",
+      "list.inactiveSelectionForeground": "#2979FF",
+      "list.highlightForeground": "#2979FF",
+      "scrollbarSlider.activeBackground": "#2979FF50",
+      "editorSuggestWidget.highlightForeground": "#2979FF",
+      "textLink.foreground": "#2979FF",
+      "progressBar.background": "#2979FF",
+      "pickerGroup.foreground": "#2979FF",
+      "tab.activeBorder": "#2979FF",
+      "notificationLink.foreground": "#2979FF",
+      "editorWidget.resizeBorder": "#2979FF",
+      "editorWidget.border": "#2979FF",
+      "settings.modifiedItemIndicator": "#2979FF",
+      "settings.headerForeground": "#2979FF",
+      "panelTitle.activeBorder": "#2979FF",
+      "breadcrumb.activeSelectionForeground": "#2979FF",
+      "menu.selectionForeground": "#2979FF",
+      "menubar.selectionForeground": "#2979FF",
+      "editor.findMatchBorder": "#2979FF",
+      "selection.background": "#2979FF40",
+      "statusBarItem.remoteBackground": "#2979FF"
+    }
+  },
+  "extensions.ignoreRecommendations": true,
+  "workbench.sideBar.location": "right", //* SideBar on the RIGHT
+  "workbench.editor.decorations.badges": true,
+  "workbench.editor.decorations.colors": true,
+  "workbench.enableExperiments": false,
+  "workbench.colorTheme": "Monokai++",
+  // Startup Name
+  "workbench.startupEditor": "newUntitledFile",
+
+  // _________________________________________________________________________
+  //? _______________________EDITIOR SETTINGS____________________________
+  "editor.stickyScroll.enabled": true, //5 Sep-2022
+
+  "editor.multiCursorModifier": "ctrlCmd",
+  "editor.suggestSelection": "first",
+  "editor.inlineSuggest.enabled": true, //* Show Suggestions
+  "editor.parameterHints.enabled": true,
+  "editor.hover.delay": 700,
+  "editor.selectionHighlight": true,
+  "editor.autoClosingBrackets": "always",
+  "editor.autoIndent": "brackets",
+  "editor.cursorStyle": "line", //* Straight line style for cursor
+  "editor.dragAndDrop": false, //* Not let select and move code through Mouse
+  "editor.codeLens": true, //* Code Lens
+  //"editor.tabSize": 4,
+  /*"editor.insertSpaces": true,
+  "editor.detectIndentation": false,*/
+
+  // Disable Mouse Scroll
+  "editor.roundedSelection": true,
+  "editor.mouseWheelZoom": false,
+  //"editor.mouseWheelZoom": true,
+  "terminal.integrated.cursorBlinking": true,
+  // Formatting
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  // Word-wrap
+  "editor.wordWrap": "off",
+  // Windows Title
+  "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
+
+  //Fonts
+  "editor.fontSize": 17,
+  "editor.fontLigatures": true,
+  "editor.fontWeight": "400",
+  "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
+
+  "editor.minimap.enabled": false, //* Side Map
+  //Glyph for Debugger
+  "editor.lineDecorationsWidth": 0,
+  "editor.glyphMargin": false,
+  "editor.linkedEditing": true,
+  //Cursor
+  "editor.cursorBlinking": "expand",
+  "editor.cursorWidth": 3,
+
+  //___________________________________________________________________________
+  //?_____________________________INDENT RAINBOW________________________________
+
+  "indentRainbow.indicatorStyle": "light",
+  "indentRainbow.lightIndicatorStyleLineWidth": 25,
+
+  //____________________________________________________________________________
+  //? _____________________LANGUAGE SPECIFIC SETTINGS__________________________
+  "jshint.options": {
+    "esversion": 9
+  },
+
+  "jshint.lintHTML": true,
+  "[javascript]": {
+    "editor.defaultFormatter": "vscode.typescript-language-features"
+  },
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features",
+    "editor.trimAutoWhitespace": false
+  },
+  "html.format.indentInnerHtml": true,
+  "html.format.extraLiners": "true",
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[xml]": {
+    "editor.autoClosingQuotes": "always",
+    //"editor.defaultFormatter": "vscode.html-language-features",
+    "editor.defaultFormatter": "DotJoshJohnson.xml"
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "vetur.format.defaultFormatter.html": "prettier",
+  "json.maxItemsComputed": 7000,
+  "html.format.wrapLineLength": 0,
+  "xml.completion.autoCloseTags": true,
+  //*  JSHint
+  "jshint.enable": false,
+
+  //______________________________________________________________
+  //? ____________________DART SETTINGS__________________________
+  "dart.lineLength": 100,
+  "[dart]": {
+    "editor.formatOnSave": true,
+    "editor.formatOnType": true,
+    //"editor.rulers": [80],
+    "editor.selectionHighlight": true,
+    "editor.suggest.snippetsPreventQuickSuggestions": false,
+    "editor.suggestSelection": "first",
+    "editor.tabCompletion": "onlySnippets",
+    "editor.wordBasedSuggestions": false
+  },
+
+  //_____________________________________________________________________
+  //? ______________________FILE CONFIGS________________________________
+  "files.associations": {
+    "*.apxc": "apex",
+    "*.cmp": "html"
+  },
+  "files.exclude": {
+    "**/.classpath": true,
+    "**/.project": true,
+    "**/.settings": true,
+    "**/.factorypath": true
+  },
+  "files.trimFinalNewlines": true,
+  "files.trimTrailingWhitespace": false,
+
+  //_____________________________________________________________________________
+  //? ________________________LIVE SERVER SETTINGS____________________________
+  // Comment and Uncomment based on your preference
+  "liveServer.settings.CustomBrowser": "chrome:PrivateMode",
+  //"liveServer.settings.CustomBrowser": "chrome",
+  //"liveServer.settings.CustomBrowser": "firefox:PrivateMode",
+  //"liveServer.settings.CustomBrowser": "microsoft-edge",
+  //"liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe --inPrivate",
+  "liveServer.settings.donotShowInfoMsg": true,
+  "liveServer.settings.ChromeDebuggingAttachment": false,
+
+  //___________________________________________________________________________
+  //? _________________________TERMINAL CONFIGURATIONS_______________________
+  "terminal.integrated.profiles.windows": {
+    "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
+      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+      "args": []
+    }
+  },
+  "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)",
+  "terminal.integrated.smoothScrolling": true, //5 Sep-2022
+
+  //_________________________________________________________________________
+  //? ___________________________PLUGIN SETTINGS_________________
+  "rainbow_csv.csv_lint_detect_trailing_spaces": true,
+  "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
+  "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"],
+
+  //_________________________________________________________________________
+  //? __________________________VS Code OWN COLORIZE____________________________
+  "editor.bracketPairColorization.enabled": true,
+
+  //__________________________________________________________________________
+  //?____________________________GIT AND GIT LENS____________________________
+  "gitlens.advanced.messages": {
+    "suppressGitMissingWarning": true
+  },
+  "git.ignoreMissingGitWarning": true,
+  "git.autofetch": true,
+
+  //________________________________________________________________________________
+  //? _________________________Dictionary [Add new words below]___________________
+  "cSpell.userWords": ["combobox", "endof", "Picklist", "supabase"],
+
+  //__________________________________________________________________________________
+  //?____________________________JAVA SF [Version Config]___________________________
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2\\bin",
+
+  //_________________________________________________________________________________
+  //? ___________________________Miscellaneous___________________________________
+  "C_Cpp.updateChannel": "Default",
+  "security.workspace.trust.untrustedFiles": "open",
+  "materialTheme.accent": "Blue",
+  "workbench.iconTheme": "material-icon-theme",
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
+  "npm.keybindingsChangedWarningShown": true
+
+  // TODO ADD COMMA IF ADDING ANY VALUES
+  //_______________________________________________________________________________________
+  // _____________________________________DEPRECATED______________________________________
+  //? ________________________________BRACKET COLORIZE 1________________________________
+  /*"bracketPairColorizer.forceUniqueOpeningColor": true,
+  "bracketPairColorizer.scopeLineCSS": [
+    "borderStyle : solid",
+    "borderWidth : 1px",
+    "borderColor : {color}",
+    "opacity: 0.5"
+  ],
+  "bracketPairColorizer.showBracketsInRuler": true,
+  "bracketPairColorizer.highlightActiveScope": true,
+  "bracketPairColorizer.rulerPosition": "Full",
+  "bracketPairColorizer.consecutivePairColors": [
+    //["<", "</"],
+    //["<", "/>"],
+    ["<", ">"],
+    [
+      "Gold",
+      "Orchid",
+      "LightSkyBlue",
+      "#FFC885",
+      "#32CD32",
+      "#FFFFFF",
+      "#B4F8C8",
+      "#B392AC",
+      "#BE0AFF",
+      "#0D41E1",
+      "#CEFF00"
+    ],
+    "Red"
+  ]
+  //"atomKeymap.promptV3Features": true,
+  //"editor.fontSize": 18,
+  //"editor.fontFamily": "'Fira Code','Fira Code Retina',Fira Code, Consolas"
+  //"editor.fontFamily": "'Input Sans','Input Mono'"
+  //"settingsSync.ignoredExtensions": [],
+  //"settingsSync.ignoredSettings": []
+}*/
+  //_______________________________________________________________________________________
+  // _____________________________________DEPRECATED______________________________________
+  //? ________________________________BRACKET COLORIZE 2________________________________
+  /*"bracket-pair-colorizer-2.colors": [
+    "Gold",
+    "Orchid",
+    "LightSkyBlue",
+    "#FFC885",
+    "#32CD32",
+    "#FFFFFF",
+    "#B4F8C8",
+    "#B392AC",
+    "#BE0AFF",
+    "#0D41E1",
+    "#CEFF00"
+  ],
+  "bracket-pair-colorizer-2.forceUniqueOpeningColor": true,
+  "bracket-pair-colorizer-2.scopeLineCSS": [
+    "borderStyle : solid",
+    "borderWidth : 1px",
+    "borderColor : {color}",
+    "opacity: 0.5"
+  ],
+  "bracket-pair-colorizer-2.showBracketsInRuler": true,
+  "bracket-pair-colorizer-2.highlightActiveScope": true,
+  "bracket-pair-colorizer-2.rulerPosition": "Full",
+  "workbench.editorAssociations": {
+    "*.out": "default"
+  },*/
+  //! ADD COMMA IF ADDING ANY VALUE AT END
+}
