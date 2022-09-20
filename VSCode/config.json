@@ -90,7 +90,8 @@
   // Word-wrap
   "editor.wordWrap": "off",
   // Windows Title
-  "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
+  // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
+  "window.title": "${rootName}📂 ❕ ${dirty}${activeEditorShort}👈🏻 ",
 
   //Fonts
   "editor.fontSize": 17,
@@ -106,6 +107,9 @@
   //Cursor
   "editor.cursorBlinking": "expand",
   "editor.cursorWidth": 3,
+
+  // Optimization
+  "editor.largeFileOptimizations": false,
 
   //___________________________________________________________________________
   //?_____________________________INDENT RAINBOW________________________________
@@ -170,7 +174,7 @@
   //_____________________________________________________________________
   //? ______________________FILE CONFIGS________________________________
   "files.associations": {
-    "*.apxc": "apex",
+    "*.apxc": "java",
     "*.cmp": "html"
   },
   "files.exclude": {
@@ -181,6 +185,13 @@
   },
   "files.trimFinalNewlines": true,
   "files.trimTrailingWhitespace": false,
+
+  //Search Exclude
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/bower_components": true,
+    "**/.sfdx": true
+  },
 
   //_____________________________________________________________________________
   //? ________________________LIVE SERVER SETTINGS____________________________
@@ -242,7 +253,9 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
-  "npm.keybindingsChangedWarningShown": true
+  "npm.keybindingsChangedWarningShown": true,
+  "diffEditor.ignoreTrimWhitespace": true,
+  "gitlens.blame.ignoreWhitespace": true
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   //_______________________________________________________________________________________
