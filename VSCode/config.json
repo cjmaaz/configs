@@ -111,6 +111,10 @@
   // Optimization
   "editor.largeFileOptimizations": false,
 
+  //Smooth Scroll
+  "editor.cursorSmoothCaretAnimation": true,
+  "editor.smoothScrolling": true,
+
   //___________________________________________________________________________
   //?_____________________________INDENT RAINBOW________________________________
 
@@ -144,8 +148,8 @@
   },
   "[xml]": {
     "editor.autoClosingQuotes": "always",
-    //"editor.defaultFormatter": "vscode.html-language-features",
-    "editor.defaultFormatter": "DotJoshJohnson.xml"
+    "editor.defaultFormatter": "vscode.html-language-features"
+    //"editor.defaultFormatter": "DotJoshJohnson.xml"
   },
   "[vue]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode"
@@ -156,6 +160,11 @@
   "xml.completion.autoCloseTags": true,
   //*  JSHint
   "jshint.enable": false,
+
+  "[css]": {
+    "editor.defaultFormatter": "vscode.css-language-features"
+  },
+  "javascript.updateImportsOnFileMove.enabled": "always",
 
   //______________________________________________________________
   //? ____________________DART SETTINGS__________________________
@@ -232,6 +241,8 @@
   },
   "git.ignoreMissingGitWarning": true,
   "git.autofetch": true,
+  "diffEditor.ignoreTrimWhitespace": true,
+  "gitlens.blame.ignoreWhitespace": true,
 
   //________________________________________________________________________________
   //? _________________________Dictionary [Add new words below]___________________
@@ -249,13 +260,7 @@
   "security.workspace.trust.untrustedFiles": "open",
   "materialTheme.accent": "Blue",
   "workbench.iconTheme": "material-icon-theme",
-  "[css]": {
-    "editor.defaultFormatter": "vscode.css-language-features"
-  },
-  "javascript.updateImportsOnFileMove.enabled": "always",
-  "npm.keybindingsChangedWarningShown": true,
-  "diffEditor.ignoreTrimWhitespace": true,
-  "gitlens.blame.ignoreWhitespace": true
+  "npm.keybindingsChangedWarningShown": true
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   //_______________________________________________________________________________________
