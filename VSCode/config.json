@@ -98,7 +98,7 @@
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
   "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
-
+  "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas",
   "editor.minimap.enabled": false, //* Side Map
   //Glyph for Debugger
   "editor.lineDecorationsWidth": 0,
@@ -113,7 +113,43 @@
 
   //Smooth Scroll
   "editor.cursorSmoothCaretAnimation": true,
-  "editor.smoothScrolling": true,
+  "editor.smoothScrolling": false,
+
+  // Partial Cursive and other settings
+  "editor.tokenColorCustomizations": {
+    "textMateRules": [
+      {
+        "scope": [
+          "comment",
+          "keyword",
+          "storage.modifier",
+          "storage.type.class.js",
+          "storage.type.js",
+          "storage.type.function.js",
+          "entity.other.attribute-name.html"
+        ],
+        "settings": {
+          "fontStyle": "italic"
+        }
+      },
+      {
+        "scope": [
+          "keyword.control.conditional",
+          "keyword.operator",
+          "storage.type.function.arrow.js"
+        ],
+        "settings": {
+          "fontStyle": "bold"
+        }
+      },
+      {
+        "scope": ["support.function.js"],
+        "settings": {
+          "fontStyle": ""
+        }
+      }
+    ]
+  },
 
   //___________________________________________________________________________
   //?_____________________________INDENT RAINBOW________________________________
