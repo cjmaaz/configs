@@ -94,7 +94,7 @@
   "window.title": "${rootName}📂 ❕ ${dirty}${activeEditorShort}👈🏻 ",
 
   //Fonts
-  "editor.fontSize": 17,
+  "editor.fontSize": 20,
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
   "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
@@ -126,7 +126,10 @@
           "storage.type.class.js",
           "storage.type.js",
           "storage.type.function.js",
-          "entity.other.attribute-name.html"
+          "entity.other.attribute-name.html",
+          "string.quoted.single.js",
+          "string.quoted.double.js",
+          "string.template.js"
         ],
         "settings": {
           "fontStyle": "italic"
