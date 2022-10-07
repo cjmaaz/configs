@@ -129,7 +129,9 @@
           "entity.other.attribute-name.html",
           "string.quoted.single.js",
           "string.quoted.double.js",
-          "string.template.js"
+          "string.template.js",
+          "string.quoted.single.apex",
+          "string.quoted.double.apex"
         ],
         "settings": {
           "fontStyle": "italic"
