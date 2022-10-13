@@ -94,7 +94,7 @@
   "window.title": "${rootName}📂 ❕ ${dirty}${activeEditorShort}👈🏻 ",
 
   //Fonts
-  "editor.fontSize": 20,
+  "editor.fontSize": 18,
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
   "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
