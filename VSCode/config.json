@@ -54,7 +54,7 @@
   "workbench.editor.decorations.badges": true,
   "workbench.editor.decorations.colors": true,
   "workbench.enableExperiments": false,
-  "workbench.colorTheme": "Monokai++",
+  "workbench.colorTheme": "Monokai++ Unified",
   // Startup Name
   "workbench.startupEditor": "newUntitledFile",
 
@@ -75,6 +75,7 @@
   "editor.cursorStyle": "line", //* Straight line style for cursor
   "editor.dragAndDrop": false, //* Not let select and move code through Mouse
   "editor.codeLens": true, //* Code Lens
+  "editor.renderLineHighlight": "all",
   //"editor.tabSize": 4,
   /*"editor.insertSpaces": true,
   "editor.detectIndentation": false,*/
@@ -98,8 +99,7 @@
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
   "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
-  "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas",
-  "editor.minimap.enabled": false, //* Side Map
+  "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", //* Side Map
   //Glyph for Debugger
   "editor.lineDecorationsWidth": 0,
   "editor.glyphMargin": false,
@@ -193,7 +193,7 @@
     //"editor.defaultFormatter": "DotJoshJohnson.xml"
   },
   "[vue]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "Vue.volar"
   },
   "vetur.format.defaultFormatter.html": "prettier",
   "json.maxItemsComputed": 7000,
@@ -287,7 +287,7 @@
 
   //________________________________________________________________________________
   //? _________________________Dictionary [Add new words below]___________________
-  "cSpell.userWords": ["combobox", "endof", "Picklist", "supabase"],
+  "cSpell.userWords": ["combobox", "endof", "Maaz", "Picklist", "supabase"],
 
   //__________________________________________________________________________________
   //?____________________________JAVA SF [Version Config]___________________________
@@ -301,7 +301,12 @@
   "security.workspace.trust.untrustedFiles": "open",
   "materialTheme.accent": "Blue",
   "workbench.iconTheme": "material-icon-theme",
-  "npm.keybindingsChangedWarningShown": true
+  "npm.keybindingsChangedWarningShown": true,
+  "workbench.editor.splitInGroupLayout": "vertical",
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.enabled": false,
+  "yaml.maxItemsComputed": 50000,
+  "editor.accessibilitySupport": "off"
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   //_______________________________________________________________________________________
