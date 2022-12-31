@@ -50,5 +50,9 @@
   {
     "key": "ctrl+shift+s ctrl+shift+q",
     "command": "sfdx.force.data.soql.query.selection"
+  },
+  {
+    "key": "ctrl+shift+delete",
+    "command": "workbench.output.action.clearOutput"
   }
 ]
