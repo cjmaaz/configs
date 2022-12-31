@@ -9,6 +9,11 @@
   "salesforcedx-vscode-core.telemetry.enabled": false,
   "redhat.telemetry.enabled": false,
 
+  //_____________________________________________________________________
+  //?______________________SYNC SETTINGS______________________________
+  "settingsSync.ignoredExtensions": [],
+  "settingsSync.ignoredSettings": [],
+
   //__________________________________________________________________________
   //? ____________________EMMET AND INTELLISENSE AND WORKBENCH___________________________
   "emmet.showSuggestionsAsSnippets": true,
@@ -58,6 +63,12 @@
   // Startup Name
   "workbench.startupEditor": "newUntitledFile",
 
+  // Icon
+  "workbench.iconTheme": "material-icon-theme",
+
+  // Editor to split vertically on right or below horizontally
+  "workbench.editor.splitInGroupLayout": "vertical",
+
   // _________________________________________________________________________
   //? _______________________EDITIOR SETTINGS____________________________
   "editor.stickyScroll.enabled": false, //5 Sep-2022
@@ -95,7 +106,7 @@
   "window.title": "${rootName}📂 ❕ ${dirty}${activeEditorShort}👈🏻 ",
 
   //Fonts
-  "editor.fontSize": 18,
+  "editor.fontSize": 20,
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
   "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
@@ -114,6 +125,12 @@
   //Smooth Scroll
   "editor.cursorSmoothCaretAnimation": true,
   "editor.smoothScrolling": false,
+
+  //Mini Map
+  "editor.minimap.showSlider": "always",
+  "editor.minimap.enabled": false,
+
+  "editor.accessibilitySupport": "off",
 
   // Partial Cursive and other settings
   "editor.tokenColorCustomizations": {
@@ -155,6 +172,10 @@
       }
     ]
   },
+
+  //_________________________________________________________________________
+  //? __________________________VS Code OWN COLORIZE____________________________
+  "editor.bracketPairColorization.enabled": true,
 
   //___________________________________________________________________________
   //?_____________________________INDENT RAINBOW________________________________
@@ -271,10 +292,6 @@
   "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
   "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"],
 
-  //_________________________________________________________________________
-  //? __________________________VS Code OWN COLORIZE____________________________
-  "editor.bracketPairColorization.enabled": true,
-
   //__________________________________________________________________________
   //?____________________________GIT AND GIT LENS____________________________
   "gitlens.advanced.messages": {
@@ -300,15 +317,13 @@
   "C_Cpp.updateChannel": "Default",
   "security.workspace.trust.untrustedFiles": "open",
   "materialTheme.accent": "Blue",
-  "workbench.iconTheme": "material-icon-theme",
   "npm.keybindingsChangedWarningShown": true,
-  "workbench.editor.splitInGroupLayout": "vertical",
-  "editor.minimap.showSlider": "always",
-  "editor.minimap.enabled": false,
-  "yaml.maxItemsComputed": 50000,
-  "editor.accessibilitySupport": "off"
+  "yaml.maxItemsComputed": 50000
 
   // TODO ADD COMMA IF ADDING ANY VALUES
+  /*"PEACOCK": 
+  // "peacock.color": "#16402D" // DEV GREEN COLOR
+  */
   //_______________________________________________________________________________________
   // _____________________________________DEPRECATED______________________________________
   //? ________________________________BRACKET COLORIZE 1________________________________

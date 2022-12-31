@@ -13,3 +13,7 @@ Updated on: 6th Oct, 2022
 ### Added tokens for Apex Strings
 
 Updated on: 7th Oct, 2022
+
+### Categorisation minor refresh with Peacock Color
+
+Updated on 31 Dec, 2022
