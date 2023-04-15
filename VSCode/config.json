@@ -15,7 +15,7 @@
   "settingsSync.ignoredSettings": [],
 
   //__________________________________________________________________________
-  //? ____________________EMMET AND INTELLISENSE AND WORKBENCH___________________________
+  //? ____________________EMMET AND INTELLISENSE AND EDITOR AND WORKBENCH___________________________
   "emmet.showSuggestionsAsSnippets": true,
   "emmet.includeLanguages": {
     "cmp": "html"
@@ -52,8 +52,32 @@
       "editor.findMatchBorder": "#2979FF",
       "selection.background": "#2979FF40",
       "statusBarItem.remoteBackground": "#2979FF"
-    }
+    },
+    //__________________________________________________________________________
+    //? ________________________BRACKET COLORIZER___________________________
+    "editorBracketHighlight.foreground1": "#1290f7",
+    "editorBracketHighlight.foreground2": "#fdaa1a",
+    "editorBracketHighlight.foreground3": "#cb26fd",
+    "editorBracketHighlight.foreground4": "#0de4fc",
+    "editorBracketHighlight.foreground5": "#92ff24",
+    "editorBracketHighlight.foreground6": "#f3f719",
+    "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a",
+    "editorRuler.foreground": "#ffffff"
   },
+
+  //_______________________________________________________________________
+  //?___________________________ COMMAND CENTER (AT TOP)____________________
+  "window.commandCenter": true,
+  //_________________________________________________________________________
+  //? __________________________VS Code OWN COLORIZE____________________________
+  "editor.bracketPairColorization.enabled": true,
+  "editor.guides.bracketPairs": true,
+  "editor.guides.indentation": true,
+  "editor.guides.bracketPairsHorizontal": "active",
+  "editor.guides.highlightActiveBracketPair": true,
+
+  // Ruler
+  //"editor.rulers": [80, 120],
   "extensions.ignoreRecommendations": true,
   "workbench.sideBar.location": "right", //* SideBar on the RIGHT
   "workbench.editor.decorations.badges": true,
@@ -62,11 +86,9 @@
   // Startup Name
   "workbench.startupEditor": "newUntitledFile",
 
-  // Icon
-  "workbench.iconTheme": "material-icon-theme",
-
   // Editor to split vertically on right or below horizontally
   "workbench.editor.splitInGroupLayout": "vertical",
+  "workbench.iconTheme": "material-icon-theme",
   "workbench.enableExperiments": false,
 
   // _________________________________________________________________________
@@ -105,7 +127,6 @@
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
   "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
@@ -180,9 +201,9 @@
     ]
   },
 
-  //_________________________________________________________________________
-  //? __________________________VS Code OWN COLORIZE____________________________
-  "editor.bracketPairColorization.enabled": true,
+  //_____________________________________________________________________
+  //?_________________________________PROJECTS____________________________________
+  "projectManager.git.baseFolders": ["D:\\Orgs\\Aramco"],
 
   //___________________________________________________________________________
   //?_____________________________INDENT RAINBOW________________________________
@@ -237,9 +258,9 @@
   "javascript.updateImportsOnFileMove.enabled": "always",
 
   // Salesforce Configs:
-  "[apex]": {
-    "editor.defaultFormatter": "vscjava.vscode-java-debug"
-  },
+  // "[apex]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
   "salesforcedx-vscode-core.detectConflictsAtSync": true, // Sync Settings
 
   //______________________________________________________________
@@ -303,7 +324,7 @@
   //_________________________________________________________________________
   //? ___________________________PLUGIN SETTINGS_________________
   "rainbow_csv.csv_lint_detect_trailing_spaces": true,
-  "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
+  //"prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
   "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"],
   "npm.keybindingsChangedWarningShown": true,
   "yaml.maxItemsComputed": 50000,
@@ -344,19 +365,47 @@
   },
   "git.ignoreMissingGitWarning": true,
   "git.autofetch": true,
-  "diffEditor.ignoreTrimWhitespace": true,
+  "diffEditor.ignoreTrimWhitespace": false,
   "gitlens.blame.ignoreWhitespace": true,
   "gitlens.views.commitDetails.files.layout": "list",
 
   //________________________________________________________________________________
   //? _________________________Dictionary [Add new words below]___________________
-  "cSpell.userWords": ["combobox", "endof", "Maaz", "Picklist", "supabase"],
+  "cSpell.userWords": [
+    "autofetch",
+    "Cascadia",
+    "chevronleft",
+    "chevronright",
+    "combobox",
+    "Consolas",
+    "Datatable",
+    "debouncer",
+    "dismissable",
+    "endof",
+    "esbenp",
+    "esversion",
+    "Fira",
+    "javapath",
+    "Keymap",
+    "limegreen",
+    "Maaz",
+    "onrowselection",
+    "Picklist",
+    "salesforcedx",
+    "SFDX",
+    "staging",
+    "steelblue",
+    "supabase",
+    "TELEMENTRIES",
+    "vsintellicode"
+  ],
 
   //__________________________________________________________________________________
   //?____________________________JAVA SF [Version Config]___________________________
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
   //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
-  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2\\bin",
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17\\bin",
 
   //_________________________________________________________________________________
   //? ___________________________Miscellaneous___________________________________
@@ -366,7 +415,7 @@
   // TODO ADD COMMA IF ADDING ANY VALUES
   /*"PEACOCK": 
   // "peacock.color": "#16402D" // DEV GREEN COLOR
-  // "peacock.color": "#223454" // UAT/STAGGING STEELBLUE COLOR
+  // "peacock.color": "#223454" // UAT/STAGING STEELBLUE COLOR
   // "peacock.color": "#830C24" // PROD RED COLOR
   */
   //_______________________________________________________________________________________
