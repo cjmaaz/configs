@@ -127,6 +127,7 @@
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
   "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
+  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
@@ -312,15 +313,22 @@
 
   //___________________________________________________________________________
   //? _________________________TERMINAL CONFIGURATIONS_______________________
-  "terminal.integrated.profiles.windows": {
+  /* "terminal.integrated.profiles.windows": {
     "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
       "path": "C:\\Program Files\\Git\\bin\\bash.exe",
       "args": []
     }
   },
-  "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)",
+  "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
+  "terminal.integrated.defaultProfile.windows": "PowerShell",
+  "terminal.integrated.profiles.windows": {
+    "PowerShell": {
+      "source": "PowerShell",
+      "color": "terminal.ansiWhite",
+      "icon": "terminal-powershell"
+    }
+  },
   "terminal.integrated.smoothScrolling": true, //5 Sep-2022
-
   //_________________________________________________________________________
   //? ___________________________PLUGIN SETTINGS_________________
   "rainbow_csv.csv_lint_detect_trailing_spaces": true,
@@ -393,6 +401,7 @@
     "Picklist",
     "salesforcedx",
     "SFDX",
+    "slds",
     "staging",
     "steelblue",
     "supabase",
@@ -405,7 +414,7 @@
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
   //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
   //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17\\bin",
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
 
   //_________________________________________________________________________________
   //? ___________________________Miscellaneous___________________________________
