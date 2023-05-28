@@ -117,7 +117,7 @@
   "editor.roundedSelection": true,
   "editor.mouseWheelZoom": false,
   //"editor.mouseWheelZoom": true,
-  "terminal.integrated.cursorBlinking": true,
+
   // Formatting
   "editor.formatOnSave": true,
   "editor.formatOnPaste": true,
@@ -125,14 +125,14 @@
   "editor.wordWrap": "off",
   // Windows Title
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
+  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
-  "editor.fontFamily": "'Cascadia Code','Fira Code',Consolas",
+  "editor.fontFamily": "'Hack Nerd Font','Cascadia Code','Fira Code',Consolas",
   "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", //* Side Map
   //Glyph for Debugger
   "editor.lineDecorationsWidth": 0,
@@ -329,6 +329,8 @@
     }
   },
   "terminal.integrated.smoothScrolling": true, //5 Sep-2022
+  "terminal.integrated.cursorBlinking": true, //28-May-2023
+  "terminal.integrated.cursorStyle": "line", //28-May-2023
   //_________________________________________________________________________
   //? ___________________________PLUGIN SETTINGS_________________
   "rainbow_csv.csv_lint_detect_trailing_spaces": true,
