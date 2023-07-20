@@ -3,8 +3,8 @@
   //?___________________PRIVACY THREATS_______________________________
 
   /*________________ Deprecated_________________
-  "telemetry.enableTelemetry": false,
-  "telemetry.enableCrashReporter": false,*/
+    "telemetry.enableTelemetry": false,
+    "telemetry.enableCrashReporter": false,*/
   "telemetry.telemetryLevel": "off",
   "salesforcedx-vscode-core.telemetry.enabled": false,
   "redhat.telemetry.enabled": false,
@@ -64,7 +64,8 @@
     "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a",
     "editorRuler.foreground": "#ffffff"
   },
-
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.colorTheme": "Monokai++ Unified",
   //_______________________________________________________________________
   //?___________________________ COMMAND CENTER (AT TOP)____________________
   "window.commandCenter": true,
@@ -82,13 +83,11 @@
   "workbench.sideBar.location": "right", //* SideBar on the RIGHT
   "workbench.editor.decorations.badges": true,
   "workbench.editor.decorations.colors": true,
-  "workbench.colorTheme": "Monokai++ Unified",
   // Startup Name
   "workbench.startupEditor": "newUntitledFile",
 
   // Editor to split vertically on right or below horizontally
   "workbench.editor.splitInGroupLayout": "vertical",
-  "workbench.iconTheme": "material-icon-theme",
   "workbench.enableExperiments": false,
 
   // _________________________________________________________________________
@@ -111,7 +110,7 @@
   "editor.renderLineHighlight": "all",
   //"editor.tabSize": 4,
   /*"editor.insertSpaces": true,
-  "editor.detectIndentation": false,*/
+    "editor.detectIndentation": false,*/
 
   // Disable Mouse Scroll
   "editor.roundedSelection": true,
@@ -125,9 +124,10 @@
   "editor.wordWrap": "off",
   // Windows Title
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
-  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
@@ -315,12 +315,12 @@
   //___________________________________________________________________________
   //? _________________________TERMINAL CONFIGURATIONS_______________________
   /* "terminal.integrated.profiles.windows": {
-    "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
-      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "args": []
-    }
-  },
-  "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
+      "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
+        "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+        "args": []
+      }
+    },
+    "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
@@ -385,6 +385,7 @@
   "cSpell.userWords": [
     "autofetch",
     "Cascadia",
+    "Caskaydia",
     "chevronleft",
     "chevronright",
     "CLSMEM",
@@ -402,6 +403,7 @@
     "limegreen",
     "Maaz",
     "momentized",
+    "Monokai",
     "onrowselection",
     "Picklist",
     "PICKVAL",
@@ -412,8 +414,7 @@
     "steelblue",
     "supabase",
     "TELEMENTRIES",
-    "vsintellicode",
-    "Caskaydia"
+    "vsintellicode"
   ],
 
   //__________________________________________________________________________________
@@ -430,28 +431,53 @@
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   /*"PEACOCK": 
-  // "peacock.color": "#16402D" // DEV GREEN COLOR
-  // "peacock.color": "#223454" // UAT/STAGING STEELBLUE COLOR
-  // "peacock.color": "#830C24" // PROD RED COLOR
-  */
+    // "peacock.color": "#16402D" // DEV GREEN COLOR
+    // "peacock.color": "#223454" // UAT/STAGING STEELBLUE COLOR
+    // "peacock.color": "#830C24" // PROD RED COLOR
+    */
   //_______________________________________________________________________________________
   // _____________________________________DEPRECATED______________________________________
   //? ________________________________BRACKET COLORIZE 1________________________________
   /*"bracketPairColorizer.forceUniqueOpeningColor": true,
-  "bracketPairColorizer.scopeLineCSS": [
-    "borderStyle : solid",
-    "borderWidth : 1px",
-    "borderColor : {color}",
-    "opacity: 0.5"
-  ],
-  "bracketPairColorizer.showBracketsInRuler": true,
-  "bracketPairColorizer.highlightActiveScope": true,
-  "bracketPairColorizer.rulerPosition": "Full",
-  "bracketPairColorizer.consecutivePairColors": [
-    //["<", "</"],
-    //["<", "/>"],
-    ["<", ">"],
-    [
+    "bracketPairColorizer.scopeLineCSS": [
+      "borderStyle : solid",
+      "borderWidth : 1px",
+      "borderColor : {color}",
+      "opacity: 0.5"
+    ],
+    "bracketPairColorizer.showBracketsInRuler": true,
+    "bracketPairColorizer.highlightActiveScope": true,
+    "bracketPairColorizer.rulerPosition": "Full",
+    "bracketPairColorizer.consecutivePairColors": [
+      //["<", "</"],
+      //["<", "/>"],
+      ["<", ">"],
+      [
+        "Gold",
+        "Orchid",
+        "LightSkyBlue",
+        "#FFC885",
+        "#32CD32",
+        "#FFFFFF",
+        "#B4F8C8",
+        "#B392AC",
+        "#BE0AFF",
+        "#0D41E1",
+        "#CEFF00"
+      ],
+      "Red"
+    ]
+    //"atomKeymap.promptV3Features": true,
+    //"editor.fontSize": 18,
+    //"editor.fontFamily": "'Fira Code','Fira Code Retina',Fira Code, Consolas"
+    //"editor.fontFamily": "'Input Sans','Input Mono'"
+    //"settingsSync.ignoredExtensions": [],
+    //"settingsSync.ignoredSettings": []
+  }*/
+  //_______________________________________________________________________________________
+  // _____________________________________DEPRECATED______________________________________
+  //? ________________________________BRACKET COLORIZE 2________________________________
+  /*"bracket-pair-colorizer-2.colors": [
       "Gold",
       "Orchid",
       "LightSkyBlue",
@@ -464,43 +490,18 @@
       "#0D41E1",
       "#CEFF00"
     ],
-    "Red"
-  ]
-  //"atomKeymap.promptV3Features": true,
-  //"editor.fontSize": 18,
-  //"editor.fontFamily": "'Fira Code','Fira Code Retina',Fira Code, Consolas"
-  //"editor.fontFamily": "'Input Sans','Input Mono'"
-  //"settingsSync.ignoredExtensions": [],
-  //"settingsSync.ignoredSettings": []
-}*/
-  //_______________________________________________________________________________________
-  // _____________________________________DEPRECATED______________________________________
-  //? ________________________________BRACKET COLORIZE 2________________________________
-  /*"bracket-pair-colorizer-2.colors": [
-    "Gold",
-    "Orchid",
-    "LightSkyBlue",
-    "#FFC885",
-    "#32CD32",
-    "#FFFFFF",
-    "#B4F8C8",
-    "#B392AC",
-    "#BE0AFF",
-    "#0D41E1",
-    "#CEFF00"
-  ],
-  "bracket-pair-colorizer-2.forceUniqueOpeningColor": true,
-  "bracket-pair-colorizer-2.scopeLineCSS": [
-    "borderStyle : solid",
-    "borderWidth : 1px",
-    "borderColor : {color}",
-    "opacity: 0.5"
-  ],
-  "bracket-pair-colorizer-2.showBracketsInRuler": true,
-  "bracket-pair-colorizer-2.highlightActiveScope": true,
-  "bracket-pair-colorizer-2.rulerPosition": "Full",
-  "workbench.editorAssociations": {
-    "*.out": "default"
-  },*/
+    "bracket-pair-colorizer-2.forceUniqueOpeningColor": true,
+    "bracket-pair-colorizer-2.scopeLineCSS": [
+      "borderStyle : solid",
+      "borderWidth : 1px",
+      "borderColor : {color}",
+      "opacity: 0.5"
+    ],
+    "bracket-pair-colorizer-2.showBracketsInRuler": true,
+    "bracket-pair-colorizer-2.highlightActiveScope": true,
+    "bracket-pair-colorizer-2.rulerPosition": "Full",
+    "workbench.editorAssociations": {
+      "*.out": "default"
+    },*/
   //! ADD COMMA IF ADDING ANY VALUE AT END
 }
