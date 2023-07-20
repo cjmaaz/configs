@@ -125,14 +125,14 @@
   "editor.wordWrap": "off",
   // Windows Title
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
-  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  //"window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
   "editor.fontWeight": "400",
-  "editor.fontFamily": "'Hack Nerd Font','Cascadia Code','Fira Code',Consolas",
+  "editor.fontFamily": "'CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas",
   "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", //* Side Map
   //Glyph for Debugger
   "editor.lineDecorationsWidth": 0,
@@ -282,7 +282,8 @@
   //? ______________________FILE CONFIGS________________________________
   "files.associations": {
     "*.apxc": "java",
-    "*.cmp": "html"
+    "*.cmp": "html",
+    "*.gs": "javascript"
   },
   "files.exclude": {
     "**/.classpath": true,
@@ -386,6 +387,7 @@
     "Cascadia",
     "chevronleft",
     "chevronright",
+    "CLSMEM",
     "combobox",
     "Consolas",
     "Datatable",
@@ -399,8 +401,10 @@
     "Keymap",
     "limegreen",
     "Maaz",
+    "momentized",
     "onrowselection",
     "Picklist",
+    "PICKVAL",
     "salesforcedx",
     "SFDX",
     "slds",
@@ -408,7 +412,8 @@
     "steelblue",
     "supabase",
     "TELEMENTRIES",
-    "vsintellicode"
+    "vsintellicode",
+    "Caskaydia"
   ],
 
   //__________________________________________________________________________________
