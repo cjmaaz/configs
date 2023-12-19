@@ -54,5 +54,14 @@
   {
     "key": "ctrl+shift+delete",
     "command": "workbench.output.action.clearOutput"
+  },
+  {
+    "key": "ctrl+g ctrl+h",
+    "command": "git.viewHistory"
+  },
+  {
+    "key": "ctrl+g",
+    "command": "workbench.action.gotoLine",
+    "when": "editorFocus"
   }
 ]
