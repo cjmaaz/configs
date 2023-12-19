@@ -23,11 +23,15 @@
   "emmet.triggerExpansionOnTab": true,
   //"vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   "vsintellicode.modify.editor.suggestSelection": "enabled",
+  "workbench.iconTheme": "material-icon-theme",
+  "workbench.editor.empty.hint": "hidden",
+  "workbench.productIconTheme": "fluent-icons",
+  "workbench.colorTheme": "Noctis Bordo",
   "workbench.colorCustomizations": {
     "editorCursor.foreground": "#ffe657",
     "terminalCursor.foreground": "#ff0a54",
-    "editorIndentGuide.activeBackground": "#ff0000",
-    "editorIndentGuide.background": "#555",
+    "editorIndentGuide.activeBackground1": "#ff0000",
+    "editorIndentGuide.background1": "#555",
     "[Material Theme Darker]": {
       "activityBarBadge.background": "#2979FF",
       "activityBar.activeBorder": "#2979FF",
@@ -64,8 +68,6 @@
     "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a",
     "editorRuler.foreground": "#ffffff"
   },
-  "workbench.iconTheme": "material-icon-theme",
-  "workbench.colorTheme": "Monokai++ Unified",
   //_______________________________________________________________________
   //?___________________________ COMMAND CENTER (AT TOP)____________________
   "window.commandCenter": true,
@@ -240,7 +242,7 @@
   },
   "[xml]": {
     "editor.autoClosingQuotes": "always",
-    "editor.defaultFormatter": "vscode.html-language-features"
+    "editor.defaultFormatter": "redhat.vscode-xml"
     //"editor.defaultFormatter": "DotJoshJohnson.xml"
   },
   "[vue]": {
@@ -257,12 +259,22 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
-
-  // Salesforce Configs:
+  //______________________________________________________________
+  //?____________________________SFDX__________________________
+  //? ____________________SF SETTINGS__________________________
   // "[apex]": {
   //   "editor.defaultFormatter": "esbenp.prettier-vscode"
   // },
-  "salesforcedx-vscode-core.detectConflictsAtSync": true, // Sync Settings
+  "salesforcedx-vscode-core.show-cli-success-msg": false,
+  "salesforcedx-vscode-core.detectConflictsAtSync": true,
+  "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": false,
+  "salesforcedx-vscode-core.retrieve-test-code-coverage": true,
+  //__________________________________________________________________________________
+  //?____________________________JAVA SF [Version Config]___________________________
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
 
   //______________________________________________________________
   //? ____________________DART SETTINGS__________________________
@@ -275,7 +287,7 @@
     "editor.suggest.snippetsPreventQuickSuggestions": false,
     "editor.suggestSelection": "first",
     "editor.tabCompletion": "onlySnippets",
-    "editor.wordBasedSuggestions": false
+    "editor.wordBasedSuggestions": "allDocuments"
   },
 
   //_____________________________________________________________________
@@ -342,8 +354,6 @@
   "materialTheme.accent": "Blue",
 
   //___________________________________________________________________________
-  //?____________________________SFDX_______________________________________
-  "salesforcedx-vscode-core.retrieve-test-code-coverage": true,
   //___________________________________________________________________________
   //? ___________________________CSS Color Info_________________________
   "colorInfo.languages": [
@@ -408,6 +418,7 @@
     "onrowselection",
     "Picklist",
     "PICKVAL",
+    "Reportees",
     "salesforcedx",
     "SFDX",
     "slds",
@@ -417,13 +428,6 @@
     "TELEMENTRIES",
     "vsintellicode"
   ],
-
-  //__________________________________________________________________________________
-  //?____________________________JAVA SF [Version Config]___________________________
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
-  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
-  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
 
   //_________________________________________________________________________________
   //? ___________________________Miscellaneous___________________________________
