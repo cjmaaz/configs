@@ -126,10 +126,14 @@
   "editor.wordWrap": "off",
   // Windows Title
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘",
+
   //Fonts
   "editor.fontSize": 20,
   "editor.fontLigatures": true,
@@ -259,6 +263,10 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
+  //______________________________________________________________
+  //___________________PHP_____________________________________
+  "php.validate.executablePath": "",
+
   //______________________________________________________________
   //?____________________________SFDX__________________________
   //? ____________________SF SETTINGS__________________________
