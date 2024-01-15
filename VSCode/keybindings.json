@@ -47,9 +47,13 @@
     "key": "ctrl+shift+s ctrl+shift+e",
     "command": "sfdx.force.anon.apex.execute.document"
   },
+  // {
+  //   "key": "ctrl+shift+s ctrl+shift+q",
+  //   "command": "sfdx.force.data.soql.query.selection"
+  // },
   {
     "key": "ctrl+shift+s ctrl+shift+q",
-    "command": "sfdx.force.data.soql.query.selection"
+    "command": "sfdx.data.query.selection"
   },
   {
     "key": "ctrl+shift+delete",
