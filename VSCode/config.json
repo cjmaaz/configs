@@ -265,18 +265,7 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
-  //______________________________________________________________
-  //___________________PHP_____________________________________
-  "php.validate.executablePath": "",
-
-  //______________________________________________________________
-  //?____________________________SFDX__________________________
-  //? ____________________SF SETTINGS__________________________
-  // "[apex]": {
-  //   "editor.defaultFormatter": "esbenp.prettier-vscode"
-  // },
   "salesforcedx-vscode-core.show-cli-success-msg": false,
-  "salesforcedx-vscode-core.detectConflictsAtSync": true,
   "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": false,
   "salesforcedx-vscode-core.retrieve-test-code-coverage": true,
   //__________________________________________________________________________________
@@ -285,6 +274,8 @@
   //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
   //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
   "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
+  "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": false,
+  "codescan.ls.javaHome": "C:\\Program Files\\Java\\jdk-22",
 
   //______________________________________________________________
   //? ____________________DART SETTINGS__________________________
@@ -442,7 +433,8 @@
   //_________________________________________________________________________________
   //? ___________________________Miscellaneous___________________________________
   "C_Cpp.updateChannel": "Default",
-  "security.workspace.trust.untrustedFiles": "open"
+  "security.workspace.trust.untrustedFiles": "open",
+  "window.zoomLevel": 1
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   /*"PEACOCK": 
