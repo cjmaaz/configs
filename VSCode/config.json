@@ -3,8 +3,8 @@
   //?___________________PRIVACY THREATS_______________________________
 
   /*________________ Deprecated_________________
-    "telemetry.enableTelemetry": false,
-    "telemetry.enableCrashReporter": false,*/
+      "telemetry.enableTelemetry": false,
+      "telemetry.enableCrashReporter": false,*/
   "telemetry.telemetryLevel": "off",
   "salesforcedx-vscode-core.telemetry.enabled": false,
   "redhat.telemetry.enabled": false,
@@ -23,10 +23,6 @@
   "emmet.triggerExpansionOnTab": true,
   //"vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
   "vsintellicode.modify.editor.suggestSelection": "enabled",
-  "workbench.iconTheme": "material-icon-theme",
-  "workbench.editor.empty.hint": "hidden",
-  "workbench.productIconTheme": "fluent-icons",
-  "workbench.colorTheme": "Noctis Bordo",
   "workbench.colorCustomizations": {
     "editorCursor.foreground": "#ffe657",
     "terminalCursor.foreground": "#ff0a54",
@@ -68,6 +64,7 @@
     "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a",
     "editorRuler.foreground": "#ffffff"
   },
+  "workbench.iconTheme": "material-icon-theme",
   //_______________________________________________________________________
   //?___________________________ COMMAND CENTER (AT TOP)____________________
   "window.commandCenter": true,
@@ -112,7 +109,7 @@
   "editor.renderLineHighlight": "all",
   //"editor.tabSize": 4,
   /*"editor.insertSpaces": true,
-    "editor.detectIndentation": false,*/
+      "editor.detectIndentation": false,*/
 
   // Disable Mouse Scroll
   "editor.roundedSelection": true,
@@ -127,14 +124,11 @@
   // Windows Title
   // "window.title": "👉🏻 ${dirty}${activeEditorShort} ❕ ${rootName} 📂 ",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩",
 
   //Fonts
   "editor.fontSize": 20,
@@ -244,11 +238,11 @@
     "editor.defaultFormatter": "esbenp.prettier-vscode"
   },
   "[json]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode"
+    "editor.defaultFormatter": "vscode.json-language-features"
   },
   "[xml]": {
     "editor.autoClosingQuotes": "always",
-    "editor.defaultFormatter": "redhat.vscode-xml"
+    "editor.defaultFormatter": "vscode.html-language-features"
     //"editor.defaultFormatter": "DotJoshJohnson.xml"
   },
   "[vue]": {
@@ -265,17 +259,12 @@
     "editor.defaultFormatter": "vscode.css-language-features"
   },
   "javascript.updateImportsOnFileMove.enabled": "always",
-  "salesforcedx-vscode-core.show-cli-success-msg": false,
-  "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": false,
-  "salesforcedx-vscode-core.retrieve-test-code-coverage": true,
-  //__________________________________________________________________________________
-  //?____________________________JAVA SF [Version Config]___________________________
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
-  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
-  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
-  "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": false,
-  "codescan.ls.javaHome": "C:\\Program Files\\Java\\jdk-22",
+
+  // Salesforce Configs:
+  // "[apex]": {
+  //   "editor.defaultFormatter": "esbenp.prettier-vscode"
+  // },
+  "salesforcedx-vscode-core.detectConflictsAtSync": true, // Sync Settings
 
   //______________________________________________________________
   //? ____________________DART SETTINGS__________________________
@@ -288,7 +277,7 @@
     "editor.suggest.snippetsPreventQuickSuggestions": false,
     "editor.suggestSelection": "first",
     "editor.tabCompletion": "onlySnippets",
-    "editor.wordBasedSuggestions": "allDocuments"
+    "editor.wordBasedSuggestions": "off"
   },
 
   //_____________________________________________________________________
@@ -328,12 +317,12 @@
   //___________________________________________________________________________
   //? _________________________TERMINAL CONFIGURATIONS_______________________
   /* "terminal.integrated.profiles.windows": {
-      "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
-        "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-        "args": []
-      }
-    },
-    "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
+        "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
+          "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+          "args": []
+        }
+      },
+      "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
   "terminal.integrated.defaultProfile.windows": "PowerShell",
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
@@ -346,6 +335,9 @@
   "terminal.integrated.cursorBlinking": true, //28-May-2023
   "terminal.integrated.cursorStyle": "line", //28-May-2023
   //_________________________________________________________________________
+  //? _______________________MAC OS TERMINAL_____________________________
+  "terminal.integrated.fontFamily": "Cascadia Code NF",
+  //_________________________________________________________________________
   //? ___________________________PLUGIN SETTINGS_________________
   "rainbow_csv.csv_lint_detect_trailing_spaces": true,
   //"prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
@@ -355,6 +347,8 @@
   "materialTheme.accent": "Blue",
 
   //___________________________________________________________________________
+  //?____________________________SFDX_______________________________________
+  "salesforcedx-vscode-core.retrieve-test-code-coverage": true,
   //___________________________________________________________________________
   //? ___________________________CSS Color Info_________________________
   "colorInfo.languages": [
@@ -402,6 +396,7 @@
     "chevronright",
     "CLSMEM",
     "combobox",
+    "commitlint",
     "Consolas",
     "Datatable",
     "debouncer",
@@ -419,7 +414,7 @@
     "onrowselection",
     "Picklist",
     "PICKVAL",
-    "Reportees",
+    "Rahman",
     "salesforcedx",
     "SFDX",
     "slds",
@@ -430,36 +425,71 @@
     "vsintellicode"
   ],
 
+  //__________________________________________________________________________________
+  //?____________________________JAVA SF [Version Config]___________________________
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
+  //"salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17",
+
   //_________________________________________________________________________________
   //? ___________________________Miscellaneous___________________________________
   "C_Cpp.updateChannel": "Default",
   "security.workspace.trust.untrustedFiles": "open",
-  "window.zoomLevel": 1
+  "workbench.colorTheme": "Noctis Bordo",
+  "workbench.productIconTheme": "fluent-icons",
+  "git.openRepositoryInParentFolders": "never",
+  "telemetry.feedback.enabled": false
 
   // TODO ADD COMMA IF ADDING ANY VALUES
   /*"PEACOCK": 
-    // "peacock.color": "#16402D" // DEV GREEN COLOR
-    // "peacock.color": "#223454" // UAT/STAGING STEELBLUE COLOR
-    // "peacock.color": "#830C24" // PROD RED COLOR
-    */
+      // "peacock.color": "#16402D" // DEV GREEN COLOR
+      // "peacock.color": "#223454" // UAT/STAGING STEELBLUE COLOR
+      // "peacock.color": "#830C24" // PROD RED COLOR
+      */
   //_______________________________________________________________________________________
   // _____________________________________DEPRECATED______________________________________
   //? ________________________________BRACKET COLORIZE 1________________________________
   /*"bracketPairColorizer.forceUniqueOpeningColor": true,
-    "bracketPairColorizer.scopeLineCSS": [
-      "borderStyle : solid",
-      "borderWidth : 1px",
-      "borderColor : {color}",
-      "opacity: 0.5"
-    ],
-    "bracketPairColorizer.showBracketsInRuler": true,
-    "bracketPairColorizer.highlightActiveScope": true,
-    "bracketPairColorizer.rulerPosition": "Full",
-    "bracketPairColorizer.consecutivePairColors": [
-      //["<", "</"],
-      //["<", "/>"],
-      ["<", ">"],
-      [
+      "bracketPairColorizer.scopeLineCSS": [
+        "borderStyle : solid",
+        "borderWidth : 1px",
+        "borderColor : {color}",
+        "opacity: 0.5"
+      ],
+      "bracketPairColorizer.showBracketsInRuler": true,
+      "bracketPairColorizer.highlightActiveScope": true,
+      "bracketPairColorizer.rulerPosition": "Full",
+      "bracketPairColorizer.consecutivePairColors": [
+        //["<", "</"],
+        //["<", "/>"],
+        ["<", ">"],
+        [
+          "Gold",
+          "Orchid",
+          "LightSkyBlue",
+          "#FFC885",
+          "#32CD32",
+          "#FFFFFF",
+          "#B4F8C8",
+          "#B392AC",
+          "#BE0AFF",
+          "#0D41E1",
+          "#CEFF00"
+        ],
+        "Red"
+      ]
+      //"atomKeymap.promptV3Features": true,
+      //"editor.fontSize": 18,
+      //"editor.fontFamily": "'Fira Code','Fira Code Retina',Fira Code, Consolas"
+      //"editor.fontFamily": "'Input Sans','Input Mono'"
+      //"settingsSync.ignoredExtensions": [],
+      //"settingsSync.ignoredSettings": []
+    }*/
+  //_______________________________________________________________________________________
+  // _____________________________________DEPRECATED______________________________________
+  //? ________________________________BRACKET COLORIZE 2________________________________
+  /*"bracket-pair-colorizer-2.colors": [
         "Gold",
         "Orchid",
         "LightSkyBlue",
@@ -472,43 +502,18 @@
         "#0D41E1",
         "#CEFF00"
       ],
-      "Red"
-    ]
-    //"atomKeymap.promptV3Features": true,
-    //"editor.fontSize": 18,
-    //"editor.fontFamily": "'Fira Code','Fira Code Retina',Fira Code, Consolas"
-    //"editor.fontFamily": "'Input Sans','Input Mono'"
-    //"settingsSync.ignoredExtensions": [],
-    //"settingsSync.ignoredSettings": []
-  }*/
-  //_______________________________________________________________________________________
-  // _____________________________________DEPRECATED______________________________________
-  //? ________________________________BRACKET COLORIZE 2________________________________
-  /*"bracket-pair-colorizer-2.colors": [
-      "Gold",
-      "Orchid",
-      "LightSkyBlue",
-      "#FFC885",
-      "#32CD32",
-      "#FFFFFF",
-      "#B4F8C8",
-      "#B392AC",
-      "#BE0AFF",
-      "#0D41E1",
-      "#CEFF00"
-    ],
-    "bracket-pair-colorizer-2.forceUniqueOpeningColor": true,
-    "bracket-pair-colorizer-2.scopeLineCSS": [
-      "borderStyle : solid",
-      "borderWidth : 1px",
-      "borderColor : {color}",
-      "opacity: 0.5"
-    ],
-    "bracket-pair-colorizer-2.showBracketsInRuler": true,
-    "bracket-pair-colorizer-2.highlightActiveScope": true,
-    "bracket-pair-colorizer-2.rulerPosition": "Full",
-    "workbench.editorAssociations": {
-      "*.out": "default"
-    },*/
+      "bracket-pair-colorizer-2.forceUniqueOpeningColor": true,
+      "bracket-pair-colorizer-2.scopeLineCSS": [
+        "borderStyle : solid",
+        "borderWidth : 1px",
+        "borderColor : {color}",
+        "opacity: 0.5"
+      ],
+      "bracket-pair-colorizer-2.showBracketsInRuler": true,
+      "bracket-pair-colorizer-2.highlightActiveScope": true,
+      "bracket-pair-colorizer-2.rulerPosition": "Full",
+      "workbench.editorAssociations": {
+        "*.out": "default"
+      },*/
   //! ADD COMMA IF ADDING ANY VALUE AT END
 }
