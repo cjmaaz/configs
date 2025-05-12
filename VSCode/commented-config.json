@@ -39,9 +39,9 @@
   "window.commandCenter": true, // Enables the command center at the top of the window
   "window.zoomLevel": 0, // Sets the default zoom level (0 = 100%)
   // Window title format - uncomment preferred format
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
@@ -230,6 +230,14 @@
   "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
   "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
 
+  // Custom CSS and Loader Plugin
+  "vscode_custom_css.imports": [
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css", // Windows Style Directory
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js" // Windows Style Directory
+    // "file:///Users/maaz.rahman/VSCodeCustom/custom—vscode.css", // Mac Style Directory
+    // "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js" // Mac Style Directory
+  ],
+
   //------------------NOTIFICATIONS & POPUPS--------------------------
   // Notification settings
 
@@ -244,10 +252,10 @@
   "breadcrumbs.enabled": true, // Shows breadcrumbs navigation
   "breadcrumbs.filePath": "on", // Shows file path in breadcrumbs
   "breadcrumbs.symbolPath": "on", // Shows symbol path in breadcrumbs
-  "explorer.confirmDragAndDrop": false, // Doesn't confirm drag and drop in explorer
+  "explorer.confirmDragAndDrop": true, // Doesn't confirm drag and drop in explorer
   "explorer.confirmDelete": true, // Confirms file deletion in explorer
-  "explorer.sortOrder": "mixed", // Sorts files and folders in explorer (directories first, then files)
-  "explorer.fileNesting.enabled": true, // Enables file nesting in explorer
+  "explorer.sortOrder": "foldersNestsFiles", // Sorts files and folders in explorer (directories first, then files)
+  "explorer.fileNesting.enabled": false, // Enables file nesting in explorer
   "explorer.fileNesting.patterns": {
     "*.ts": "${capture}.js,${capture}.js.map,${capture}.d.ts",
     "*.js": "${capture}.js.map,${capture}.min.js,${capture}.d.ts",
@@ -463,7 +471,7 @@
   "salesforce.einsteinForDevelopers.enableInlineIndicatorForAutocomplete": true, // Shows inline indicators for autocompletions
 
   // Java configuration for Salesforce Apex
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Path to Java JDK for Apex
+  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot", // Path to Java JDK for Apex
   // Alternative Java paths (commented out)
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
@@ -639,8 +647,12 @@
 
   // Custom dictionary for spell checking
   "cSpell.userWords": [
-    "autofetch", // Custom words for the spell checker
+    "arrayify",
+    "autocompletion",
+    "autofetch",
+    "backgroundColor",
     "bday",
+    "camelcase",
     "Cascadia",
     "Caskaydia",
     "chevronleft",
@@ -648,66 +660,62 @@
     "CLSMEM",
     "combobox",
     "Consolas",
-    "Datatable",
-    "debouncer",
-    "dismissable",
-    "endof",
-    "esbenp",
-    "esversion",
-    "Fira",
-    "javapath",
-    "Keymap",
-    "limegreen",
-    "Maaz",
-    "momentized",
-    "Monokai",
-    "onrowselection",
-    "Picklist",
-    "PICKVAL",
-    "Reportees",
-    "salesforcedx",
-    "SFDX",
-    "slds",
-    "staging",
-    "steelblue",
-    "supabase",
-    "TELEMETRIES",
-    "vsintellicode",
-    "arrayify",
-    "autocompletion",
-    "backgroundColor",
-    "camelcase",
     "datasource",
+    "Datatable",
     "datetime",
+    "debouncer",
     "deserialize",
     "destructure",
     "devtools",
+    "dismissable",
     "dotenv",
+    "endof",
+    "esbenp",
+    "esversion",
     "fieldset",
+    "Fira",
     "flexbox",
     "focusable",
     "gridline",
     "instanceof",
     "intellisense",
+    "javapath",
     "keyframes",
+    "Keymap",
     "kubernetes",
     "lightsaber",
+    "limegreen",
     "linq",
+    "Maaz",
     "middlewares",
     "mixin",
+    "momentized",
+    "Monokai",
     "multiline",
     "natively",
     "nestable",
     "nullish",
     "objectify",
+    "onrowselection",
     "overscroll",
+    "Picklist",
+    "PICKVAL",
     "preload",
+    "Reportees",
+    "salesforcedx",
     "selectable",
+    "SFDX",
+    "slds",
+    "SOQL",
+    "staging",
+    "steelblue",
     "stringify",
     "stylelint",
     "subgrid",
+    "supabase",
     "superset",
     "symfony",
+    "TELEMETRIES",
     "toastify",
     "transpile",
     "truthy",
@@ -720,6 +728,7 @@
     "upsert",
     "utilization",
     "viewport",
+    "vsintellicode",
     "vuepress",
     "vueuse",
     "webdriver",
