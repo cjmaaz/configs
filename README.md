@@ -17,3 +17,5 @@ Updated on: 7th Oct, 2022
 ### Categorisation minor refresh with Peacock Color
 
 Updated on 31 Dec, 2022
+
+## New Setting with Custom CSS and JS Loader
