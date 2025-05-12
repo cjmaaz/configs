@@ -1,11 +1,11 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', function () {
     const checkElement = setInterval(() => {
         const commandDialog = document.querySelector(".quick-input-widget");
         if (commandDialog) {
-          // Apply the blur effect immediately if the command dialog is visible
-          if (commandDialog.style.display !== "none") {
-            runMyScript();
-          }
+            // Apply the blur effect immediately if the command dialog is visible
+            if (commandDialog.style.display !== "none") {
+                runMyScript();
+            }
             // Create an DOM observer to 'listen' for changes in element's attribute.
             const observer = new MutationObserver((mutations) => {
                 mutations.forEach((mutation) => {
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }, 500); // Check every 500ms
 
     // Execute when command palette was launched.
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if ((event.metaKey || event.ctrlKey) && event.key === 'p') {
             event.preventDefault();
             runMyScript();
@@ -42,7 +42,7 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // Ensure the escape key event listener is at the document level
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', function (event) {
         if (event.key === 'Escape' || event.key === 'Esc') {
             handleEscape();
         }
@@ -59,7 +59,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const newElement = document.createElement("div");
         newElement.setAttribute('id', 'command-blur');
 
-        newElement.addEventListener('click', function() {
+        newElement.addEventListener('click', function () {
             newElement.remove();
         });
 
