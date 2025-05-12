@@ -124,7 +124,7 @@ div.command-center li.action-item.menu-entry {
 }
 /* Action after command palette text input */
 .quick-input-inline-action-bar .actions-container .action-item{
-	padding: 5px 0 !important;
+	padding: 6px 0 !important;
 }
 
 #command-blur {
