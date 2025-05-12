@@ -122,6 +122,10 @@ div.command-center li.action-item.menu-entry {
     font-weight: bold !important;
     margin-bottom: 16px !important;
 }
+/* Action after command palette text input */
+.quick-input-inline-action-bar .actions-container .action-item{
+	padding: 5px 0 !important;
+}
 
 #command-blur {
     position: absolute;
