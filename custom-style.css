@@ -92,8 +92,12 @@
     background-image: linear-gradient(#413036 0%, #322a2d 100%) !important;
     /* background: #3c3c50 !important; */
     backdrop-filter: blur(3px) !important;
-    border-radius: 20px !important;
+    border-radius: 5px !important;
     /* width: 50% !important; */
+}
+/* Forward And Backward Arrow */
+div.command-center li.action-item.menu-entry {
+    display: none !important;
 }
 
 .quick-input-list,
@@ -108,11 +112,12 @@
 
 /* Command palette text input */
 .quick-input-filter .monaco-inputbox {
-    border-radius: 12px !important;
-    padding: 16px !important;
+    border-radius: 5px !important;
+    padding: 5px !important;
     border: none !important;
     /* background-color: rgba(34, 34, 34, .40) !important; */
     /*font-family: 'CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas !important;*/
+	color: #fff;
     font-size: 16px !important;
     font-weight: bold !important;
     margin-bottom: 16px !important;
