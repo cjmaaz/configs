@@ -4,25 +4,41 @@
     "**/bower_components": true,
     "**/.sfdx": true
   },
+  // ____ ADDITIONAL SF ____
+  "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home",
+  "salesforce.einsteinForDevelopers.enableAutocompletions": false,
+  "salesforcedx-vscode-apex.advanced.enable-completion-statistics": false,
+  "salesforcedx-vscode-slds.basic.designToken": true,
+  "salesforcedx-vscode-slds.enhancements.autoSuggest": true,
+  "salesforcedx-vscode-core.telemetry.enabled": false,
+  "salesforcedx-vscode-core.detectConflictsAtSync": false,
+  "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": true,
+
+  "editor.formatOnSave": false,
+  "prettier.enable": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "never",
+    "source.organizeImports": "never"
+  },
+  "cSpell.enabled": false,
   "workbench.colorCustomizations": {
-    "activityBar.activeBackground": "#236648",
-    "activityBar.background": "#236648",
+    "activityBar.activeBackground": "#215731",
+    "activityBar.background": "#215731",
     "activityBar.foreground": "#e7e7e7",
     "activityBar.inactiveForeground": "#e7e7e799",
-    "activityBarBadge.background": "#321847",
+    "activityBarBadge.background": "#1a122e",
     "activityBarBadge.foreground": "#e7e7e7",
     "commandCenter.border": "#e7e7e799",
-    "sash.hoverBorder": "#236648",
-    "statusBar.background": "#16402d",
+    "sash.hoverBorder": "#215731",
+    "statusBar.background": "#13321c",
     "statusBar.foreground": "#e7e7e7",
-    "statusBarItem.hoverBackground": "#236648",
-    "statusBarItem.remoteBackground": "#16402d",
+    "statusBarItem.hoverBackground": "#215731",
+    "statusBarItem.remoteBackground": "#13321c",
     "statusBarItem.remoteForeground": "#e7e7e7",
-    "titleBar.activeBackground": "#16402d",
+    "titleBar.activeBackground": "#13321c",
     "titleBar.activeForeground": "#e7e7e7",
-    "titleBar.inactiveBackground": "#16402d99",
+    "titleBar.inactiveBackground": "#13321c99",
     "titleBar.inactiveForeground": "#e7e7e799"
   },
-  "peacock.color": "#16402D",
-  "salesforcedx-vscode-core.show-cli-success-msg": false
+  "peacock.color": "#13321c",
 }
