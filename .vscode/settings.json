@@ -4,31 +4,23 @@
     "**/bower_components": true,
     "**/.sfdx": true
   },
-  // ____ ADDITIONAL SF ____
   "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home",
-  
   "salesforce.einsteinForDevelopers.enableAutocompletions": false,
-  "salesforce.einsteinForDevelopers.enable": false,
-
   "salesforcedx-vscode-apex.advanced.enable-completion-statistics": false,
-  
   "salesforcedx-vscode-slds.basic.designToken": true,
   "salesforcedx-vscode-slds.enhancements.autoSuggest": true,
-  
   "salesforcedx-vscode-core.telemetry.enabled": false,
-  "salesforcedx-vscode-core.detectConflictsAtSync": false,
-  "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": true,
   "salesforcedx-vscode-core.enable-sobject-refresh-on-startup": true,
-
+  "salesforce.einsteinForDevelopers.enable": true, // DISABLE LATER ON
+  "chat.checkpoints.enabled": false, // DISABLE LATER ON
+  "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": false,
   "editor.formatOnSave": false,
-
   "prettier.enable": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "never",
     "source.organizeImports": "never"
   },
-  "cSpell.enabled": false, // IF EXISTING PROJECT
-  
+  "cSpell.enabled": false,
   "workbench.colorCustomizations": {
     "activityBar.activeBackground": "#215731",
     "activityBar.background": "#215731",
@@ -49,4 +41,6 @@
     "titleBar.inactiveForeground": "#e7e7e799"
   },
   "peacock.color": "#13321c",
+  // "salesforcedx-vscode-core.detectConflictsAtSync": false,
+  // "salesforcedx-vscode-core.push-or-deploy-on-save.ignoreConflictsOnPush": true
 }
