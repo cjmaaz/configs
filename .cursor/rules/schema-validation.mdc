@@ -1,0 +1,346 @@
+---
+description: Before writing **any** Apex code, SOQL queries, DML operations, or LWC components that interact with Salesforce objects and fields, you **MUST** first consult the schema files located at **config/schema/** directory.
+alwaysApply: false
+---
+# Salesforce Schema Validation Ruleset
+
+## ⚠️ CRITICAL WARNING - ZERO TOLERANCE POLICY
+
+**NEVER WRITE CODE BEFORE READING THE SCHEMA. NO EXCEPTIONS.**
+
+### ❌ PROHIBITED Actions:
+- ❌ **NEVER** write code before reading `config/schema/objects/<ObjectName>.yaml`
+- ❌ **NEVER** guess picklist values (even for standard Salesforce fields)
+- ❌ **NEVER** skip validation due to time pressure or rapid implementation
+- ❌ **NEVER** assume standard objects (Contact, Account, Lead, Case) use default picklist values
+
+### ⚠️ Consequences:
+- Deployment failures (INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST)
+- Runtime exceptions in production
+- Multiple failed deployments
+
+### ✅ Exception: Ad-Hoc Data Inspection (NOT Code Development)
+
+**When you CAN query Salesforce directly WITHOUT schema validation:**
+- ✅ Inspecting specific records (one-time investigation)
+- ✅ Debugging existing data (troubleshooting)
+- ✅ Verifying test results (confirming creation)
+- ✅ Discovering data patterns (when schema cannot help - use aggregate queries)
+
+```bash
+# Acceptable: Inspecting a specific record by ID
+sf data record get --sobject Account --record-id 001XXXXXXXXXXXXXXX --target-org YourOrg
+
+# Acceptable: Finding distinct values in text/formula fields
+sf data query --query "SELECT COUNT(Id), Type FROM Account GROUP BY Type" --target-org YourOrg
+```
+
+**❌ When you MUST use schema validation (NO EXCEPTIONS):**
+- Writing Apex classes/methods (including test data helpers)
+- Creating SOQL queries in code (Apex, LWC, triggers)
+- Performing DML operations in code
+- Finding picklist values for code implementation
+
+**Rule:** Writing **persistent code**? → Schema first. Doing **one-time inspection**? → Direct query is fine.
+
+**Note:** When inspecting specific records by ID (e.g., provided as examples), always use `sf data record get` or `sf data query` directly rather than creating temporary scripts.
+
+---
+## 🎯 Golden Rule
+
+**Schema first, code second. ALWAYS. ✅**
+
+```bash
+# ALWAYS do this first when writing code:
+read_file config/schema/objects/<ObjectName>.yaml
+# THEN write code
+```
+
+Applies to:
+- ✅ Standard objects (Account, Contact, Opportunity, Case, Lead)
+- ✅ Custom objects (MyCustomObject__c)
+- ✅ Creating 1 object or 100 objects
+- ✅ Fields you "think" you know
+
+---
+## 3-Step Validation Workflow
+
+### Step 1: Read Object Schema (MANDATORY)
+```bash
+read_file config/schema/objects/<ObjectName>.yaml
+```
+
+**Extract:**
+- Field API names (exact, case-sensitive)
+- **Picklist values (ORG-SPECIFIC, ACTIVE only)**
+- Required fields, field types and lengths, relationship names
+
+**⚠️ CRITICAL:** Even standard objects have **ORG-SPECIFIC** picklist configurations. Never assume defaults.
+
+### Step 2: Validate Before Coding
+For **each field**, verify:
+- `api_name` - Exact field name (case-sensitive)
+- `type` - Data type (Text, Picklist, Lookup, etc.)
+- `required` - Required for DML (true/false)
+- `length` - Max length for text
+- **`picklist_values` - Allowed values (ORG-SPECIFIC)**
+- `relationship_name` - For SOQL relationships
+
+### Step 3: Write Code
+Use validated values only.
+
+---
+## Multi-Object Workflow (10+ Objects)
+
+```bash
+# Step 1: Batch-read all schemas (parallel tool calls)
+read_file config/schema/objects/Account.yaml
+read_file config/schema/objects/Contact.yaml
+read_file config/schema/objects/Opportunity.yaml
+```
+
+```apex
+// Step 2: Document picklist values
+// Account.Type: Prospect, Customer, Partner
+// Opportunity.StageName: Prospecting, Qualification, Closed Won
+// Step 3: Write code with validated values
+```
+
+---
+## SOQL Relationship Rules
+
+**Standard lookup fields** (no `__r` suffix):
+```apex
+// Field: AccountId → Relationship: Account
+SELECT Id, Account.Name FROM Contact  // ✅ CORRECT
+SELECT Id, Account__r.Name FROM Contact  // ❌ WRONG
+```
+
+**Custom lookup fields** (with `__r` suffix):
+```apex
+// Field: CustomLookup__c → Relationship: CustomLookup__r
+SELECT Id, CustomLookup__r.Name FROM MyObject__c  // ✅ CORRECT
+```
+
+**Child queries:**
+```apex
+// Schema shows child relationship: Contacts
+SELECT Id, (SELECT FirstName FROM Contacts) FROM Account  // ✅ CORRECT
+SELECT Id, (SELECT FirstName FROM Contact) FROM Account  // ❌ WRONG
+```
+
+**Always verify `relationship_name` in schema.**
+
+---
+## Example: SOQL + DML with Schema Validation
+
+### Step 1: Read Schema
+```bash
+read_file config/schema/objects/Opportunity.yaml
+```
+
+### Step 2: Review Schema
+```yaml
+- api_name: StageName
+  type: Picklist
+  picklist_values:
+  - Prospecting
+  - Qualification
+  - Closed Won
+- api_name: AccountId
+  relationship_name: Account
+```
+
+### Step 3: Write Code
+```apex
+// ✅ CORRECT: All fields validated
+List<Opportunity> opps = [
+    SELECT Id, Name, StageName, Account.Name
+      FROM Opportunity WHERE StageName = 'Prospecting'
+];
+
+Opportunity newOpp = new Opportunity();
+newOpp.Name = 'Q1 Deal';
+newOpp.StageName = 'Prospecting';  // ✅ Valid from schema
+newOpp.CloseDate = Date.today().addDays(30);
+insert newOpp;
+```
+
+### ❌ WRONG: Without Schema
+```apex
+// ❌ WRONG: Guessed values
+List<Opportunity> opps = [
+    SELECT Id, Stage, AccountName.Name  // ❌ Wrong fields!
+      FROM Opportunity
+];
+Opportunity newOpp = new Opportunity();
+newOpp.StageName = 'Open';  // ❌ Invalid picklist value!
+insert newOpp;  // ❌ FAILS at runtime
+```
+
+---
+## Picklist Value Lookup
+
+### ✅ PRIMARY SOURCE
+**Schema is the ONLY source:**
+```yaml
+- api_name: Priority
+  picklist_values:
+  - Low
+  - Medium
+  - High
+```
+```apex
+myCase.Priority = 'High';  // ✅ Validated from schema
+```
+
+### ❌ NEVER
+```apex
+myCase.Priority = 'Important';  // ❌ Guessed value (not in schema)
+myCase.Status = 'Active';  // ❌ Assumed standard default
+```
+
+### ⚠️ LAST RESORT: Missing Schema Values
+**Only when schema has empty `picklist_values`:**
+```bash
+# Step 1: Confirm schema is incomplete
+read_file config/schema/objects/Case.yaml  # Shows: picklist_values: []
+# Step 2: Query production (LAST RESORT)
+sf data query --query "SELECT Priority FROM Case WHERE Priority != null GROUP BY Priority" -o YourOrg
+```
+
+```apex
+// ⚠️ WARNING: Schema incomplete. Queried production: Low, Medium, High
+myCase.Priority = 'High';
+```
+
+---
+## Real-World Failure Examples
+
+**Note:** Examples use generic Sales/Service Cloud objects. YOUR org's values may differ.
+
+### ❌ Example 1: Guessing Picklist Values
+**WRONG:**
+```apex
+Lead lead = new Lead();
+lead.Status = 'New Lead';  // ❌ Guessed
+insert lead;
+// Result: ❌ INVALID_OR_NULL_FOR_RESTRICTED_PICKLIST
+```
+
+**CORRECT:**
+```bash
+read_file config/schema/objects/Lead.yaml
+```
+```yaml
+- api_name: Status
+  picklist_values:
+  - Open - Not Contacted
+  - Working - Contacted
+```
+```apex
+lead.Status = 'Open - Not Contacted';  // ✅ From schema
+insert lead;  // ✅ SUCCESS
+```
+
+### ❌ Example 2: Wrong Relationship Name
+**WRONG:**
+```apex
+SELECT Id, AccountName.Name FROM Contact  // ❌ Wrong relationship
+// Result: ❌ COMPILATION ERROR
+```
+
+**CORRECT:**
+```bash
+read_file config/schema/objects/Contact.yaml
+```
+```yaml
+- api_name: AccountId
+  relationship_name: Account  # ✅ Use this
+```
+```apex
+SELECT Id, Account.Name FROM Contact  // ✅ From schema - SUCCESS
+```
+
+### ❌ Example 3: Exceeding Text Length
+**WRONG:**
+```apex
+Case c = new Case();
+c.Subject = 'This is a very long subject that exceeds...';  // ❌ Too long
+insert c;  // Result: ❌ STRING_TOO_LONG
+```
+
+**CORRECT:**
+```bash
+read_file config/schema/objects/Case.yaml
+```
+```yaml
+- api_name: Subject
+  length: 255  # ✅ Max length
+```
+```apex
+c.Subject = 'Customer Issue';  // ✅ Within limit - SUCCESS
+```
+
+---
+## Common Mistakes
+
+| Mistake | Correct Approach |
+|---------|------------------|
+| Guessing picklist values | Check `picklist_values` in schema |
+| Assuming standard defaults | Validate org-specific values |
+| Wrong relationship name | Check `relationship_name` |
+| Exceeding text length | Check `length` property |
+| Skipping validation | Always validate |
+
+---
+## Schema File Locations
+
+| Purpose | File Path |
+|---------|-----------|
+| **Validate fields** | `config/schema/objects/<ObjectName>.yaml` ← **PRIMARY** |
+| Check object exists | `config/schema/_index.yaml` |
+| ❌ **DO NOT USE** | `config/salesforce-er-schema.yaml` (1.3 MB, unusable) |
+
+---
+## Validation Checklist
+
+- [ ] Read `config/schema/objects/<ObjectName>.yaml`
+- [ ] Field API names match schema (case-sensitive)
+- [ ] Picklist values in `picklist_values` array
+- [ ] Required fields populated
+- [ ] Text values within `length` limit
+- [ ] Relationship names correct
+
+---
+## Quick Reference
+
+```bash
+# MANDATORY WORKFLOW:
+# 1. Read schema
+read_file config/schema/objects/<ObjectName>.yaml
+# 2. Document picklist values (e.g., Account.Type: Prospect, Customer)
+# 3. Write code with validated values
+```
+
+**Schema first, code second. ALWAYS. ✅**
+
+---
+## Enforcement
+
+**ZERO TOLERANCE for violations.**
+
+**MUST:**
+1. Read schema file first
+2. Validate all picklist values
+3. Validate all field types
+4. Check required fields
+
+**Applies to:**
+- All standard and custom objects
+- 1 object or 100 objects
+- Under time pressure or not
+- Fields you "think" you know
+
+**No exceptions. No shortcuts. No guessing.**
+---
