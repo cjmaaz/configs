@@ -13,18 +13,20 @@ This script uses Salesforce CLI to extract complete field metadata including:
 IMPORTANT: Only ACTIVE picklist values are extracted to ensure AI agents
            and developers only use currently valid values.
 
+WINDOWS COMPATIBLE: Properly resolves SF CLI path on Windows
+
 Usage:
     # Enrich all objects (auto-detects org from .sf/config.json)
-    python3 scripts/enrich_schema_with_picklists.py
+    python enrich_schema_with_picklists.py
 
     # Enrich all objects with explicit org
-    python3 scripts/enrich_schema_with_picklists.py --org IBXDev_Maaz
+    python enrich_schema_with_picklists.py --org IBXDev_Maaz
 
     # Enrich specific objects
-    python3 scripts/enrich_schema_with_picklists.py --objects Account,Contact,HealthcareProviderNpi
+    python enrich_schema_with_picklists.py --objects Account,Contact,HealthcareProviderNpi
 
     # Dry run (show what would be changed)
-    python3 scripts/enrich_schema_with_picklists.py --dry-run
+    python enrich_schema_with_picklists.py --dry-run
 
 Requirements:
     - Salesforce CLI (sf) installed
@@ -38,6 +40,9 @@ import subprocess
 import json
 import yaml
 import argparse
+import platform
+import shutil
+import os
 from pathlib import Path
 from typing import Dict, List, Any, Optional
 import sys
@@ -48,6 +53,7 @@ class SchemaEnricher:
     def __init__(self, org_alias: Optional[str] = None, schema_dir: str = "config/schema/objects"):
         self.org_alias = org_alias or self._detect_org_alias()
         self.schema_dir = Path(schema_dir)
+        self.sf_exe = self._resolve_sf()
         self.enrichment_stats = {
             'objects_processed': 0,
             'fields_enriched': 0,
@@ -56,6 +62,33 @@ class SchemaEnricher:
             'validations_updated': 0,
             'errors': []
         }
+    
+    def _resolve_sf(self) -> str:
+        """
+        Resolve the path to the sf executable, handling Windows nuances.
+        Returns the full path to the sf executable.
+        """
+        exe = shutil.which('sf')
+        if exe:
+            print(f"✓ Found SF CLI: {exe}")
+            return exe
+        
+        if platform.system() == 'Windows':
+            # Common Windows install paths for sf
+            candidates = [
+                r'C:\Program Files\Salesforce CLI\bin\sf.cmd',
+                r'C:\Program Files\sf\bin\sf.cmd',
+                rf'{os.environ.get("USERPROFILE", "")}\AppData\Roaming\npm\sf.cmd',
+                rf'{os.environ.get("LOCALAPPDATA", "")}\sf\bin\sf.cmd'
+            ]
+            for c in candidates:
+                if c and os.path.isfile(c):
+                    print(f"✓ Found SF CLI: {c}")
+                    return c
+        
+        print("✗ Salesforce CLI (sf) not found. Install it or add it to PATH.")
+        print("  See: https://developer.salesforce.com/tools/salesforcecli")
+        sys.exit(1)
     
     def _detect_org_alias(self) -> str:
         """
@@ -94,7 +127,7 @@ class SchemaEnricher:
         print("✗ Could not auto-detect target org from .sf/config.json or .sfdx/sfdx-config.json")
         print("  Please either:")
         print("    1. Set a default org: sf config set target-org <your-org-alias>")
-        print("    2. Provide --org parameter: python3 scripts/enrich_schema_with_picklists.py --org YourOrg")
+        print("    2. Provide --org parameter: python enrich_schema_with_picklists.py --org YourOrg")
         sys.exit(1)
     
     def get_object_metadata(self, object_name: str) -> Optional[Dict]:
@@ -119,13 +152,19 @@ class SchemaEnricher:
         try:
             # Use describe command for field-level metadata
             cmd = [
-                'sf', 'sobject', 'describe',
+                self.sf_exe, 'sobject', 'describe',
                 '--sobject', object_name,
                 '--target-org', self.org_alias,
                 '--json'
             ]
             
-            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            result = subprocess.run(
+                cmd, 
+                capture_output=True, 
+                text=True, 
+                check=True,
+                timeout=60  # 60 second timeout per object
+            )
             metadata = json.loads(result.stdout)
             
             if metadata.get('status') == 0:
@@ -134,11 +173,22 @@ class SchemaEnricher:
                 self.enrichment_stats['errors'].append(f"{object_name}: {metadata.get('message')}")
                 return None
                 
+        except subprocess.TimeoutExpired:
+            self.enrichment_stats['errors'].append(f"{object_name}: Timeout after 60 seconds")
+            return None
         except subprocess.CalledProcessError as e:
-            self.enrichment_stats['errors'].append(f"{object_name}: CLI error - {e.stderr}")
+            error_msg = e.stderr if e.stderr else str(e)
+            self.enrichment_stats['errors'].append(f"{object_name}: CLI error - {error_msg}")
             return None
         except json.JSONDecodeError as e:
             self.enrichment_stats['errors'].append(f"{object_name}: JSON parse error - {str(e)}")
+            return None
+        except FileNotFoundError:
+            print(f"✗ Error: Could not find SF CLI executable: {self.sf_exe}")
+            print("  Please ensure Salesforce CLI is installed and in your PATH")
+            sys.exit(1)
+        except Exception as e:
+            self.enrichment_stats['errors'].append(f"{object_name}: Unexpected error - {str(e)}")
             return None
     
     def extract_picklist_values(self, field_metadata: Dict) -> Optional[List[str]]:
@@ -257,7 +307,7 @@ class SchemaEnricher:
             return False
         
         # Load existing schema
-        with open(schema_file, 'r') as f:
+        with open(schema_file, 'r', encoding='utf-8') as f:
             schema = yaml.safe_load(f)
         
         # Create field lookup map from org metadata
@@ -284,7 +334,7 @@ class SchemaEnricher:
             return True
         
         # Write enriched schema back to file
-        with open(schema_file, 'w') as f:
+        with open(schema_file, 'w', encoding='utf-8') as f:
             yaml.dump(schema, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
         
         print(f"  ✅ Enriched {enriched_count} fields in {object_name}")
@@ -346,16 +396,16 @@ def main():
         epilog="""
 Examples:
   # Enrich all objects (auto-detects org)
-  python3 scripts/enrich_schema_with_picklists.py
+  python enrich_schema_with_picklists.py
 
   # Enrich all objects with explicit org
-  python3 scripts/enrich_schema_with_picklists.py --org IBXDev_Maaz
+  python enrich_schema_with_picklists.py --org IBXDev_Maaz
 
   # Enrich specific objects
-  python3 scripts/enrich_schema_with_picklists.py --objects Account,HealthcareProviderNpi
+  python enrich_schema_with_picklists.py --objects Account,HealthcareProviderNpi
 
   # Dry run to see what would change
-  python3 scripts/enrich_schema_with_picklists.py --dry-run
+  python enrich_schema_with_picklists.py --dry-run
 
 SF CLI Commands Used:
   sf sobject describe --sobject <ObjectName> --target-org <org> --json
