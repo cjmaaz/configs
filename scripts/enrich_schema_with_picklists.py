@@ -1,0 +1,404 @@
+#!/usr/bin/env python3
+"""
+Script to enrich Salesforce schema YAML files with picklist values and other metadata.
+
+This script uses Salesforce CLI to extract complete field metadata including:
+- Picklist values (ACTIVE ONLY - inactive values are excluded)
+- Default values
+- Field dependencies
+- Controlling/dependent field relationships
+- Formula definitions
+- Validation rule details
+
+IMPORTANT: Only ACTIVE picklist values are extracted to ensure AI agents
+           and developers only use currently valid values.
+
+Usage:
+    # Enrich all objects (auto-detects org from .sf/config.json)
+    python3 scripts/enrich_schema_with_picklists.py
+
+    # Enrich all objects with explicit org
+    python3 scripts/enrich_schema_with_picklists.py --org IBXDev_Maaz
+
+    # Enrich specific objects
+    python3 scripts/enrich_schema_with_picklists.py --objects Account,Contact,HealthcareProviderNpi
+
+    # Dry run (show what would be changed)
+    python3 scripts/enrich_schema_with_picklists.py --dry-run
+
+Requirements:
+    - Salesforce CLI (sf) installed
+    - Authenticated org
+    - PyYAML: pip install pyyaml
+
+Note: This script is automatically called by auto_generate_schema.py as Step 9.
+"""
+
+import subprocess
+import json
+import yaml
+import argparse
+from pathlib import Path
+from typing import Dict, List, Any, Optional
+import sys
+
+class SchemaEnricher:
+    """Enriches Salesforce schema YAML files with complete metadata from org."""
+    
+    def __init__(self, org_alias: Optional[str] = None, schema_dir: str = "config/schema/objects"):
+        self.org_alias = org_alias or self._detect_org_alias()
+        self.schema_dir = Path(schema_dir)
+        self.enrichment_stats = {
+            'objects_processed': 0,
+            'fields_enriched': 0,
+            'picklists_added': 0,
+            'formulas_added': 0,
+            'validations_updated': 0,
+            'errors': []
+        }
+    
+    def _detect_org_alias(self) -> str:
+        """
+        Automatically detect the target org from .sf/config.json or .sfdx/sfdx-config.json.
+        Same logic as auto_generate_schema.py.
+        """
+        project_root = Path.cwd()
+        
+        # Try .sf/config.json (SF CLI v2)
+        sf_config = project_root / '.sf' / 'config.json'
+        if sf_config.exists():
+            try:
+                with open(sf_config, 'r') as f:
+                    config = json.load(f)
+                    org_alias = config.get('target-org')
+                    if org_alias:
+                        print(f"✓ Auto-detected org: {org_alias} (from .sf/config.json)")
+                        return org_alias
+            except Exception:
+                pass
+        
+        # Try .sfdx/sfdx-config.json (legacy)
+        sfdx_config = project_root / '.sfdx' / 'sfdx-config.json'
+        if sfdx_config.exists():
+            try:
+                with open(sfdx_config, 'r') as f:
+                    config = json.load(f)
+                    org_alias = config.get('defaultusername')
+                    if org_alias:
+                        print(f"✓ Auto-detected org: {org_alias} (from .sfdx/sfdx-config.json)")
+                        return org_alias
+            except Exception:
+                pass
+        
+        # Could not detect org
+        print("✗ Could not auto-detect target org from .sf/config.json or .sfdx/sfdx-config.json")
+        print("  Please either:")
+        print("    1. Set a default org: sf config set target-org <your-org-alias>")
+        print("    2. Provide --org parameter: python3 scripts/enrich_schema_with_picklists.py --org YourOrg")
+        sys.exit(1)
+    
+    def get_object_metadata(self, object_name: str) -> Optional[Dict]:
+        """
+        Retrieve complete object metadata from Salesforce using CLI.
+        
+        SF CLI Commands Used:
+        ---------------------
+        # Method 1: Using describe (faster, JSON output)
+        sf sobject describe --sobject <ObjectName> --target-org <org> --json
+        
+        # Method 2: Using metadata retrieve (more complete)
+        sf project retrieve start --metadata CustomObject:<ObjectName> --target-org <org>
+        
+        Returns field metadata including:
+        - type, label, length
+        - picklist values (picklistValues[])
+        - controlling/dependent fields
+        - formula definitions
+        - default values
+        """
+        try:
+            # Use describe command for field-level metadata
+            cmd = [
+                'sf', 'sobject', 'describe',
+                '--sobject', object_name,
+                '--target-org', self.org_alias,
+                '--json'
+            ]
+            
+            result = subprocess.run(cmd, capture_output=True, text=True, check=True)
+            metadata = json.loads(result.stdout)
+            
+            if metadata.get('status') == 0:
+                return metadata.get('result', {})
+            else:
+                self.enrichment_stats['errors'].append(f"{object_name}: {metadata.get('message')}")
+                return None
+                
+        except subprocess.CalledProcessError as e:
+            self.enrichment_stats['errors'].append(f"{object_name}: CLI error - {e.stderr}")
+            return None
+        except json.JSONDecodeError as e:
+            self.enrichment_stats['errors'].append(f"{object_name}: JSON parse error - {str(e)}")
+            return None
+    
+    def extract_picklist_values(self, field_metadata: Dict) -> Optional[List[str]]:
+        """
+        Extract picklist values from field metadata.
+        
+        IMPORTANT: Returns ONLY ACTIVE picklist values.
+        Inactive values are excluded to prevent invalid data in code.
+        """
+        if field_metadata.get('type') not in ['picklist', 'multipicklist']:
+            return None
+        
+        picklist_values = field_metadata.get('picklistValues', [])
+        
+        # CRITICAL: Filter for ACTIVE values only (exclude inactive)
+        # This ensures AI agents only use valid, currently-active picklist values
+        active_values = [
+            pv['value'] 
+            for pv in picklist_values 
+            if pv.get('active', True)  # Only include if active=True
+        ]
+        
+        return active_values if active_values else None
+    
+    def extract_field_metadata(self, field_metadata: Dict) -> Dict[str, Any]:
+        """
+        Extract comprehensive field metadata including:
+        - Picklist values
+        - Default values
+        - Formula definitions
+        - Dependencies
+        - Constraints (required, unique, externalId)
+        """
+        enriched_field = {}
+        
+        # Basic field info
+        field_name = field_metadata.get('name')
+        field_type = field_metadata.get('type')
+        
+        # Picklist values
+        if field_type in ['picklist', 'multipicklist']:
+            picklist_values = self.extract_picklist_values(field_metadata)
+            if picklist_values:
+                enriched_field['picklist_values'] = picklist_values
+                self.enrichment_stats['picklists_added'] += 1
+        
+        # Default value
+        if field_metadata.get('defaultValue'):
+            enriched_field['default_value'] = field_metadata['defaultValue']
+        
+        # Formula
+        if field_metadata.get('calculated') and field_metadata.get('calculatedFormula'):
+            enriched_field['formula'] = field_metadata['calculatedFormula']
+            self.enrichment_stats['formulas_added'] += 1
+        
+        # Field constraints
+        if field_metadata.get('nillable') is False:
+            enriched_field['required'] = True
+        
+        if field_metadata.get('unique'):
+            enriched_field['unique'] = True
+        
+        if field_metadata.get('externalId'):
+            enriched_field['external_id'] = True
+        
+        # Lookup relationship
+        if field_type == 'reference':
+            reference_to = field_metadata.get('referenceTo', [])
+            if reference_to:
+                enriched_field['reference_to'] = reference_to[0] if len(reference_to) == 1 else reference_to
+        
+        # Field dependencies (controlling/dependent picklists)
+        if field_metadata.get('controllerName'):
+            enriched_field['controlling_field'] = field_metadata['controllerName']
+        
+        if field_metadata.get('dependentPicklist'):
+            enriched_field['is_dependent_picklist'] = True
+        
+        # Field length
+        if field_metadata.get('length'):
+            enriched_field['length'] = field_metadata['length']
+        
+        # Precision and scale (for numbers)
+        if field_metadata.get('precision'):
+            enriched_field['precision'] = field_metadata['precision']
+        if field_metadata.get('scale'):
+            enriched_field['scale'] = field_metadata['scale']
+        
+        # Help text
+        if field_metadata.get('inlineHelpText'):
+            enriched_field['help_text'] = field_metadata['inlineHelpText']
+        
+        # Description
+        if field_metadata.get('label'):
+            enriched_field['label'] = field_metadata['label']
+        
+        return enriched_field
+    
+    def enrich_object_schema(self, object_name: str, dry_run: bool = False) -> bool:
+        """
+        Enrich a single object's schema file with metadata from org.
+        
+        Returns True if successful, False otherwise.
+        """
+        schema_file = self.schema_dir / f"{object_name}.yaml"
+        
+        if not schema_file.exists():
+            self.enrichment_stats['errors'].append(f"{object_name}: Schema file not found")
+            return False
+        
+        # Get metadata from Salesforce
+        print(f"📡 Retrieving metadata for {object_name}...")
+        org_metadata = self.get_object_metadata(object_name)
+        
+        if not org_metadata:
+            return False
+        
+        # Load existing schema
+        with open(schema_file, 'r') as f:
+            schema = yaml.safe_load(f)
+        
+        # Create field lookup map from org metadata
+        org_fields = {f['name']: f for f in org_metadata.get('fields', [])}
+        
+        # Enrich each field in schema
+        enriched_count = 0
+        for field in schema.get('object', {}).get('fields', []):
+            field_name = field.get('api_name')
+            
+            if field_name in org_fields:
+                enriched_data = self.extract_field_metadata(org_fields[field_name])
+                
+                # Merge enriched data into existing field
+                for key, value in enriched_data.items():
+                    if key not in field or not field[key]:  # Don't overwrite existing data
+                        field[key] = value
+                        enriched_count += 1
+        
+        self.enrichment_stats['fields_enriched'] += enriched_count
+        
+        if dry_run:
+            print(f"  [DRY RUN] Would enrich {enriched_count} fields in {object_name}")
+            return True
+        
+        # Write enriched schema back to file
+        with open(schema_file, 'w') as f:
+            yaml.dump(schema, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        
+        print(f"  ✅ Enriched {enriched_count} fields in {object_name}")
+        self.enrichment_stats['objects_processed'] += 1
+        
+        return True
+    
+    def enrich_all_objects(self, object_names: Optional[List[str]] = None, dry_run: bool = False):
+        """
+        Enrich all objects in schema directory or specific list of objects.
+        """
+        if object_names:
+            objects_to_process = object_names
+        else:
+            # Get all .yaml files in schema directory
+            objects_to_process = [
+                f.stem for f in self.schema_dir.glob("*.yaml")
+            ]
+        
+        print(f"\n🚀 Enriching {len(objects_to_process)} objects...")
+        print(f"   Org: {self.org_alias}")
+        print(f"   Schema Dir: {self.schema_dir}")
+        if dry_run:
+            print("   Mode: DRY RUN (no files will be modified)\n")
+        else:
+            print("   Mode: WRITE (files will be updated)\n")
+        
+        for obj_name in objects_to_process:
+            self.enrich_object_schema(obj_name, dry_run)
+        
+        # Print summary
+        self.print_summary()
+    
+    def print_summary(self):
+        """Print enrichment summary statistics."""
+        print("\n" + "="*60)
+        print("📊 ENRICHMENT SUMMARY")
+        print("="*60)
+        print(f"Objects Processed:    {self.enrichment_stats['objects_processed']}")
+        print(f"Fields Enriched:      {self.enrichment_stats['fields_enriched']}")
+        print(f"Picklists Added:      {self.enrichment_stats['picklists_added']}")
+        print(f"Formulas Added:       {self.enrichment_stats['formulas_added']}")
+        print(f"Errors:               {len(self.enrichment_stats['errors'])}")
+        
+        if self.enrichment_stats['errors']:
+            print("\n⚠️  ERRORS:")
+            for error in self.enrichment_stats['errors'][:10]:  # Show first 10
+                print(f"   - {error}")
+            if len(self.enrichment_stats['errors']) > 10:
+                print(f"   ... and {len(self.enrichment_stats['errors']) - 10} more")
+        
+        print("="*60 + "\n")
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description='Enrich Salesforce schema YAML files with picklist values and metadata',
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  # Enrich all objects (auto-detects org)
+  python3 scripts/enrich_schema_with_picklists.py
+
+  # Enrich all objects with explicit org
+  python3 scripts/enrich_schema_with_picklists.py --org IBXDev_Maaz
+
+  # Enrich specific objects
+  python3 scripts/enrich_schema_with_picklists.py --objects Account,HealthcareProviderNpi
+
+  # Dry run to see what would change
+  python3 scripts/enrich_schema_with_picklists.py --dry-run
+
+SF CLI Commands Used:
+  sf sobject describe --sobject <ObjectName> --target-org <org> --json
+  
+Note: Org alias is auto-detected from .sf/config.json (or .sfdx/sfdx-config.json).
+      Use --org to override auto-detection.
+        """
+    )
+    
+    parser.add_argument(
+        '--org', '-o',
+        required=False,
+        help='Salesforce org alias (e.g., IBXDev_Maaz). If not provided, auto-detects from .sf/config.json'
+    )
+    
+    parser.add_argument(
+        '--objects',
+        help='Comma-separated list of object names to enrich (default: all objects in schema directory)'
+    )
+    
+    parser.add_argument(
+        '--schema-dir',
+        default='config/schema/objects',
+        help='Path to schema objects directory (default: config/schema/objects)'
+    )
+    
+    parser.add_argument(
+        '--dry-run',
+        action='store_true',
+        help='Show what would be changed without modifying files'
+    )
+    
+    args = parser.parse_args()
+    
+    # Parse objects list
+    objects_to_enrich = None
+    if args.objects:
+        objects_to_enrich = [obj.strip() for obj in args.objects.split(',')]
+    
+    # Create enricher and run
+    enricher = SchemaEnricher(args.org, args.schema_dir)
+    enricher.enrich_all_objects(objects_to_enrich, args.dry_run)
+
+
+if __name__ == '__main__':
+    main()
