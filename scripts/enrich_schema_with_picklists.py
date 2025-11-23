@@ -17,16 +17,16 @@ WINDOWS COMPATIBLE: Properly resolves SF CLI path on Windows
 
 Usage:
     # Enrich all objects (auto-detects org from .sf/config.json)
-    python enrich_schema_with_picklists.py
+    python/python3 enrich_schema_with_picklists.py
 
     # Enrich all objects with explicit org
-    python enrich_schema_with_picklists.py --org IBXDev_Maaz
+    python/python3 enrich_schema_with_picklists.py --org IBXDev_Maaz
 
     # Enrich specific objects
-    python enrich_schema_with_picklists.py --objects Account,Contact,HealthcareProviderNpi
+    python/python3 enrich_schema_with_picklists.py --objects Account,Contact,HealthcareProviderNpi
 
     # Dry run (show what would be changed)
-    python enrich_schema_with_picklists.py --dry-run
+    python/python3 enrich_schema_with_picklists.py --dry-run
 
 Requirements:
     - Salesforce CLI (sf) installed
@@ -127,7 +127,7 @@ class SchemaEnricher:
         print("✗ Could not auto-detect target org from .sf/config.json or .sfdx/sfdx-config.json")
         print("  Please either:")
         print("    1. Set a default org: sf config set target-org <your-org-alias>")
-        print("    2. Provide --org parameter: python enrich_schema_with_picklists.py --org YourOrg")
+        print("    2. Provide --org parameter: python/python3 enrich_schema_with_picklists.py --org YourOrg")
         sys.exit(1)
     
     def get_object_metadata(self, object_name: str) -> Optional[Dict]:
@@ -396,16 +396,16 @@ def main():
         epilog="""
 Examples:
   # Enrich all objects (auto-detects org)
-  python enrich_schema_with_picklists.py
+  python/python3 enrich_schema_with_picklists.py
 
   # Enrich all objects with explicit org
-  python enrich_schema_with_picklists.py --org IBXDev_Maaz
+  python/python3 enrich_schema_with_picklists.py --org IBXDev_Maaz
 
   # Enrich specific objects
-  python enrich_schema_with_picklists.py --objects Account,HealthcareProviderNpi
+  python/python3 enrich_schema_with_picklists.py --objects Account,HealthcareProviderNpi
 
   # Dry run to see what would change
-  python enrich_schema_with_picklists.py --dry-run
+  python/python3 enrich_schema_with_picklists.py --dry-run
 
 SF CLI Commands Used:
   sf sobject describe --sobject <ObjectName> --target-org <org> --json
