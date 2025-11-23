@@ -24,6 +24,8 @@ import tempfile
 import xml.etree.ElementTree as ET
 from pathlib import Path
 from datetime import datetime
+import platform
+import shutil
 
 class AutoSchemaGenerator:
     """Fully automated Salesforce schema generator."""
@@ -34,6 +36,25 @@ class AutoSchemaGenerator:
         self.org_alias = None
         self.objects_path = None
         self.all_sobjects = []
+        self.sf_exe = self.resolve_sf()
+        
+    def resolve_sf(self):
+        """Resolve the path to the sf executable, handling Windows nuances."""
+        exe = shutil.which('sf')
+        if exe:
+            return exe
+        if platform.system() == 'Windows':
+            # Common Windows install paths for sf
+            candidates = [
+                r'C:\Program Files\Salesforce CLI\bin\sf.cmd',
+                rf'{os.environ.get("USERPROFILE", "")}\AppData\Roaming\npm\sf.cmd'
+            ]
+            for c in candidates:
+                if c and os.path.isfile(c):
+                    return c
+        print("✗ Salesforce CLI (sf) not found. Install it or add it to PATH.")
+        print("  See: https://developer.salesforce.com/tools/salesforcecli")
+        return None
         
     def detect_org_alias(self):
         """Automatically detect the target org from .sf/config.json."""
@@ -100,9 +121,13 @@ class AutoSchemaGenerator:
         print("Step 3: Querying Org for All sObjects")
         print("=" * 80)
         
+        if not self.sf_exe:
+            print("✗ Cannot proceed: sf executable not found.")
+            return False
+            
         try:
             result = subprocess.run(
-                ['sf', 'sobject', 'list', '--sobject', 'all', '--target-org', self.org_alias, '--json'],
+                [self.sf_exe, 'sobject', 'list', '--sobject', 'all', '--target-org', self.org_alias, '--json'],
                 capture_output=True,
                 text=True,
                 timeout=30
@@ -267,6 +292,10 @@ class AutoSchemaGenerator:
         print(f"Step 6: Retrieving {len(objects)} Objects from Salesforce")
         print("=" * 80)
         
+        if not self.sf_exe:
+            print("✗ Cannot proceed: sf executable not found.")
+            return False
+            
         # Create manifest
         manifest_path = self.create_manifest(objects)
         print(f"✓ Created temporary manifest: {manifest_path}")
@@ -278,7 +307,7 @@ class AutoSchemaGenerator:
             
             result = subprocess.run(
                 [
-                    'sf', 'project', 'retrieve', 'start',
+                    self.sf_exe, 'project', 'retrieve', 'start',
                     '--manifest', str(manifest_path),
                     '--target-org', self.org_alias,
                     '--wait', '10'
