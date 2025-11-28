@@ -45,6 +45,7 @@ import shutil
 import os
 from pathlib import Path
 from typing import Dict, List, Any, Optional
+from datetime import datetime
 import sys
 
 class SchemaEnricher:
@@ -60,7 +61,9 @@ class SchemaEnricher:
             'picklists_added': 0,
             'formulas_added': 0,
             'validations_updated': 0,
-            'errors': []
+            'errors': [],
+            'picklist_files_created': 0,
+            'formula_files_created': 0
         }
     
     def _resolve_sf(self) -> str:
@@ -213,6 +216,63 @@ class SchemaEnricher:
         
         return active_values if active_values else None
     
+    def _extract_non_picklist_formula_metadata(self, field_metadata: Dict) -> Dict[str, Any]:
+        """
+        Extract field metadata EXCLUDING picklists and formulas.
+        (Those are handled separately in the new structure)
+        """
+        enriched_field = {}
+        
+        # Basic field info
+        field_type = field_metadata.get('type')
+        
+        # Default value
+        if field_metadata.get('defaultValue'):
+            enriched_field['default_value'] = field_metadata['defaultValue']
+        
+        # Field constraints
+        if field_metadata.get('nillable') is False:
+            enriched_field['required'] = True
+        
+        if field_metadata.get('unique'):
+            enriched_field['unique'] = True
+        
+        if field_metadata.get('externalId'):
+            enriched_field['external_id'] = True
+        
+        # Lookup relationship
+        if field_type == 'reference':
+            reference_to = field_metadata.get('referenceTo', [])
+            if reference_to:
+                enriched_field['reference_to'] = reference_to[0] if len(reference_to) == 1 else reference_to
+        
+        # Field dependencies (controlling/dependent picklists)
+        if field_metadata.get('controllerName'):
+            enriched_field['controlling_field'] = field_metadata['controllerName']
+        
+        if field_metadata.get('dependentPicklist'):
+            enriched_field['is_dependent_picklist'] = True
+        
+        # Field length
+        if field_metadata.get('length'):
+            enriched_field['length'] = field_metadata['length']
+        
+        # Precision and scale (for numbers)
+        if field_metadata.get('precision'):
+            enriched_field['precision'] = field_metadata['precision']
+        if field_metadata.get('scale'):
+            enriched_field['scale'] = field_metadata['scale']
+        
+        # Help text
+        if field_metadata.get('inlineHelpText'):
+            enriched_field['help_text'] = field_metadata['inlineHelpText']
+        
+        # Description
+        if field_metadata.get('label'):
+            enriched_field['label'] = field_metadata['label']
+        
+        return enriched_field
+    
     def extract_field_metadata(self, field_metadata: Dict) -> Dict[str, Any]:
         """
         Extract comprehensive field metadata including:
@@ -289,15 +349,35 @@ class SchemaEnricher:
     
     def enrich_object_schema(self, object_name: str, dry_run: bool = False) -> bool:
         """
-        Enrich a single object's schema file with metadata from org.
+        Enrich a single object's schema files with metadata from org.
+        
+        Creates/updates three files:
+        - schema.yaml (core structure)
+        - picklists.yaml (picklist values)
+        - formulas.yaml (formula definitions)
         
         Returns True if successful, False otherwise.
         """
-        schema_file = self.schema_dir / f"{object_name}.yaml"
+        # Check if object folder exists (new structure)
+        obj_folder = self.schema_dir / object_name
+        schema_file = obj_folder / 'schema.yaml'
         
-        if not schema_file.exists():
+        # Also check for legacy single-file structure
+        legacy_file = self.schema_dir / f"{object_name}.yaml"
+        
+        if not schema_file.exists() and not legacy_file.exists():
             self.enrichment_stats['errors'].append(f"{object_name}: Schema file not found")
             return False
+        
+        # Determine which structure we're working with
+        if schema_file.exists():
+            # New folder structure
+            working_file = schema_file
+            is_new_structure = True
+        else:
+            # Legacy single file
+            working_file = legacy_file
+            is_new_structure = False
         
         # Get metadata from Salesforce
         print(f"📡 Retrieving metadata for {object_name}...")
@@ -307,37 +387,131 @@ class SchemaEnricher:
             return False
         
         # Load existing schema
-        with open(schema_file, 'r', encoding='utf-8') as f:
+        with open(working_file, 'r', encoding='utf-8') as f:
             schema = yaml.safe_load(f)
         
         # Create field lookup map from org metadata
         org_fields = {f['name']: f for f in org_metadata.get('fields', [])}
         
-        # Enrich each field in schema
+        # Separate enriched data into categories
+        enriched_fields = []
+        picklists_data = {}
+        formulas_data = {}
         enriched_count = 0
+        
         for field in schema.get('object', {}).get('fields', []):
             field_name = field.get('api_name')
             
             if field_name in org_fields:
-                enriched_data = self.extract_field_metadata(org_fields[field_name])
+                org_field = org_fields[field_name]
                 
-                # Merge enriched data into existing field
+                # Extract picklist values
+                if org_field.get('type') in ['picklist', 'multipicklist']:
+                    picklist_values = self.extract_picklist_values(org_field)
+                    if picklist_values:
+                        picklists_data[field_name] = picklist_values
+                        self.enrichment_stats['picklists_added'] += 1
+                        # Don't add to field if new structure
+                        if not is_new_structure:
+                            field['picklist_values'] = picklist_values
+                        enriched_count += 1
+                
+                # Extract formula
+                if org_field.get('calculated') and org_field.get('calculatedFormula'):
+                    formula = org_field['calculatedFormula']
+                    formulas_data[field_name] = formula
+                    self.enrichment_stats['formulas_added'] += 1
+                    # Don't add to field if new structure
+                    if not is_new_structure:
+                        field['formula'] = formula
+                    enriched_count += 1
+                
+                # Add other enrichment data (not picklists/formulas)
+                enriched_data = self._extract_non_picklist_formula_metadata(org_field)
                 for key, value in enriched_data.items():
-                    if key not in field or not field[key]:  # Don't overwrite existing data
+                    if key not in field or not field[key]:
                         field[key] = value
                         enriched_count += 1
+            
+            enriched_fields.append(field)
+        
+        # Update schema object with enriched fields
+        schema['object']['fields'] = enriched_fields
         
         self.enrichment_stats['fields_enriched'] += enriched_count
         
         if dry_run:
             print(f"  [DRY RUN] Would enrich {enriched_count} fields in {object_name}")
+            if picklists_data:
+                print(f"  [DRY RUN] Would create picklists.yaml with {len(picklists_data)} picklists")
+            if formulas_data:
+                print(f"  [DRY RUN] Would create formulas.yaml with {len(formulas_data)} formulas")
             return True
         
-        # Write enriched schema back to file
-        with open(schema_file, 'w', encoding='utf-8') as f:
-            yaml.dump(schema, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+        if is_new_structure:
+            # Write to separate files (new structure)
+            
+            # 1. Write schema file (without picklist values and formulas)
+            with open(schema_file, 'w', encoding='utf-8') as f:
+                # Preserve metadata
+                if 'metadata' not in schema:
+                    schema['metadata'] = {}
+                schema['metadata']['enriched_date'] = datetime.now().isoformat()
+                schema['metadata']['has_picklists'] = len(picklists_data) > 0
+                schema['metadata']['has_formulas'] = len(formulas_data) > 0
+                
+                yaml.dump(schema, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+            
+            # 2. Write picklists file if we have picklists
+            if picklists_data:
+                picklists_file = obj_folder / 'picklists.yaml'
+                picklists_content = {
+                    'picklists': picklists_data,
+                    'metadata': {
+                        'object': object_name,
+                        'generated_date': datetime.now().isoformat(),
+                        'picklist_count': len(picklists_data),
+                        'note': 'Only ACTIVE picklist values are included'
+                    }
+                }
+                with open(picklists_file, 'w', encoding='utf-8') as f:
+                    f.write(f"# Picklist Values for {object_name}\n")
+                    f.write(f"# Generated: {datetime.now().isoformat()}\n")
+                    f.write(f"# Total Picklist Fields: {len(picklists_data)}\n")
+                    f.write("#\n")
+                    f.write("# IMPORTANT: Only ACTIVE picklist values are shown.\n")
+                    f.write("# Inactive values are excluded to prevent invalid data in code.\n")
+                    f.write("#\n\n")
+                    yaml.dump(picklists_content, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+                self.enrichment_stats['picklist_files_created'] += 1
+            
+            # 3. Write formulas file if we have formulas
+            if formulas_data:
+                formulas_file = obj_folder / 'formulas.yaml'
+                formulas_content = {
+                    'formulas': formulas_data,
+                    'metadata': {
+                        'object': object_name,
+                        'generated_date': datetime.now().isoformat(),
+                        'formula_count': len(formulas_data)
+                    }
+                }
+                with open(formulas_file, 'w', encoding='utf-8') as f:
+                    f.write(f"# Formula Definitions for {object_name}\n")
+                    f.write(f"# Generated: {datetime.now().isoformat()}\n")
+                    f.write(f"# Total Formula Fields: {len(formulas_data)}\n")
+                    f.write("#\n\n")
+                    yaml.dump(formulas_content, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+                self.enrichment_stats['formula_files_created'] += 1
+            
+            print(f"  ✅ Enriched {object_name}: {enriched_count} fields, {len(picklists_data)} picklists, {len(formulas_data)} formulas")
+        else:
+            # Write back to single file (legacy structure)
+            with open(working_file, 'w', encoding='utf-8') as f:
+                yaml.dump(schema, f, default_flow_style=False, sort_keys=False, allow_unicode=True)
+            
+            print(f"  ✅ Enriched {enriched_count} fields in {object_name} (legacy structure)")
         
-        print(f"  ✅ Enriched {enriched_count} fields in {object_name}")
         self.enrichment_stats['objects_processed'] += 1
         
         return True
@@ -345,14 +519,26 @@ class SchemaEnricher:
     def enrich_all_objects(self, object_names: Optional[List[str]] = None, dry_run: bool = False):
         """
         Enrich all objects in schema directory or specific list of objects.
+        Works with both new folder structure and legacy single-file structure.
         """
         if object_names:
             objects_to_process = object_names
         else:
-            # Get all .yaml files in schema directory
-            objects_to_process = [
-                f.stem for f in self.schema_dir.glob("*.yaml")
-            ]
+            # Get all objects - check for both folder structure and legacy files
+            objects_to_process = []
+            
+            # Check for folder structure (new)
+            if self.schema_dir.exists():
+                for item in self.schema_dir.iterdir():
+                    if item.is_dir() and not item.name.startswith('_'):
+                        # It's an object folder
+                        objects_to_process.append(item.name)
+                    elif item.is_file() and item.suffix == '.yaml' and not item.name.startswith('_'):
+                        # Legacy single file (remove .yaml extension)
+                        objects_to_process.append(item.stem)
+            
+            # Remove duplicates
+            objects_to_process = list(set(objects_to_process))
         
         print(f"\n🚀 Enriching {len(objects_to_process)} objects...")
         print(f"   Org: {self.org_alias}")
@@ -377,6 +563,8 @@ class SchemaEnricher:
         print(f"Fields Enriched:      {self.enrichment_stats['fields_enriched']}")
         print(f"Picklists Added:      {self.enrichment_stats['picklists_added']}")
         print(f"Formulas Added:       {self.enrichment_stats['formulas_added']}")
+        print(f"Picklist Files:       {self.enrichment_stats['picklist_files_created']}")
+        print(f"Formula Files:        {self.enrichment_stats['formula_files_created']}")
         print(f"Errors:               {len(self.enrichment_stats['errors'])}")
         
         if self.enrichment_stats['errors']:
