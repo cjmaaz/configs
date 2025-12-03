@@ -33,11 +33,11 @@
   "workbench.editor.closeOnFileDelete": false, // Doesn't close editors when files are deleted
   // Window appearance and behavior
   "window.commandCenter": true,
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩",
@@ -92,7 +92,7 @@
   "editor.fontSize": 20, // Sets the font size to 20pt
   "editor.fontLigatures": true, // Enables font ligatures for coding fonts that support them
   "editor.fontWeight": "400", // Sets font weight to normal (400)
-  "editor.fontFamily": "'CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
+  "editor.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
   "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", // Font for code lens UI elements
   // Editor appearance and behavior
   "editor.tabSize": 2, // Sets tab size to 2 spaces
@@ -267,7 +267,30 @@
     }
   },
   "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
-  "terminal.integrated.fontFamily": "Cascadia Code NF", // Terminal font (works for macOS too)
+
+  //____ LINUX INTEGRATED TERMINAL_______
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  // Define the 'zsh' profile, ensuring it points to the correct executable path.
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "bash",
+      "icon": "terminal-bash"
+    },
+    "zsh": {
+      // Check your system to confirm this path.
+      // You can run 'which zsh' in your current terminal to find it.
+      "path": "/bin/zsh",
+      "icon": "terminal-linux"
+    },
+    "fish": {
+      // Check your system for the exact path. Either  `/usr/bin/fish` or `/bin/fish`.
+      "path": "/usr/bin/fish",
+      "icon": "terminal-debian"
+    }
+    // You can keep other existing profiles here or remove them.
+  },
+
+  "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas", // Terminal font (works for macOS too)
   "terminal.integrated.smoothScrolling": true, // Enables smooth scrolling in terminal
   "terminal.integrated.cursorBlinking": true, // Enables cursor blinking in terminal
   "terminal.integrated.cursorStyle": "line", // Uses line cursor style in terminal
@@ -324,7 +347,7 @@
     "editor.formatOnSave": true // Formats TypeScript files on save
   },
   "[markdown]": {
-    "editor.defaultFormatter": "yzhang.markdown-all-in-one", // Uses Markdown All in One formatter
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Markdown All in One formatter
     "editor.formatOnSave": true, // Formats Markdown files on save
     "editor.wordWrap": "on" // Enables word wrap for Markdown
   },
@@ -406,9 +429,13 @@
   "prettier.semi": true, // Adds semicolons
   "prettier.printWidth": 100, // Sets print width to 100 characters
   // "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
-  // Docker settings
+  // Docker settings - OLD
   "docker.containers.sortBy": "Status", // Sorts containers by status
   "docker.images.sortBy": "CreatedTime", // Sorts images by creation time
+  // Docker settings - OLD
+  "containers.containers.sortBy": "CreatedTime",
+  "containers.images.sortBy": "CreatedTime",
+
   //------------------SALESFORCE & APEX SETTINGS-----------------------
   // These settings control Salesforce development tools
   // Salesforce DX settings
@@ -423,8 +450,10 @@
   "salesforce.einsteinForDevelopers.enable": false, // Disables Einstein for Developers
   "salesforce.einsteinForDevelopers.enableAutocompletionsSleepModeMonitoring": false, // Disables sleep mode monitoring
   "salesforce.einsteinForDevelopers.enableInlineIndicatorForAutocomplete": true, // Shows inline indicators for autocompletions
+  "salesforcedx-vscode-apex.advanced.enable-completion-statistics": false,
+  "salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry": false,
   // Java configuration for Salesforce Apex
-  "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Path to Java JDK for Apex
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Path to Java JDK for Apex
   // Alternative Java paths (commented out)
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot", // Path to Java JDK for Apex
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
@@ -450,7 +479,7 @@
     "**/.project": false, // Hides .project files
     "**/.settings": false, // Hides .settings folders
     "**/.factorypath": false, // Hides .factorypath files
-    "**/.DS_Store": false, // Excludes macOS DS_Store files
+    "**/.DS_Store": true, // Excludes macOS DS_Store files
     "**/.git": false, // Excludes Git directories
     "**/node_modules": false, // Excludes node_modules
     "**/dist": false, // Excludes distribution directories
@@ -545,13 +574,13 @@
   "liveServer.settings.ChromeDebuggingAttachment": false, // Disables Chrome debugging attachment
   "liveServer.settings.donotVerifyTags": true, // Doesn't verify HTML tags
   // Browser options for Live Server (comment/uncomment as needed)
-  // "liveServer.settings.CustomBrowser": "chrome:PrivateMode",
+  "liveServer.settings.CustomBrowser": "chrome:PrivateMode",
   // "liveServer.settings.CustomBrowser": "chrome",
   // "liveServer.settings.CustomBrowser": "firefox:PrivateMode",
   // "liveServer.settings.CustomBrowser": "microsoft-edge",
   // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe --inPrivate",
   // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Users\\Maaz\\AppData\\Local\\Thorium\\Application\\thorium.exe --incognito",
-  "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe --incognito", // Uses Brave browser in incognito mode
+  // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe --incognito", // Uses Brave browser in incognito mode
   //------------------PLUGIN SETTINGS & SPELL CHECKER-----------------
   // Plugin settings
   "extensions.ignoreRecommendations": true, // Ignores extension recommendations
@@ -560,7 +589,6 @@
   "yaml.maxItemsComputed": 50000, // Increases computed item limit for YAML
   "materialTheme.accent": "Blue", // Sets Material Theme accent to blue
   "rainbow_csv.csv_lint_detect_trailing_spaces": true, // Detects trailing spaces in CSV
-
   // CSS Color information
   "colorInfo.languages": [
     {
@@ -643,6 +671,7 @@
     "nestable",
     "Noctis",
     "nullish",
+    "nvmrc",
     "objectify",
     "onrowselection",
     "overscroll",
@@ -715,9 +744,9 @@
   // Forced AI apps making my VSCode run slow
   "chat.checkpoints.enabled": false,
   "chat.detectParticipant.enabled": false,
+  "chat.agentSessionsViewLocation": "disabled",
   "chat.commandCenter.enabled": false, // Disables Copilot chat command center
-  "chat.agent.enabled": false, // Disables Copilot chat command center
-  "chat.disableAIFeatures": true,
+  "chat.agent.enabled": false,
   "chat.mcp.discovery.enabled": {
     "claude-desktop": false,
     "windsurf": false,
