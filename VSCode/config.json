@@ -432,7 +432,7 @@
   // Docker settings - OLD
   "docker.containers.sortBy": "Status", // Sorts containers by status
   "docker.images.sortBy": "CreatedTime", // Sorts images by creation time
-  // Docker settings - OLD
+  // Docker settings - NEW
   "containers.containers.sortBy": "CreatedTime",
   "containers.images.sortBy": "CreatedTime",
 
@@ -777,3 +777,4 @@
     "sound": "off"
   }
 }
+
