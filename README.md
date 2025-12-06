@@ -3,7 +3,7 @@
 > Personal configuration repository for Code OSS-based editors (Cursor, VSCodium, VS Code OSS) with comprehensive settings, profiles, and Salesforce development tools.
 
 [![Compatible with](https://img.shields.io/badge/Compatible%20with-Cursor%20%7C%20VSCodium%20%7C%20Code%20OSS-blue)](https://github.com)
-[![Last Updated](https://img.shields.io/badge/Last%20Updated-December%202024-green)](https://github.com)
+[![Last Updated](https://img.shields.io/badge/Last%20Updated-December%202025-green)](https://github.com)
 
 ## Overview
 
@@ -115,7 +115,7 @@ Automated Salesforce development utilities:
 
 ## Migration Notes
 
-### December 2024 Reorganization
+### December 2025 Reorganization
 
 - Renamed `VSCode/` → `code-oss/` for IDE-agnostic naming
 - Consolidated settings into `code-oss/settings/`
