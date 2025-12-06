@@ -37,10 +37,10 @@
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩",
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚",
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟",
@@ -192,10 +192,12 @@
   "editor.find.autoFindInSelection": "multiline", // Auto-enables "Find in selection" when text is selected
   "editor.wordWrapColumn": 120, // Sets the column where words wrap (when word wrap is enabled)
   "editor.snippetSuggestions": "top", // Shows snippets at the top of suggestion list
+  "editor.detectIndentation": true, // Ensures consistent spacing when opening files from different sources.
+  "editor.definitionLinkOpensInPeek": true, // Lets you see definitions inline without losing context.
   "editor.fastScrollSensitivity": 5, // Adjusts how fast the editor scrolls when using Alt+Wheel
   "editor.unicodeHighlight.invisibleCharacters": true, // Highlights invisible Unicode characters
   "editor.unicodeHighlight.ambiguousCharacters": true, // Highlights ambiguous Unicode characters
-  "editor.scrollBeyondLastLine": false, // Prevents scrolling beyond the last line
+  "editor.scrollBeyondLastLine": true, // Prevents scrolling beyond the last line - Disabled
   "editor.suggest.preview": true, // Shows preview of suggestions as you navigate
   "editor.suggest.showStatusBar": true, // Shows more suggestion details in status bar
   "editor.suggest.insertMode": "replace", // Replace text when inserting suggestions
@@ -340,7 +342,7 @@
   "typescript.preferences.quoteStyle": "single", // Uses single quotes in TypeScript
   // Formatter selection for different languages
   "[javascript]": {
-    "editor.defaultFormatter": "vscode.typescript-language-features" // Uses built-in formatter for JavaScript
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses built-in formatter for JavaScript
   },
   "[typescript]": {
     "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Prettier for TypeScript
@@ -475,6 +477,7 @@
   },
   // File handling settings
   "files.exclude": {
+    "**/*.js.map": false, // Hides build artifacts
     "**/.classpath": false, // Hides .classpath files
     "**/.project": false, // Hides .project files
     "**/.settings": false, // Hides .settings folders
@@ -486,7 +489,7 @@
     "**/coverage": false // Excludes test coverage reports
   },
   "files.trimFinalNewlines": true, // Trims extra newlines at end of file
-  "files.trimTrailingWhitespace": false, // Doesn't trim trailing whitespace
+  "files.trimTrailingWhitespace": true, // Do trim trailing whitespace
   // Search configuration
   "search.exclude": {
     "**/node_modules": true, // Excludes node_modules from search
@@ -497,6 +500,7 @@
   "search.searchOnType": true, // Searches as you type
   "search.followSymlinks": false, // Doesn't follow symlinks when searching
   "search.sortOrder": "modified", // Sorts search results by last modified date
+  "search.quickOpen.includeSymbols": true, // Enable quick file navigation with fuzzy matching
   // Additional file settings
   "files.insertFinalNewline": true, // Inserts final newline at end of file
   "files.autoSave": "afterDelay", // Auto-saves files after delay
@@ -534,10 +538,12 @@
   "diffEditor.maxComputationTime": 0, // No time limit for diff computations
   // Additional Git settings
   "git.confirmSync": true, // Do confirm before syncing Git repositories
+  "git.confirmForcePush": true, // Prevents accidental overwrites
   "git.enableSmartCommit": true, // Enables smart Git commits (skips staging area when no staged changes)
   "git.fetchOnPull": true, // Fetches before pulling changes
   "git.mergeEditor": true, // Uses the merge editor for Git merge conflicts
   "git.suggestSmartCommit": true, // Suggests using smart commit
+  "git.inputValidation": true, //
   "git.branchProtection": ["main", "master", "develop"], // Protects these branches from direct commits
   "git.branchRandomName.enable": true, // Generates random names for new branches
   "git.showPushSuccessNotification": true, // Shows a notification when push succeeds
@@ -777,4 +783,3 @@
     "sound": "off"
   }
 }
-
