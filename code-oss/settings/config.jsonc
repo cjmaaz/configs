@@ -338,9 +338,26 @@
   // This section controls language-specific behaviors and file handling
   //=====================================================================
   //------------------LANGUAGE-SPECIFIC SETTINGS------------------------
+  // General language settings (alphabetically by language)
 
-  // JavaScript Settings
+  // C/C++ Settings
+  "C_Cpp.updateChannel": "Default", // Uses default update channel for C/C++ extension
+
+  // Dart/Flutter Settings
+  "dart.lineLength": 100, // Sets Dart line length to 100 characters
+
+  // HTML Settings
+  "html.format.extraLiners": "true", // Adds extra line breaks for certain elements
+  "html.format.indentInnerHtml": true, // Indents <head> and <body> sections
+  "html.format.wrapLineLength": 0, // Disables line wrapping in HTML
+
+  // JavaScript/TypeScript Settings
   "javascript.updateImportsOnFileMove.enabled": "always", // Automatically updates imports when files are moved
+  "typescript.preferences.importModuleSpecifier": "relative", // Uses relative paths for imports
+  "typescript.preferences.quoteStyle": "single", // Uses single quotes in TypeScript
+  "typescript.suggestionActions.enabled": true, // Shows suggestion actions for TypeScript
+  "typescript.surveys.enabled": false, // Disables TypeScript surveys
+  "typescript.updateImportsOnFileMove.enabled": "always", // Updates TypeScript imports when files move
 
   // JSHint Settings (Disabled in favor of ESLint)
   "jshint.enable": false, // Disables JSHint linting
@@ -349,12 +366,30 @@
     "esversion": 9 // Sets JSHint to use ECMAScript 9 (ES2018)
   },
 
-  // TypeScript Settings
-  "typescript.preferences.importModuleSpecifier": "relative", // Uses relative paths for imports
-  "typescript.preferences.quoteStyle": "single", // Uses single quotes in TypeScript
-  "typescript.suggestionActions.enabled": true, // Shows suggestion actions for TypeScript
-  "typescript.updateImportsOnFileMove.enabled": "always", // Updates TypeScript imports when files move
-  // Language-Specific Formatter Settings (alphabetically ordered)
+  // JSON Settings
+  "json.maxItemsComputed": 7000, // Increases the limit of computed items for JSON intellisense
+
+  // PHP Settings
+  "php.validate.enable": true, // Enables PHP validation
+  "php.validate.run": "onType", // Validates PHP code as you type
+
+  // Python Settings
+  "python.analysis.typeCheckingMode": "basic", // Enables basic type checking
+  "python.formatting.provider": "black", // Uses Black formatter for Python
+  "python.linting.enabled": true, // Enables Python linting
+  "python.linting.pylintEnabled": true, // Enables Pylint
+
+  // Vue/Vetur Settings
+  "vetur.format.defaultFormatter.html": "prettier", // Uses Prettier for HTML in Vue files
+
+  // XML Settings
+  "xml.completion.autoCloseTags": true, // Automatically closes XML tags
+  "xml.server.vmargs": "-Xmx512M", // Allocates 512MB memory to XML server
+  "xml.symbols.maxItemsComputed": 15000, // Increases the limit of computed symbols for XML
+
+  //------------------LANGUAGE-SPECIFIC EDITOR OVERRIDES------------------
+  // Per-language editor settings (alphabetically by language)
+
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features" // Uses built-in formatter for CSS
   },
@@ -409,36 +444,6 @@
     "editor.defaultFormatter": "vscode.html-language-features" // Uses built-in formatter for XML
     // "editor.defaultFormatter": "DotJoshJohnson.xml" // Alternate: Use XML extension formatter
   },
-  // HTML Formatting Settings
-  "html.format.extraLiners": "true", // Adds extra line breaks for certain elements
-  "html.format.indentInnerHtml": true, // Indents <head> and <body> sections
-  "html.format.wrapLineLength": 0, // Disables line wrapping in HTML
-
-  // JSON Settings
-  "json.maxItemsComputed": 7000, // Increases the limit of computed items for JSON intellisense
-
-  // Vue/Vetur Settings
-  "vetur.format.defaultFormatter.html": "prettier", // Uses Prettier for HTML in Vue files
-
-  // XML Settings
-  "xml.completion.autoCloseTags": true, // Automatically closes XML tags
-  "xml.server.vmargs": "-Xmx512M", // Allocates 512MB memory to XML server
-  "xml.symbols.maxItemsComputed": 15000, // Increases the limit of computed symbols for XML
-  // C/C++ Settings
-  "C_Cpp.updateChannel": "Default", // Uses default update channel for C/C++ extension
-
-  // Dart/Flutter Settings
-  "dart.lineLength": 100, // Sets Dart line length to 100 characters
-
-  // PHP Settings
-  "php.validate.enable": true, // Enables PHP validation
-  "php.validate.run": "onType", // Validates PHP code as you type
-
-  // Python Settings
-  "python.analysis.typeCheckingMode": "basic", // Enables basic type checking
-  "python.formatting.provider": "black", // Uses Black formatter for Python
-  "python.linting.enabled": true, // Enables Python linting
-  "python.linting.pylintEnabled": true, // Enables Pylint
   //------------------EXTERNAL TOOLS & PLUGINS-------------------------
   // Docker/Containers Settings
   "containers.containers.sortBy": "CreatedTime", // Sorts containers by creation time
@@ -801,7 +806,6 @@
   "telemetry.editStats.enabled": false, // Disables edit statistics
   "telemetry.feedback.enabled": false, // Disables feedback reporting
   "telemetry.telemetryLevel": "off", // Disables all telemetry data collection
-  "typescript.surveys.enabled": false, // Disables TypeScript surveys
   "workbench.telemetryOptOutShown": true, // Marks telemetry opt-out as shown
 
   // Deprecated Telemetry Settings (Keep for reference)
