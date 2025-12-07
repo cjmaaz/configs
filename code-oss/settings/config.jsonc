@@ -1,60 +1,99 @@
 {
   //=====================================================================
-  //? EDITOR EXPERIENCE & APPEARANCE
-  // This section controls how VS Code looks and behaves overall
+  //? EDITOR CORE SETTINGS
+  // Most frequently used editor settings for daily coding
   //=====================================================================
-  //------------------WORKBENCH & WINDOW LAYOUT--------------------------
-  // These settings control the overall workspace appearance and organization
-  "workbench.iconTheme": "material-icon-theme", // Sets file and folder icons to Material Design style
-  "workbench.productIconTheme": "fluent-icons", // Sets interface icons to Microsoft's Fluent design style
-  "workbench.colorTheme": "Noctis Bordo", // Sets the color theme to Noctis Bordo (dark theme with burgundy accents)
-  "workbench.sideBar.location": "right", // Positions the sidebar (explorer, extensions, etc.) on the right side
-  "workbench.editor.empty.hint": "hidden", // Hides the "Get Started" page when opening VS Code
-  "workbench.editor.decorations.badges": true, // Shows badges on file tabs (like git status)
-  "workbench.editor.decorations.colors": true, // Shows color indicators on file tabs
-  "workbench.startupEditor": "newUntitledFile", // Opens a new untitled file when VS Code starts
-  "workbench.editor.splitInGroupLayout": "vertical", // When splitting editors, stack them vertically
-  "workbench.enableExperiments": false, // Controls visibility of the activity bar (with icons for views)
-  "workbench.list.smoothScrolling": true, // Enables smooth scrolling in lists like explorer
-  "workbench.tree.indent": 16, // Sets the indentation size for tree views (explorer)
-  "workbench.tree.renderIndentGuides": "always", // Always shows indent guides in tree views
-  "workbench.editor.enablePreview": false, // Opens files permanently rather than in preview mode
-  "workbench.editor.pinnedTabsOnSeparateRow": true, // Displays pinned tabs on a separate row
-  "workbench.editor.wrapTabs": true, // Wraps tabs to multiple rows when there are many tabs
-  "workbench.editor.tabSizing": "shrink", // Shrinks tabs when there are many open
-  "workbench.editor.showTabs": "multiple", // Only show tab bar when multiple files are open
-  "workbench.panel.defaultLocation": "bottom", // Places panels (terminal, output) at the bottom
-  "workbench.layoutControl.enabled": true, // Shows layout controls in the top-right corner
-  // Performance
-  "workbench.reduceMotion": "auto", // Reduces motion based on OS settings
-  "workbench.commandPalette.history": 50, // Remembers 50 most recent commands
-  "workbench.colorTheme.preferredDarkColorTheme": "Noctis Bordo", // Sets preferred dark theme
-  "workbench.editor.untitled.hint": "hidden", // Hides untitled file hints
-  "workbench.editor.closeOnFileDelete": false, // Doesn't close editors when files are deleted
-  // Window appearance and behavior
-  "window.commandCenter": true,
-  // Window title format - uncomment based on your active profile/project
-  // Web Development Profiles
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛", // JavaScript/TypeScript
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩", // MERN Stack
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️", // React
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚", // Vue.js
-  // Backend & Systems Profiles
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C/C++🚦", // C/C++
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟", // C#/.NET
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Java☕", // Java/Spring
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘", // PHP/Laravel
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Python🐍", // Python
-  // Mobile & Cross-Platform Profiles
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙", // Flutter/Dart
-  // Enterprise & Cloud Profiles
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️", // Salesforce
-  // General Purpose Profiles
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠", // Default
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻", // Personal
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻", // Work
-  // Color customizations for themes and bracket highlighting
-  "workbench.colorCustomizations": {
+  //------------------FONTS & TYPOGRAPHY------------------
+  "editor.fontSize": 20, // Sets the font size to 20pt
+  "editor.fontLigatures": true, // Enables font ligatures for coding fonts that support them
+  "editor.fontWeight": "400", // Sets font weight to normal (400)
+  "editor.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
+  "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", // Font for code lens UI elements
+
+  //------------------CURSOR & SELECTION------------------
+  "editor.cursorBlinking": "expand", // Uses expanding animation for cursor blinking
+  "editor.cursorStyle": "line", // Uses a line cursor style
+  "editor.cursorWidth": 3, // Sets cursor width to 3px
+  "editor.cursorSmoothCaretAnimation": "on", // Enables smooth cursor animation
+  "editor.selectionHighlight": true, // Highlights all occurrences of selected text
+  "editor.roundedSelection": true, // Uses rounded corners for text selections
+  "editor.occurrencesHighlight": "singleFile", // Highlights occurrences only in current file
+
+  //------------------CODE INTELLIGENCE & SUGGESTIONS------------------
+  "editor.suggestSelection": "first", // Automatically selects first suggestion
+  "editor.inlineSuggest.enabled": true, // Enables inline suggestions (like GitHub Copilot)
+  "editor.inlineSuggest.suppressSuggestions": true, // Hides regular suggestions if inline ones are shown
+  "editor.parameterHints.enabled": true, // Shows parameter hints for functions
+  "editor.hover.delay": 700, // Sets hover tooltip delay to 700ms
+  "editor.hover.sticky": true, // Keeps hover popups open when mouse moves over them
+  "editor.acceptSuggestionOnEnter": "on", // Accepts suggestions with Enter key
+  "editor.suggest.preview": true, // Shows preview of suggestions as you navigate
+  "editor.suggest.showStatusBar": true, // Shows more suggestion details in status bar
+  "editor.suggest.insertMode": "replace", // Replace text when inserting suggestions
+  "editor.snippetSuggestions": "top", // Shows snippets at the top of suggestion list
+  "editor.semanticHighlighting.enabled": true, // Enables semantic token-based highlighting
+  "editor.quickSuggestions": {
+    "strings": true, // Enables suggestions within strings
+    "comments": "off", // Disables suggestions in comments
+    "other": true // Enables suggestions in other locations
+  },
+  "editor.suggestOnTriggerCharacters": true, // Shows suggestions when typing trigger characters
+  "editor.tabCompletion": "on", // Enables tab completion
+  "editor.wordBasedSuggestions": "matchingDocuments", // Shows word-based suggestions from matching documents
+
+  //------------------FORMATTING & CODE ACTIONS------------------
+  "editor.formatOnSave": true, // Automatically formats code when saving
+  "editor.formatOnPaste": true, // Automatically formats code when pasting
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "explicit", // Fix all auto-fixable issues with eslint on save when explicitly requested
+    "source.fixAll": "explicit", // Fix all auto-fixable issues on save when explicitly requested
+    "source.organizeImports": "explicit" // Organize imports on save when explicitly requested
+  },
+  "editor.codeLens": true, // Enables code lens (contextual actions)
+  "editor.rename.enablePreview": false, // Disables preview when renaming symbols
+  "editor.detectIndentation": true, // Ensures consistent spacing when opening files from different sources
+  "editor.definitionLinkOpensInPeek": true, // Lets you see definitions inline without losing context
+  "editor.experimental.pasteActions.enabled": true, // Enables smart paste actions (format on paste, etc.)
+
+  //------------------BRACKET COLORIZATION & GUIDES------------------
+  "editor.bracketPairColorization.enabled": true, // Enables colorization of matching brackets
+  "editor.bracketPairColorization.independentColorPoolPerBracketType": true, // Uses different color pools for different bracket types
+  "editor.guides.bracketPairs": true, // Shows guides connecting bracket pairs
+  "editor.guides.bracketPairsHorizontal": "active", // Shows horizontal guides for active bracket pair
+  "editor.guides.highlightActiveBracketPair": true, // Highlights the active bracket pair
+  "editor.guides.indentation": true, // Shows indentation guides
+  // "editor.rulers": [80, 120], // Uncomment to enable ruler lines at 80 and 120 characters
+
+  //------------------EDITOR BEHAVIOR & APPEARANCE------------------
+  "editor.tabSize": 2, // Sets tab size to 2 spaces
+  "editor.wordWrap": "off", // Disables word wrapping
+  "editor.wordWrapColumn": 120, // Sets the column where words wrap (when word wrap is enabled)
+  "editor.renderLineHighlight": "all", // Highlights current line in editor
+  "editor.lineDecorationsWidth": 0, // Removes space for line decorations
+  "editor.glyphMargin": false, // Hides the glyph margin (used by debugger)
+  "editor.minimap.enabled": false, // Disables the code minimap
+  "editor.minimap.showSlider": "always", // Always shows the slider in the minimap
+  "editor.stickyScroll.enabled": false, // Disables sticky scroll (keeps code headers visible)
+  "editor.stickyScroll.maxLineCount": 5, // Limits sticky scroll to 5 lines max (when enabled)
+  "editor.scrollBeyondLastLine": true, // Allows scrolling beyond the last line
+  "editor.smoothScrolling": false, // Disables smooth scrolling
+  "editor.fastScrollSensitivity": 5, // Adjusts how fast the editor scrolls when using Alt+Wheel
+  "editor.multiCursorModifier": "ctrlCmd", // Uses Ctrl/Cmd for multi-cursor operations
+  "editor.dragAndDrop": false, // Disables drag and drop of selected text
+  "editor.mouseWheelZoom": false, // Disables zooming with Ctrl+MouseWheel
+  "editor.autoClosingBrackets": "always", // Automatically closes brackets and parentheses
+  "editor.autoIndent": "brackets", // Automatically indents based on bracket structure
+  "editor.linkedEditing": true, // Enables linked editing (changes both tags when editing one)
+  "editor.largeFileOptimizations": false, // Disables optimizations for large files
+  "editor.accessibilitySupport": "off", // Disables accessibility support
+  "editor.accessibilityPageSize": 10, // Sets how many lines to scroll with screen reader navigation
+  "editor.foldingImportsByDefault": false, // Folds imports by default - off
+  "editor.find.autoFindInSelection": "multiline", // Auto-enables "Find in selection" when text is selected
+  "editor.unicodeHighlight.invisibleCharacters": true, // Highlights invisible Unicode characters
+  "editor.unicodeHighlight.ambiguousCharacters": true, // Highlights ambiguous Unicode characters
+
+  //------------------TOKEN COLORIZATION------------------
+  "editor.tokenColorCustomizations": {
     "editorCursor.foreground": "#ffe657", // Sets cursor color to bright yellow
     "terminalCursor.foreground": "#ff0a54", // Sets terminal cursor color to pink
     "editorIndentGuide.activeBackground1": "#ff0000", // Sets active indent guide to red
@@ -95,53 +134,7 @@
     "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a", // Mismatched brackets: red
     "editorRuler.foreground": "#ffffff" // Column ruler color: white
   },
-  //------------------GENERAL EDITOR BEHAVIOR & VISUALS------------------
-  // These settings control how the code editor looks and behaves
-  // Font settings
-  "editor.fontSize": 20, // Sets the font size to 20pt
-  "editor.fontLigatures": true, // Enables font ligatures for coding fonts that support them
-  "editor.fontWeight": "400", // Sets font weight to normal (400)
-  "editor.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
-  "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", // Font for code lens UI elements
-  // Editor appearance and behavior
-  "editor.tabSize": 2, // Sets tab size to 2 spaces
-  "editor.stickyScroll.enabled": false, // Disables sticky scroll (keeps code headers visible)
-  "editor.stickyScroll.maxLineCount": 5, // Limits sticky scroll to 5 lines max (when enabled)
-  "editor.hover.sticky": true, // Keeps hover popups open when mouse moves over them
-  "editor.multiCursorModifier": "ctrlCmd", // Uses Ctrl/Cmd for multi-cursor operations
-  "editor.suggestSelection": "first", // Automatically selects first suggestion
-  "editor.inlineSuggest.enabled": true, // Enables inline suggestions (like GitHub Copilot)
-  "editor.inlineSuggest.suppressSuggestions": true, // Hides regular suggestions if inline ones are shown
-  "editor.parameterHints.enabled": true, // Shows parameter hints for functions
-  "editor.hover.delay": 700, // Sets hover tooltip delay to 700ms
-  "editor.selectionHighlight": true, // Highlights all occurrences of selected text
-  "editor.autoClosingBrackets": "always", // Automatically closes brackets and parentheses
-  "editor.autoIndent": "brackets", // Automatically indents based on bracket structure
-  "editor.cursorStyle": "line", // Uses a line cursor style
-  "editor.dragAndDrop": false, // Disables drag and drop of selected text
-  "editor.codeLens": true, // Enables code lens (contextual actions)
-  "editor.renderLineHighlight": "all", // Highlights current line in editor
-  "editor.roundedSelection": true, // Uses rounded corners for text selections
-  "editor.mouseWheelZoom": false, // Disables zooming with Ctrl+MouseWheel
-  "editor.formatOnSave": true, // Automatically formats code when saving
-  "editor.formatOnPaste": true, // Automatically formats code when pasting
-  "editor.wordWrap": "off", // Disables word wrapping
-  "editor.lineDecorationsWidth": 0, // Removes space for line decorations
-  "editor.glyphMargin": false, // Hides the glyph margin (used by debugger)
-  "editor.linkedEditing": true, // Enables linked editing (changes both tags when editing one)
-  "editor.largeFileOptimizations": false, // Disables optimizations for large files
-  "editor.accessibilitySupport": "off", // Disables accessibility support
-  "editor.occurrencesHighlight": "singleFile", // Highlights occurrences only in current file
-  "editor.foldingImportsByDefault": false, // Folds imports by default - off
-  // Cursor appearance
-  "editor.cursorBlinking": "expand", // Uses expanding animation for cursor blinking
-  "editor.cursorWidth": 3, // Sets cursor width to 3px
-  "editor.cursorSmoothCaretAnimation": "on", // Enables smooth cursor animation
-  "editor.smoothScrolling": false, // Disables smooth scrolling
-  // Minimap settings
-  "editor.minimap.showSlider": "always", // Always shows the slider in the minimap
-  "editor.minimap.enabled": false, // Disables the code minimap
-  // Token colorization for code styling (italic/bold for specific syntax)
+  //------------------TOKEN COLORIZATION------------------
   "editor.tokenColorCustomizations": {
     "textMateRules": [
       {
@@ -189,66 +182,44 @@
       }
     ]
   },
-  // Bracket pair guides & colorization
-  "editor.bracketPairColorization.enabled": true, // Enables colorization of matching brackets
-  "editor.guides.bracketPairs": true, // Shows guides connecting bracket pairs
-  "editor.guides.indentation": true, // Shows indentation guides
-  "editor.guides.bracketPairsHorizontal": "active", // Shows horizontal guides for active bracket pair
-  "editor.guides.highlightActiveBracketPair": true, // Highlights the active bracket pair
-  // "editor.rulers": [80, 120], // Uncomment to enable ruler lines at 80 and 120 characters
-  // Additional editor settings
-  "editor.acceptSuggestionOnEnter": "on", // Accepts suggestions with Enter key
-  "editor.find.autoFindInSelection": "multiline", // Auto-enables "Find in selection" when text is selected
-  "editor.wordWrapColumn": 120, // Sets the column where words wrap (when word wrap is enabled)
-  "editor.snippetSuggestions": "top", // Shows snippets at the top of suggestion list
-  "editor.detectIndentation": true, // Ensures consistent spacing when opening files from different sources.
-  "editor.definitionLinkOpensInPeek": true, // Lets you see definitions inline without losing context.
-  "editor.fastScrollSensitivity": 5, // Adjusts how fast the editor scrolls when using Alt+Wheel
-  "editor.unicodeHighlight.invisibleCharacters": true, // Highlights invisible Unicode characters
-  "editor.unicodeHighlight.ambiguousCharacters": true, // Highlights ambiguous Unicode characters
-  "editor.scrollBeyondLastLine": true, // Prevents scrolling beyond the last line - Disabled
-  "editor.suggest.preview": true, // Shows preview of suggestions as you navigate
-  "editor.suggest.showStatusBar": true, // Shows more suggestion details in status bar
-  "editor.suggest.insertMode": "replace", // Replace text when inserting suggestions
-  "editor.semanticHighlighting.enabled": true, // Enables semantic token-based highlighting
-  "editor.rename.enablePreview": false, // Disables preview when renaming symbols
-  "editor.bracketPairColorization.independentColorPoolPerBracketType": true, // Uses different color pools for different bracket types
-  "editor.codeActionsOnSave": {
-    "source.fixAll.eslint": "explicit", // Fix all auto-fixable issues with eslint on save when explicitly requested
-    "source.fixAll": "explicit", // Fix all auto-fixable issues on save when explicitly requested
-    "source.organizeImports": "explicit" // Organize imports on save when explicitly requested
-  },
-  "editor.accessibilityPageSize": 10, // Sets how many lines to scroll with screen reader navigation
-  "editor.experimental.pasteActions.enabled": true, // Enables smart paste actions (format on paste, etc.)
-  // Indent Rainbow extension settings
-  "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
-  "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
-  // Custom CSS and JS Loader Plugin (OS-specific paths)
-  // Windows paths:
-  "vscode_custom_css.imports": [
-    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css",
-    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js"
-  ],
-  // macOS/Linux paths:
-  // "vscode_custom_css.imports": [
-  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode.css",
-  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js"
-  // ],
-  //------------------NOTIFICATIONS & POPUPS--------------------------
-  // Notification settings
-  "window.dialogStyle": "custom", // Uses VS Code's custom dialog style
-  "notifications.excludeList": ["workbench.action.terminal.allowWorkspaceShell"], // Excludes these notifications
-  "window.restoreWindows": "all", // Restores all windows when VS Code restarts
-  "window.confirmBeforeClose": "always", // Always confirms before closing VS Code
-  //------------------USER INTERFACE & EXPERIENCE---------------------
-  // UI settings
-  "breadcrumbs.enabled": true, // Shows breadcrumbs navigation
-  "breadcrumbs.filePath": "on", // Shows file path in breadcrumbs
-  "breadcrumbs.symbolPath": "on", // Shows symbol path in breadcrumbs
-  "explorer.confirmDragAndDrop": true, // Doesn't confirm drag and drop in explorer
+
+  //=====================================================================
+  //? WORKBENCH & UI
+  // Workspace appearance, layout, and user interface settings
+  //=====================================================================
+  //------------------THEME & VISUAL IDENTITY------------------
+  "workbench.colorTheme": "Noctis Bordo", // Sets the color theme to Noctis Bordo (dark theme with burgundy accents)
+  "workbench.colorTheme.preferredDarkColorTheme": "Noctis Bordo", // Sets preferred dark theme
+  "workbench.iconTheme": "material-icon-theme", // Sets file and folder icons to Material Design style
+  "workbench.productIconTheme": "fluent-icons", // Sets interface icons to Microsoft's Fluent design style
+
+  //------------------EDITOR TABS & LAYOUT------------------
+  "workbench.editor.enablePreview": false, // Opens files permanently rather than in preview mode
+  "workbench.editor.empty.hint": "hidden", // Hides the "Get Started" page when opening VS Code
+  "workbench.editor.decorations.badges": true, // Shows badges on file tabs (like git status)
+  "workbench.editor.decorations.colors": true, // Shows color indicators on file tabs
+  "workbench.editor.pinnedTabsOnSeparateRow": true, // Displays pinned tabs on a separate row
+  "workbench.editor.showTabs": "multiple", // Only show tab bar when multiple files are open
+  "workbench.editor.splitInGroupLayout": "vertical", // When splitting editors, stack them vertically
+  "workbench.editor.tabSizing": "shrink", // Shrinks tabs when there are many open
+  "workbench.editor.untitled.hint": "hidden", // Hides untitled file hints
+  "workbench.editor.wrapTabs": true, // Wraps tabs to multiple rows when there are many tabs
+  "workbench.editor.closeOnFileDelete": false, // Doesn't close editors when files are deleted
+  "workbench.startupEditor": "newUntitledFile", // Opens a new untitled file when VS Code starts
+
+  //------------------SIDEBAR & PANELS------------------
+  "workbench.sideBar.location": "right", // Positions the sidebar (explorer, extensions, etc.) on the right side
+  "workbench.panel.defaultLocation": "bottom", // Places panels (terminal, output) at the bottom
+  "workbench.layoutControl.enabled": true, // Shows layout controls in the top-right corner
+
+  //------------------EXPLORER & TREE VIEWS------------------
+  "workbench.tree.indent": 16, // Sets the indentation size for tree views (explorer)
+  "workbench.tree.renderIndentGuides": "always", // Always shows indent guides in tree views
+  "workbench.list.smoothScrolling": true, // Enables smooth scrolling in lists like explorer
+  "explorer.confirmDragAndDrop": true, // Confirms drag and drop in explorer
   "explorer.confirmDelete": true, // Confirms file deletion in explorer
   "explorer.sortOrder": "foldersNestsFiles", // Sorts files and folders in explorer (directories first, then files)
-  "explorer.fileNesting.enabled": false, // Enables file nesting in explorer
+  "explorer.fileNesting.enabled": false, // Disables file nesting in explorer
   "explorer.fileNesting.patterns": {
     "*.ts": "${capture}.js,${capture}.js.map,${capture}.d.ts",
     "*.js": "${capture}.js.map,${capture}.min.js,${capture}.d.ts",
@@ -257,11 +228,36 @@
     "tsconfig.json": "tsconfig.*.json",
     "package.json": "package-lock.json,yarn.lock,pnpm-lock.yaml"
   }, // Defines file nesting patterns
+
+  //------------------BREADCRUMBS & NAVIGATION------------------
+  "breadcrumbs.enabled": true, // Shows breadcrumbs navigation
+  "breadcrumbs.filePath": "on", // Shows file path in breadcrumbs
+  "breadcrumbs.symbolPath": "on", // Shows symbol path in breadcrumbs
+
+  //------------------NOTIFICATIONS & DIALOGS------------------
+  "window.dialogStyle": "custom", // Uses VS Code's custom dialog style
+  "window.restoreWindows": "all", // Restores all windows when VS Code restarts
+  "window.confirmBeforeClose": "always", // Always confirms before closing VS Code
+  "notifications.excludeList": ["workbench.action.terminal.allowWorkspaceShell"], // Excludes these notifications
+
+  //------------------PERFORMANCE & BEHAVIOR------------------
+  "workbench.reduceMotion": "auto", // Reduces motion based on OS settings
+  "workbench.commandPalette.history": 50, // Remembers 50 most recent commands
+  "workbench.enableExperiments": false, // Disables experimental features
+
   //------------------EXTENSIONS & MARKETPLACE-----------------------
-  // Extension settings
   "extensions.autoUpdate": true, // Auto-updates extensions
   "extensions.autoCheckUpdates": true, // Checks for extension updates
   "extensions.closeExtensionDetailsOnViewChange": true, // Closes extension details when changing views
+
+  //------------------INDENT RAINBOW EXTENSION------------------
+  "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
+  "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
+
+  //=====================================================================
+  //? TERMINAL
+  // Integrated terminal configuration and behavior
+  //=====================================================================
   //------------------TERMINAL APPEARANCE---------------------------------
   // These settings control how the integrated terminal looks and behaves
 
@@ -837,5 +833,94 @@
 
   // Accessibility Verbosity
   "accessibility.verbosity.diffEditor": true, // Increases verbosity for diff editor (for screen readers)
-  "accessibility.verbosity.panelChat": true // Increases verbosity for panel chat
+  "accessibility.verbosity.panelChat": true, // Increases verbosity for panel chat
+
+  //=====================================================================
+  //? CUSTOMIZATION & PROFILES
+  // Visual customizations, window titles, and profile-specific settings
+  //=====================================================================
+  //------------------WINDOW TITLE PROFILES------------------
+  // Window title format - uncomment based on your active profile/project
+  "window.commandCenter": true, // Enables command center in window title bar
+
+  // Web Development Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛", // JavaScript/TypeScript
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩", // MERN Stack
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️", // React
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚", // Vue.js
+
+  // Backend & Systems Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C/C++🚦", // C/C++
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟", // C#/.NET
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Java☕", // Java/Spring
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘", // PHP/Laravel
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Python🐍", // Python
+
+  // Mobile & Cross-Platform Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙", // Flutter/Dart
+
+  // Enterprise & Cloud Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️", // Salesforce
+
+  // General Purpose Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠", // Default
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻", // Personal
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻", // Work
+
+  //------------------COLOR CUSTOMIZATIONS------------------
+  // Color customizations for themes and bracket highlighting
+  "workbench.colorCustomizations": {
+    "editorCursor.foreground": "#ffe657", // Sets cursor color to bright yellow
+    "terminalCursor.foreground": "#ff0a54", // Sets terminal cursor color to pink
+    "editorIndentGuide.activeBackground1": "#ff0000", // Sets active indent guide to red
+    "editorIndentGuide.background1": "#555", // Sets inactive indent guides to gray
+    "[Material Theme Darker]": {
+      // Theme-specific color overrides for Material Theme Darker
+      "activityBarBadge.background": "#2979FF", // Sets activity bar badge background to blue
+      "activityBar.activeBorder": "#2979FF", // Sets active item border in activity bar to blue
+      "list.activeSelectionForeground": "#2979FF", // Sets selected item text in lists to blue
+      "list.inactiveSelectionForeground": "#2979FF", // Sets inactive selected item text in lists to blue
+      "list.highlightForeground": "#2979FF", // Sets highlighted text in lists to blue
+      "scrollbarSlider.activeBackground": "#2979FF50", // Sets scrollbar active state to semi-transparent blue
+      "editorSuggestWidget.highlightForeground": "#2979FF", // Sets highlighted text in suggestion widget to blue
+      "textLink.foreground": "#2979FF", // Sets text links to blue
+      "progressBar.background": "#2979FF", // Sets progress bar to blue
+      "pickerGroup.foreground": "#2979FF", // Sets picker group labels to blue
+      "tab.activeBorder": "#2979FF", // Sets active tab border to blue
+      "notificationLink.foreground": "#2979FF", // Sets notification links to blue
+      "editorWidget.resizeBorder": "#2979FF", // Sets editor widget resize border to blue
+      "editorWidget.border": "#2979FF", // Sets editor widget border to blue
+      "settings.modifiedItemIndicator": "#2979FF", // Sets modified setting indicator to blue
+      "settings.headerForeground": "#2979FF", // Sets settings header text to blue
+      "panelTitle.activeBorder": "#2979FF", // Sets active panel title border to blue
+      "breadcrumb.activeSelectionForeground": "#2979FF", // Sets active breadcrumb item to blue
+      "menu.selectionForeground": "#2979FF", // Sets selected menu item text to blue
+      "menubar.selectionForeground": "#2979FF", // Sets selected menubar item text to blue
+      "editor.findMatchBorder": "#2979FF", // Sets find match border to blue
+      "selection.background": "#2979FF40", // Sets selection background to semi-transparent blue
+      "statusBarItem.remoteBackground": "#2979FF" // Sets remote indicator background to blue
+    },
+    // Bracket pair colorization - assigns different colors to nested brackets for clarity
+    "editorBracketHighlight.foreground1": "#1290f7", // First level brackets: blue
+    "editorBracketHighlight.foreground2": "#fdaa1a", // Second level brackets: orange
+    "editorBracketHighlight.foreground3": "#cb26fd", // Third level brackets: purple
+    "editorBracketHighlight.foreground4": "#0de4fc", // Fourth level brackets: cyan
+    "editorBracketHighlight.foreground5": "#92ff24", // Fifth level brackets: green
+    "editorBracketHighlight.foreground6": "#f3f719", // Sixth level brackets: yellow
+    "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a", // Mismatched brackets: red
+    "editorRuler.foreground": "#ffffff" // Column ruler color: white
+  },
+
+  //------------------CUSTOM CSS & JS LOADER------------------
+  // Custom CSS and JS Loader Plugin (OS-specific paths)
+  // Windows paths:
+  "vscode_custom_css.imports": [
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css",
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js"
+  ]
+  // macOS/Linux paths:
+  // "vscode_custom_css.imports": [
+  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode.css",
+  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js"
+  // ]
 }

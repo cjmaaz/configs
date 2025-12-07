@@ -4,17 +4,25 @@
 
 [← Back to Main README](../../README.md)
 
-## Available File
+## Available Files
 
-### `config.json`
+### `config.jsonc` (Recommended)
 
 **Purpose**: Production-ready settings file with comprehensive inline documentation.
 
 **Use Case**: 
-- Daily development
+- Daily development (recommended)
 - Import into any Code OSS-based IDE
-- Clean JSON format (IDE-compatible)
+- JSONC format (supports `//` comments for better readability)
 - Learning through inline comments
+
+### `config.json`
+
+**Purpose**: Same as config.jsonc but in pure JSON format (no comments).
+
+**Use Case**: 
+- For tools that don't support JSONC
+- Functionally identical to config.jsonc
 
 **Features**:
 - All settings optimized and tested
