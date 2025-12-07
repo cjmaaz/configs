@@ -167,7 +167,9 @@
         }
       },
       {
-        "scope": ["support.function.js"], // JavaScript built-in functions
+        "scope": [
+          "support.function.js"
+        ], // JavaScript built-in functions
         "settings": {
           "fontStyle": "" // Uses normal font style (no bold/italic)
         }
@@ -224,7 +226,9 @@
   //------------------NOTIFICATIONS & POPUPS--------------------------
   // Notification settings
   "window.dialogStyle": "custom", // Uses VS Code's custom dialog style
-  "notifications.excludeList": ["workbench.action.terminal.allowWorkspaceShell"], // Excludes these notifications
+  "notifications.excludeList": [
+    "workbench.action.terminal.allowWorkspaceShell"
+  ], // Excludes these notifications
   "window.restoreWindows": "all", // Restores all windows when VS Code restarts
   "window.confirmBeforeClose": "always", // Always confirms before closing VS Code
   //------------------USER INTERFACE & EXPERIENCE---------------------
@@ -269,7 +273,6 @@
     }
   },
   "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
-
   //____ LINUX INTEGRATED TERMINAL_______
   "terminal.integrated.defaultProfile.linux": "zsh",
   // Define the 'zsh' profile, ensuring it points to the correct executable path.
@@ -291,7 +294,6 @@
     }
     // You can keep other existing profiles here or remove them.
   },
-
   "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas", // Terminal font (works for macOS too)
   "terminal.integrated.smoothScrolling": true, // Enables smooth scrolling in terminal
   "terminal.integrated.cursorBlinking": true, // Enables cursor blinking in terminal
@@ -421,7 +423,12 @@
   "php.validate.run": "onType", // Validates PHP code as you type
   //------------------EXTERNAL TOOLS & PLUGINS-------------------------
   // ESLint settings
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"], // Validates these file types with ESLint
+  "eslint.validate": [
+    "javascript",
+    "javascriptreact",
+    "typescript",
+    "typescriptreact"
+  ], // Validates these file types with ESLint
   "eslint.format.enable": true, // Enables ESLint as a formatter
   "eslint.lintTask.enable": true, // Enables ESLint task for linting whole workspace
   // Prettier settings
@@ -434,7 +441,6 @@
   // Docker/Containers settings
   "containers.containers.sortBy": "CreatedTime", // Sorts containers by creation time
   "containers.images.sortBy": "CreatedTime", // Sorts images by creation time
-
   //------------------SALESFORCE & APEX SETTINGS-----------------------
   // These settings control Salesforce development tools
   // Salesforce DX settings
@@ -521,7 +527,9 @@
   //=====================================================================
   //------------------PROJECT & SOURCE CONTROL--------------------------
   // Project Manager settings
-  "projectManager.git.baseFolders": ["D:\\Orgs\\Aramco"], // Base folders for Project Manager
+  "projectManager.git.baseFolders": [
+    "D:\\Orgs\\Aramco"
+  ], // Base folders for Project Manager
   // Git & GitLens settings
   "gitlens.advanced.messages": {
     "suppressGitMissingWarning": true // Suppresses warnings about missing Git
@@ -535,13 +543,17 @@
   "diffEditor.maxComputationTime": 0, // No time limit for diff computations
   // Additional Git settings
   "git.confirmSync": true, // Do confirm before syncing Git repositories
-  "git.confirmForcePush": true, // Prevents accidental overwrites
+  "git.confirmForcePush": true, // Prevents accidental force pushes to repositories
   "git.enableSmartCommit": true, // Enables smart Git commits (skips staging area when no staged changes)
   "git.fetchOnPull": true, // Fetches before pulling changes
   "git.mergeEditor": true, // Uses the merge editor for Git merge conflicts
   "git.suggestSmartCommit": true, // Suggests using smart commit
   "git.inputValidation": true, //
-  "git.branchProtection": ["main", "master", "develop"], // Protects these branches from direct commits
+  "git.branchProtection": [
+    "main",
+    "master",
+    "develop"
+  ], // Protects these branches from direct commits
   "git.branchRandomName.enable": true, // Generates random names for new branches
   "git.showPushSuccessNotification": true, // Shows a notification when push succeeds
   "github.gitAuthentication": true, // Enables GitHub authentication
@@ -587,7 +599,11 @@
   //------------------PLUGIN SETTINGS & SPELL CHECKER-----------------
   // Plugin settings
   "extensions.ignoreRecommendations": true, // Ignores extension recommendations
-  "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"], // Enables auto-rename for these languages
+  "auto-rename-tag.activationOnLanguage": [
+    "html",
+    "xml",
+    "php"
+  ], // Enables auto-rename for these languages
   "npm.keybindingsChangedWarningShown": true, // Doesn't show keybinding change warning
   "yaml.maxItemsComputed": 50000, // Increases computed item limit for YAML
   "materialTheme.accent": "Blue", // Sets Material Theme accent to blue

@@ -1,69 +1,29 @@
 # Code OSS Settings
 
-> Configuration file variants for different use cases.
+> Production-ready configuration file for Code OSS-based IDEs.
 
 [← Back to Main README](../../README.md)
 
-## Available Files
+## Available File
 
-### 1. `config.json` (Recommended)
+### `config.json`
 
-**Purpose**: Production-ready settings file.
+**Purpose**: Production-ready settings file with comprehensive inline documentation.
 
 **Use Case**: 
 - Daily development
 - Import into any Code OSS-based IDE
-- Clean JSON without comments (IDE-compatible)
+- Clean JSON format (IDE-compatible)
+- Learning through inline comments
 
 **Features**:
 - All settings optimized and tested
 - Deprecated settings migrated to modern equivalents
 - Platform-agnostic where possible
 - Compatible with Cursor, VSCodium, VS Code OSS, VS Code
-
----
-
-### 2. `config.jsonc`
-
-**Purpose**: JSONC variant with inline comments.
-
-**Use Case**:
-- Prefer JSON with Comments format
-- Some IDEs support JSONC natively
-- Same settings as `config.json` but with comments preserved
-
-**Features**:
-- Identical settings to `config.json`
-- Inline comments for clarity
-- Use if your IDE supports JSONC
-
----
-
-### 3. `commented-config.json`
-
-**Purpose**: Heavily annotated version for learning and reference.
-
-**Use Case**:
-- Understanding what each setting does
-- Learning Code OSS configuration
-- Reference for customizing your own settings
-
-**Features**:
-- Every setting explained with inline comments
-- Organized by category
-- Great for beginners
-- **Note**: May have slight differences from `config.json` - use as reference only
-
----
-
-## Which File to Use?
-
-| Situation | Recommended File |
-|-----------|-----------------|
-| **Daily use** | `config.json` |
-| **Learning** | `commented-config.json` |
-| **JSONC IDE** | `config.jsonc` |
-| **Reference** | `commented-config.json` |
+- Comprehensive inline comments explaining each setting
+- Organized by category for easy navigation
+- Latest AI chat and telemetry disable settings included
 
 ---
 
@@ -72,13 +32,13 @@
 ### Method 1: Copy All Settings
 
 1. Open IDE settings JSON: `Cmd/Ctrl + Shift + P` → "Preferences: Open Settings (JSON)"
-2. Copy entire contents of chosen config file
+2. Copy entire contents of `config.json`
 3. Paste into your settings.json
 4. Adjust platform-specific paths (Windows vs macOS)
 
 ### Method 2: Selective Import
 
-1. Open both files (config + your settings)
+1. Open both files (config.json + your settings)
 2. Copy specific sections you want
 3. Merge into your existing settings
 4. Avoid duplicates
@@ -86,35 +46,21 @@
 ### Method 3: Use as Base
 
 1. Delete your current settings.json
-2. Copy chosen config file as your new settings.json
+2. Copy `config.json` as your new settings.json
 3. Customize as needed
 
 ---
 
-## Key Differences
+## Configuration Highlights
 
-### config.json vs commented-config.json
-
-Minor differences exist due to different last update times:
-
-| Setting | config.json | commented-config.json |
-|---------|-------------|----------------------|
-| `editor.scrollBeyondLastLine` | `true` | `false` |
-| `editor.foldingImportsByDefault` | `false` | `true` |
-| `liveServer.settings.CustomBrowser` | `chrome:PrivateMode` | `brave incognito` |
-
-**Recommendation**: Use `config.json` for actual settings, `commented-config.json` for reference.
-
----
-
-## Migration Notes
-
-All config files have been updated with:
+### Latest Updates
 
 ✅ Deprecated `docker.*` → `containers.*`  
-✅ Platform paths documented  
-✅ IDE-agnostic comments  
-✅ Proprietary features noted  
+✅ Complete AI chat and telemetry controls disabled  
+✅ Platform paths documented (Windows & macOS)  
+✅ Git safety features enabled (`confirmForcePush`, `branchProtection`)  
+✅ Enhanced editor features with comprehensive comments  
+✅ Salesforce development optimizations included  
 
 ---
 
@@ -126,8 +72,10 @@ After importing, update these paths for your platform:
 ```json
 {
   "vscode_custom_css.imports": [
-    "file:///C:\\Users\\YourUser\\AppData\\Roaming\\VSCodeCustomCSS\\style.css"
+    "file:///C:\\Users\\YourUser\\AppData\\Roaming\\VSCodeCustomCSS\\style.css",
+    "file:///C:\\Users\\YourUser\\AppData\\Roaming\\VSCodeCustomCSS\\script.js"
   ],
+  "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas",
   "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot"
 }
 ```
@@ -136,11 +84,47 @@ After importing, update these paths for your platform:
 ```json
 {
   "vscode_custom_css.imports": [
-    "file:///Users/youruser/VSCodeCustom/custom-vscode.css"
+    "file:///Users/youruser/VSCodeCustom/custom-vscode.css",
+    "file:///Users/youruser/VSCodeCustom/custom-vscode-script.js"
   ],
+  "terminal.integrated.defaultProfile.linux": "zsh",
+  "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas",
   "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home"
 }
 ```
+
+---
+
+## Key Features
+
+### Editor Experience
+- **Font**: Cascadia Code with ligatures and Nerd Font support
+- **Cursor**: Yellow with expand animation and smooth caret
+- **Bracket Pairs**: Colorized with 6-level rainbow highlighting
+- **Auto-formatting**: On save and paste for multiple languages
+- **Sticky scroll**: Disabled for cleaner view
+
+### Terminal
+- **Windows**: PowerShell (default)
+- **macOS/Linux**: zsh with full shell integration
+- **Features**: Smooth scrolling, copy on selection, sticky scroll for command tracking
+
+### Git & Source Control
+- **Safety**: Force push confirmation, branch protection (main/master/develop)
+- **Smart commit**: Enabled with confirmation
+- **Merge editor**: Advanced diff algorithm with side-by-side view
+
+### Privacy & Performance
+- **All telemetry disabled**: VSCode, extensions, and AI features
+- **AI chat disabled**: Complete opt-out from chat features
+- **File watching optimized**: Excludes node_modules, build artifacts
+
+### Language Support
+- **JavaScript/TypeScript**: Prettier + ESLint with auto-import updates
+- **Python**: Black formatter with Pylint
+- **Salesforce**: Apex with PMD, LWC, SOQL optimization
+- **Dart/Flutter**: Auto-format on save and type
+- **HTML/CSS/Vue**: Multiple formatter options configured
 
 ---
 
@@ -176,12 +160,23 @@ After importing settings:
 2. Font falls back to Consolas (always available)
 3. Change `editor.fontFamily` to your preferred font
 
+### Custom CSS Not Loading
+
+**Issue**: Custom CSS/JS imports not working
+
+**Solutions**:
+1. Update file paths to match your system
+2. Install "Custom CSS and JS Loader" extension
+3. Run command: "Enable Custom CSS and JS"
+4. Restart IDE
+
 ---
 
 ## Further Reading
 
 - [Settings Guide](../../docs/SETTINGS_GUIDE.md) - Comprehensive reference for all settings
 - [Main README](../../README.md) - Overview and quick start
+- [Profiles Guide](../../docs/PROFILES_GUIDE.md) - Language-specific profile configurations
 
 ---
 
