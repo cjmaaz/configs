@@ -363,7 +363,7 @@
   "salesforce.einsteinForDevelopers.enableAutocompletions": false, // Disables Einstein autocompletions
   "salesforce.einsteinForDevelopers.enableAutocompletionsSleepModeMonitoring": false, // Disables sleep mode monitoring
   "salesforce.einsteinForDevelopers.enableInlineIndicatorForAutocomplete": true, // Shows inline indicators for autocompletions
-  // Java configuration for Salesforce Apex (OS-specific paths)
+  // Java configuration for Salesforce Apex (OS-specific paths) - Java Path
   // Windows paths:
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Java 17
   // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot", // Eclipse Adoptium Java 21
