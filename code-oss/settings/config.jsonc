@@ -92,97 +92,6 @@
   "editor.unicodeHighlight.invisibleCharacters": true, // Highlights invisible Unicode characters
   "editor.unicodeHighlight.ambiguousCharacters": true, // Highlights ambiguous Unicode characters
 
-  //------------------TOKEN COLORIZATION------------------
-  "editor.tokenColorCustomizations": {
-    "editorCursor.foreground": "#ffe657", // Sets cursor color to bright yellow
-    "terminalCursor.foreground": "#ff0a54", // Sets terminal cursor color to pink
-    "editorIndentGuide.activeBackground1": "#ff0000", // Sets active indent guide to red
-    "editorIndentGuide.background1": "#555", // Sets inactive indent guides to gray
-    "[Material Theme Darker]": {
-      // Theme-specific color overrides for Material Theme Darker
-      "activityBarBadge.background": "#2979FF", // Sets activity bar badge background to blue
-      "activityBar.activeBorder": "#2979FF", // Sets active item border in activity bar to blue
-      "list.activeSelectionForeground": "#2979FF", // Sets selected item text in lists to blue
-      "list.inactiveSelectionForeground": "#2979FF", // Sets inactive selected item text in lists to blue
-      "list.highlightForeground": "#2979FF", // Sets highlighted text in lists to blue
-      "scrollbarSlider.activeBackground": "#2979FF50", // Sets scrollbar active state to semi-transparent blue
-      "editorSuggestWidget.highlightForeground": "#2979FF", // Sets highlighted text in suggestion widget to blue
-      "textLink.foreground": "#2979FF", // Sets text links to blue
-      "progressBar.background": "#2979FF", // Sets progress bar to blue
-      "pickerGroup.foreground": "#2979FF", // Sets picker group labels to blue
-      "tab.activeBorder": "#2979FF", // Sets active tab border to blue
-      "notificationLink.foreground": "#2979FF", // Sets notification links to blue
-      "editorWidget.resizeBorder": "#2979FF", // Sets editor widget resize border to blue
-      "editorWidget.border": "#2979FF", // Sets editor widget border to blue
-      "settings.modifiedItemIndicator": "#2979FF", // Sets modified setting indicator to blue
-      "settings.headerForeground": "#2979FF", // Sets settings header text to blue
-      "panelTitle.activeBorder": "#2979FF", // Sets active panel title border to blue
-      "breadcrumb.activeSelectionForeground": "#2979FF", // Sets active breadcrumb item to blue
-      "menu.selectionForeground": "#2979FF", // Sets selected menu item text to blue
-      "menubar.selectionForeground": "#2979FF", // Sets selected menubar item text to blue
-      "editor.findMatchBorder": "#2979FF", // Sets find match border to blue
-      "selection.background": "#2979FF40", // Sets selection background to semi-transparent blue
-      "statusBarItem.remoteBackground": "#2979FF" // Sets remote indicator background to blue
-    },
-    // Bracket pair colorization - assigns different colors to nested brackets for clarity
-    "editorBracketHighlight.foreground1": "#1290f7", // First level brackets: blue
-    "editorBracketHighlight.foreground2": "#fdaa1a", // Second level brackets: orange
-    "editorBracketHighlight.foreground3": "#cb26fd", // Third level brackets: purple
-    "editorBracketHighlight.foreground4": "#0de4fc", // Fourth level brackets: cyan
-    "editorBracketHighlight.foreground5": "#92ff24", // Fifth level brackets: green
-    "editorBracketHighlight.foreground6": "#f3f719", // Sixth level brackets: yellow
-    "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a", // Mismatched brackets: red
-    "editorRuler.foreground": "#ffffff" // Column ruler color: white
-  },
-  //------------------TOKEN COLORIZATION------------------
-  "editor.tokenColorCustomizations": {
-    "textMateRules": [
-      {
-        "scope": [
-          // These syntax elements will be rendered in italic
-          "comment", // Comments
-          "keyword", // Keywords like if, for, while
-          "storage.modifier", // Modifiers like public, private
-          "storage.type.class.js", // Class declarations in JS
-          "storage.type.js", // Type declarations in JS
-          "storage.type.function.js", // Function declarations in JS
-          "entity.other.attribute-name.html", // HTML attributes
-          "string.quoted.single.js", // Single-quoted strings in JS
-          "string.quoted.double.js", // Double-quoted strings in JS
-          "string.template.js", // Template literals in JS
-          "string.quoted.single.apex", // Single-quoted strings in Apex
-          "string.quoted.double.apex" // Double-quoted strings in Apex
-        ],
-        "settings": {
-          "fontStyle": "italic" // Makes the above elements italic
-        }
-      },
-      {
-        "scope": [
-          // These syntax elements will be rendered in bold
-          "keyword.control.conditional", // Conditional keywords (if, else, switch)
-          "keyword.operator", // Operators (+, -, *, /)
-          "storage.type.function.arrow.js" // Arrow functions in JS
-        ],
-        "settings": {
-          "fontStyle": "bold" // Makes the above elements bold
-        }
-      },
-      {
-        "scope": ["support.function.js"], // JavaScript built-in functions
-        "settings": {
-          "fontStyle": "" // Uses normal font style (no bold/italic)
-        }
-      },
-      {
-        "scope": "keyword.other.dotenv", // .env file keywords
-        "settings": {
-          "foreground": "#FF000000" // Makes .env keywords transparent
-        }
-      }
-    ]
-  },
-
   //=====================================================================
   //? WORKBENCH & UI
   // Workspace appearance, layout, and user interface settings
@@ -320,15 +229,7 @@
   "emmet.triggerExpansionOnTab": true, // Allows Tab key to trigger Emmet expansions
   "vsintellicode.modify.editor.suggestSelection": "enabled", // Enables AI-powered suggestions
   // "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
-  // Additional IntelliSense settings
-  "editor.quickSuggestions": {
-    "strings": true, // Enables suggestions within strings
-    "comments": "off", // Disables suggestions in comments
-    "other": true // Enables suggestions in other locations
-  },
-  "editor.suggestOnTriggerCharacters": true, // Shows suggestions when typing trigger characters
-  "editor.tabCompletion": "on", // Enables tab completion
-  "editor.wordBasedSuggestions": "matchingDocuments", // Shows word-based suggestions from matching documents
+
   //=====================================================================
   //? LANGUAGE & FILE SETTINGS
   // This section controls language-specific behaviors and file handling
@@ -866,6 +767,96 @@
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠", // Default
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻", // Personal
   // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻", // Work
+
+  //------------------TOKEN COLORIZATION------------------
+  // Token color customizations for syntax highlighting, cursor, and theme-specific overrides
+  "editor.tokenColorCustomizations": {
+    "editorCursor.foreground": "#ffe657", // Sets cursor color to bright yellow
+    "terminalCursor.foreground": "#ff0a54", // Sets terminal cursor color to pink
+    "editorIndentGuide.activeBackground1": "#ff0000", // Sets active indent guide to red
+    "editorIndentGuide.background1": "#555", // Sets inactive indent guides to gray
+    "[Material Theme Darker]": {
+      // Theme-specific color overrides for Material Theme Darker
+      "activityBarBadge.background": "#2979FF", // Sets activity bar badge background to blue
+      "activityBar.activeBorder": "#2979FF", // Sets active item border in activity bar to blue
+      "list.activeSelectionForeground": "#2979FF", // Sets selected item text in lists to blue
+      "list.inactiveSelectionForeground": "#2979FF", // Sets inactive selected item text in lists to blue
+      "list.highlightForeground": "#2979FF", // Sets highlighted text in lists to blue
+      "scrollbarSlider.activeBackground": "#2979FF50", // Sets scrollbar active state to semi-transparent blue
+      "editorSuggestWidget.highlightForeground": "#2979FF", // Sets highlighted text in suggestion widget to blue
+      "textLink.foreground": "#2979FF", // Sets text links to blue
+      "progressBar.background": "#2979FF", // Sets progress bar to blue
+      "pickerGroup.foreground": "#2979FF", // Sets picker group labels to blue
+      "tab.activeBorder": "#2979FF", // Sets active tab border to blue
+      "notificationLink.foreground": "#2979FF", // Sets notification links to blue
+      "editorWidget.resizeBorder": "#2979FF", // Sets editor widget resize border to blue
+      "editorWidget.border": "#2979FF", // Sets editor widget border to blue
+      "settings.modifiedItemIndicator": "#2979FF", // Sets modified setting indicator to blue
+      "settings.headerForeground": "#2979FF", // Sets settings header text to blue
+      "panelTitle.activeBorder": "#2979FF", // Sets active panel title border to blue
+      "breadcrumb.activeSelectionForeground": "#2979FF", // Sets active breadcrumb item to blue
+      "menu.selectionForeground": "#2979FF", // Sets selected menu item text to blue
+      "menubar.selectionForeground": "#2979FF", // Sets selected menubar item text to blue
+      "editor.findMatchBorder": "#2979FF", // Sets find match border to blue
+      "selection.background": "#2979FF40", // Sets selection background to semi-transparent blue
+      "statusBarItem.remoteBackground": "#2979FF" // Sets remote indicator background to blue
+    },
+    // Bracket pair colorization - assigns different colors to nested brackets for clarity
+    "editorBracketHighlight.foreground1": "#1290f7", // First level brackets: blue
+    "editorBracketHighlight.foreground2": "#fdaa1a", // Second level brackets: orange
+    "editorBracketHighlight.foreground3": "#cb26fd", // Third level brackets: purple
+    "editorBracketHighlight.foreground4": "#0de4fc", // Fourth level brackets: cyan
+    "editorBracketHighlight.foreground5": "#92ff24", // Fifth level brackets: green
+    "editorBracketHighlight.foreground6": "#f3f719", // Sixth level brackets: yellow
+    "editorBracketHighlight.unexpectedBracket.foreground": "#fc232a", // Mismatched brackets: red
+    "editorRuler.foreground": "#ffffff", // Column ruler color: white
+    // TextMate rules for custom font styling
+    "textMateRules": [
+      {
+        "scope": [
+          // These syntax elements will be rendered in italic
+          "comment", // Comments
+          "keyword", // Keywords like if, for, while
+          "storage.modifier", // Modifiers like public, private
+          "storage.type.class.js", // Class declarations in JS
+          "storage.type.js", // Type declarations in JS
+          "storage.type.function.js", // Function declarations in JS
+          "entity.other.attribute-name.html", // HTML attributes
+          "string.quoted.single.js", // Single-quoted strings in JS
+          "string.quoted.double.js", // Double-quoted strings in JS
+          "string.template.js", // Template literals in JS
+          "string.quoted.single.apex", // Single-quoted strings in Apex
+          "string.quoted.double.apex" // Double-quoted strings in Apex
+        ],
+        "settings": {
+          "fontStyle": "italic" // Makes the above elements italic
+        }
+      },
+      {
+        "scope": [
+          // These syntax elements will be rendered in bold
+          "keyword.control.conditional", // Conditional keywords (if, else, switch)
+          "keyword.operator", // Operators (+, -, *, /)
+          "storage.type.function.arrow.js" // Arrow functions in JS
+        ],
+        "settings": {
+          "fontStyle": "bold" // Makes the above elements bold
+        }
+      },
+      {
+        "scope": ["support.function.js"], // JavaScript built-in functions
+        "settings": {
+          "fontStyle": "" // Uses normal font style (no bold/italic)
+        }
+      },
+      {
+        "scope": "keyword.other.dotenv", // .env file keywords
+        "settings": {
+          "foreground": "#FF000000" // Makes .env keywords transparent
+        }
+      }
+    ]
+  },
 
   //------------------COLOR CUSTOMIZATIONS------------------
   // Color customizations for themes and bracket highlighting
