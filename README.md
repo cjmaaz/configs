@@ -18,6 +18,9 @@ This repository contains my personal IDE configurations, settings profiles, cust
 
 ```
 configs/
+├── .cursor/                # Cursor AI configuration (for this repository)
+│   ├── rules/              # AI coding rules and guidelines
+│   └── worktrees.json      # Git worktree configuration
 ├── code-oss/               # IDE settings and customization
 │   ├── settings/           # Configuration file variants
 │   ├── profiles/           # Development profiles (MERN, React, SF, etc.)
@@ -29,6 +32,8 @@ configs/
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
 ```
+
+> **Note:** The `.cursor/` folder contains AI assistant rules and configurations specifically for maintaining this repository. These are not intended for user configuration.
 
 ## Quick Start
 
@@ -112,6 +117,10 @@ Automated Salesforce development utilities:
 - [Code OSS Customization](code-oss/customization/README.md) - Quick setup for custom styles
 - [Salesforce Scripts](salesforce/scripts/README.md) - Python script documentation
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
+
+### Repository Maintenance
+
+- [Cursor AI Configuration](.cursor/README.md) - AI assistant rules for maintaining this repository (not for user configuration)
 
 ## Migration Notes
 
@@ -200,13 +209,38 @@ This is a personal configuration repository, but feel free to:
 - Submit issues for questions
 - Suggest improvements via pull requests
 
+## Cursor AI Configuration
+
+This repository includes a `.cursor/` folder with AI assistant rules and configurations used for maintaining this repository:
+
+### AI Rules (`/.cursor/rules/`)
+
+6 AI coding rules for repository maintenance:
+
+- **apex-test-class-creation.mdc** - Best practices for Apex test class creation
+- **code-styling-format.mdc** - Code formatting and style rules (always applied)
+- **pmd-ruleset.mdc** - PMD static analysis rules for Apex
+- **python-selenium-automation.mdc** - Python Selenium automation guidelines
+- **salesforce-schema-validation.mdc** - Salesforce schema validation requirements
+- **test-deploy-ruleset.mdc** - Testing and deployment rules for Apex
+
+### Configuration Files
+
+- **mcp.json** - Model Context Protocol (MCP) server configuration
+- **worktrees.json** - Git worktree setup configuration
+
+> ⚠️ **Important:** These files are for **repository maintenance only** and are not part of the user configuration. They help maintain consistency and enable advanced AI features when working on this repository.
+
+See [Cursor AI Configuration](.cursor/README.md) for detailed documentation.
+
 ## File Count Summary
 
 - **Settings Files**: 3 variants (JSON, JSONC, Commented)
 - **Profiles**: 13 development profiles
 - **Scripts**: 4 Python automation scripts
 - **Custom Files**: 2 (CSS + JS)
-- **Documentation**: 8 comprehensive guides
+- **Documentation**: 9 comprehensive guides (including Cursor AI docs)
+- **AI Configuration**: 6 rules + 2 config files (mcp.json, worktrees.json)
 
 ## License
 
