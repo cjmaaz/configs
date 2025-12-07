@@ -7,15 +7,90 @@
 ## Table of Contents
 
 - [Editor Compatibility](#editor-compatibility)
-- [Editor Experience & Appearance](#editor-experience--appearance)
+- [Configuration Structure](#configuration-structure) ⚡ *New*
+- [Editor Core Settings](#editor-core-settings)
+- [Workbench & UI](#workbench--ui)
+- [Terminal Configuration](#terminal-configuration)
 - [Language-Specific Settings](#language-specific-settings)
 - [Salesforce Development](#salesforce-development)
+- [Files & Search](#files--search) ⚡ *New*
+- [Developer Tools](#developer-tools)
+- [Extensions & Plugins](#extensions--plugins) ⚡ *New*
 - [Performance & Privacy](#performance--privacy)
-- [Extensions & Tools](#extensions--tools)
-- [Git & Source Control](#git--source-control)
-- [Terminal Configuration](#terminal-configuration)
+- [Customization & Profiles](#customization--profiles)
 - [Platform Differences](#platform-differences)
 - [Quick Reference Tables](#quick-reference-tables)
+
+---
+
+## Configuration Structure
+
+### December 2025 Reorganization
+
+The configuration file has been completely reorganized into **10 major sections** with **33 subsections**, ordered by importance and workflow frequency:
+
+#### Section Overview
+
+| # | Section | Purpose | Lines | Subsections |
+|---|---------|---------|-------|-------------|
+| 1 | **EDITOR CORE SETTINGS** | Daily editing features | 3-94 | 6 |
+| 2 | **WORKBENCH & UI** | Visual appearance | 96-157 | 7 |
+| 3 | **TERMINAL** | Terminal config | 158-215 | 2 |
+| 4 | **LANGUAGE & FILE SETTINGS** | Language behaviors | 216-337 | 3 |
+| 5 | **SALESFORCE** ⚡ | Salesforce dev tools | 338-373 | 1 |
+| 6 | **FILES & SEARCH** ⚡ | File handling | 374-426 | 2 |
+| 7 | **DEVELOPER TOOLS** | Git, debug, dev | 427-503 | 6 |
+| 8 | **EXTENSIONS & PLUGINS** ⚡ | Extensions config | 504-575 | 3 |
+| 9 | **PRIVACY & MISC** | Privacy, sync | 576-644 | 4 |
+| 10 | **CUSTOMIZATION** | Colors, themes | 645-929 | 4 |
+
+⚡ *New dedicated sections created in December 2025 reorganization*
+
+#### Why This Order?
+
+1. **Frequency of access** - Most-used settings first
+2. **Workflow logic** - Editor → UI → Languages → Tools
+3. **Importance** - Critical settings before optional customizations
+4. **Discoverability** - Easier to find settings when organized logically
+
+#### Key Improvements
+
+✅ **Zero duplicates** - All redundant settings removed  
+✅ **Logical grouping** - Related settings together  
+✅ **Better navigation** - Clear section hierarchy  
+✅ **Comprehensive docs** - Every setting explained  
+✅ **Platform support** - Windows & macOS paths documented  
+
+---
+
+## Editor Core Settings
+
+This section contains the most frequently used editor settings for daily coding, organized into 6 subsections:
+
+1. **Fonts & Typography** - Font configuration and rendering
+2. **Cursor & Selection** - Cursor appearance and selection behavior
+3. **Code Intelligence & Suggestions** - IntelliSense and autocomplete
+4. **Formatting & Code Actions** - Auto-formatting and code actions
+5. **Bracket Colorization & Guides** - Bracket pair highlighting
+6. **Editor Behavior & Appearance** - Tab size, word wrap, minimap, etc.
+
+See the [configuration structure](#configuration-structure) for line numbers and subsection details.
+
+---
+
+## Workbench & UI
+
+Visual appearance, layout, and user interface settings for the entire workspace.
+
+### Subsections
+
+1. **Theme & Visual Identity** - Color themes and icon themes
+2. **Editor Tabs & Layout** - Tab behavior and editor layout
+3. **Sidebar & Panels** - Sidebar positioning and panel configuration
+4. **Explorer & Tree Views** - File explorer settings
+5. **Breadcrumbs & Navigation** - Navigation breadcrumbs
+6. **Notifications & Dialogs** - Dialog styles and notifications
+7. **Performance & Behavior** - Workbench performance settings
 
 ---
 

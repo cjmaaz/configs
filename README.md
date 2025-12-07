@@ -117,12 +117,44 @@ Automated Salesforce development utilities:
 
 ### December 2025 Reorganization
 
+#### Directory Structure Changes
 - Renamed `VSCode/` → `code-oss/` for IDE-agnostic naming
 - Consolidated settings into `code-oss/settings/`
 - Moved Salesforce tools to dedicated `salesforce/` directory
-- Updated deprecated settings:
-  - Migrated `docker.*` → `containers.*` settings
-  - Removed obsolete telemetry settings
+
+#### Settings File Reorganization ⚡ **NEW**
+The main configuration file (`config.jsonc`) has been completely reorganized:
+
+**✨ Key Improvements:**
+- **10 major sections** organized by importance and workflow
+- **33 granular subsections** for better navigation
+- **3 new dedicated sections**: SALESFORCE, FILES & SEARCH, EXTENSIONS & PLUGINS
+- **Zero duplicate keys** - All redundant settings removed
+- **929 lines** of well-organized, documented configuration
+- **Importance-based ordering** - Most used settings at the top
+
+**📋 New Section Order:**
+1. EDITOR CORE SETTINGS - Daily editing features
+2. WORKBENCH & UI - Visual appearance and layout
+3. TERMINAL - Terminal configuration
+4. LANGUAGE & FILE SETTINGS - Language-specific behaviors
+5. **SALESFORCE** ⚡ *New dedicated section*
+6. **FILES & SEARCH** ⚡ *New dedicated section*
+7. DEVELOPER TOOLS - Git, debug, development tools
+8. **EXTENSIONS & PLUGINS** ⚡ *New dedicated section*
+9. PRIVACY, SYNC & MISCELLANEOUS - Privacy and system settings
+10. CUSTOMIZATION & PROFILES - Window titles, colors, custom CSS
+
+**🔧 What Changed:**
+- Removed all duplicate settings (5 duplicates eliminated)
+- Moved Emmet settings from TERMINAL to LANGUAGE & FILE SETTINGS
+- Moved Indent Rainbow from WORKBENCH to EXTENSIONS & PLUGINS
+- Separated Salesforce settings into dedicated section
+- Separated file handling and search into dedicated section
+- Created comprehensive EXTENSIONS & PLUGINS section
+- Moved cSpell dictionary to CUSTOMIZATION section for better organization
+
+See [Settings README](code-oss/settings/README.md) for detailed section breakdown.
 
 ### Deprecated Settings Updated
 
@@ -182,6 +214,6 @@ This configuration repository is provided as-is for personal and educational use
 
 ---
 
-**Last Updated**: December 2024  
+**Last Updated**: December 2025  
 **Maintained by**: [Maaz Rahman](https://github.com/cjmaaz)  
 **Compatible Editors**: Cursor, VSCodium, VS Code OSS, and other Code OSS-based editors

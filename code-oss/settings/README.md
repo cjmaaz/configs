@@ -61,14 +61,97 @@
 
 ## Configuration Highlights
 
-### Latest Updates
+### Latest Updates (December 2025)
 
+✅ **Complete reorganization** - Settings organized by importance and workflow  
+✅ **10 major sections** with 33 granular subsections  
+✅ **Zero duplicate keys** - All redundant settings removed  
+✅ **New dedicated sections** - SALESFORCE, FILES & SEARCH, EXTENSIONS & PLUGINS  
 ✅ Deprecated `docker.*` → `containers.*`  
 ✅ Complete AI chat and telemetry controls disabled  
 ✅ Platform paths documented (Windows & macOS)  
 ✅ Git safety features enabled (`confirmForcePush`, `branchProtection`)  
 ✅ Enhanced editor features with comprehensive comments  
-✅ Salesforce development optimizations included  
+
+---
+
+## File Organization
+
+The configuration file is organized in **importance-based order** for optimal workflow:
+
+### 1️⃣ **EDITOR CORE SETTINGS**
+Most frequently used editor settings for daily coding:
+- Fonts & Typography
+- Cursor & Selection
+- Code Intelligence & Suggestions
+- Formatting & Code Actions
+- Bracket Colorization & Guides
+- Editor Behavior & Appearance
+
+### 2️⃣ **WORKBENCH & UI**
+Workspace appearance, layout, and user interface:
+- Theme & Visual Identity
+- Editor Tabs & Layout
+- Sidebar & Panels
+- Explorer & Tree Views
+- Breadcrumbs & Navigation
+- Notifications & Dialogs
+- Performance & Behavior
+
+### 3️⃣ **TERMINAL**
+Integrated terminal configuration and behavior:
+- Terminal Appearance (Windows/Linux/macOS profiles)
+- Terminal Behavior
+
+### 4️⃣ **LANGUAGE & FILE SETTINGS**
+Language-specific behaviors and file handling:
+- Emmet & IntelliSense
+- Language-Specific Settings (15+ languages)
+- Language-Specific Editor Overrides
+
+### 5️⃣ **SALESFORCE** ⚡ *New Section*
+Salesforce development tools and configuration:
+- Code Analyzer
+- DX Core Settings
+- Apex Language Server
+- Einstein Settings
+- Java Configuration
+
+### 6️⃣ **FILES & SEARCH** ⚡ *New Section*
+File handling, associations, and search:
+- File Associations
+- File Handling Settings
+- Search Configuration
+
+### 7️⃣ **DEVELOPER TOOLS**
+Source control, debugging, and development tools:
+- Source Control & Git
+- GitLens & GitHub
+- Diff Editor
+- Debug & Development
+- Database & External Connections
+- Live Server & Browser
+
+### 8️⃣ **EXTENSIONS & PLUGINS** ⚡ *New Section*
+Third-party extensions and plugin configuration:
+- Extension Management
+- External Tools & Formatters (Docker, ESLint, Prettier)
+- Plugin Settings (15+ extensions configured)
+
+### 9️⃣ **PRIVACY, SYNC & MISCELLANEOUS**
+Privacy settings and miscellaneous options:
+- Telemetry & Privacy (All disabled)
+- Settings Sync
+- Workspace Optimizations
+- Accessibility & Usability
+
+### 🔟 **CUSTOMIZATION & PROFILES**
+Visual customizations (least frequently changed):
+- Window Title Profiles
+- Token Colorization
+- Color Customizations
+- Spell Checker Dictionary (cSpell)
+- Custom CSS & JS Loader
 
 ---
 

@@ -3,6 +3,7 @@
   //? EDITOR CORE SETTINGS
   // Most frequently used editor settings for daily coding
   //=====================================================================
+
   //------------------FONTS & TYPOGRAPHY------------------
   "editor.fontSize": 20, // Sets the font size to 20pt
   "editor.fontLigatures": true, // Enables font ligatures for coding fonts that support them
@@ -96,6 +97,7 @@
   //? WORKBENCH & UI
   // Workspace appearance, layout, and user interface settings
   //=====================================================================
+
   //------------------THEME & VISUAL IDENTITY------------------
   "workbench.colorTheme": "Noctis Bordo", // Sets the color theme to Noctis Bordo (dark theme with burgundy accents)
   "workbench.colorTheme.preferredDarkColorTheme": "Noctis Bordo", // Sets preferred dark theme
@@ -154,19 +156,11 @@
   "workbench.commandPalette.history": 50, // Remembers 50 most recent commands
   "workbench.enableExperiments": false, // Disables experimental features
 
-  //------------------EXTENSIONS & MARKETPLACE-----------------------
-  "extensions.autoUpdate": true, // Auto-updates extensions
-  "extensions.autoCheckUpdates": true, // Checks for extension updates
-  "extensions.closeExtensionDetailsOnViewChange": true, // Closes extension details when changing views
-
-  //------------------INDENT RAINBOW EXTENSION------------------
-  "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
-  "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
-
   //=====================================================================
   //? TERMINAL
   // Integrated terminal configuration and behavior
   //=====================================================================
+
   //------------------TERMINAL APPEARANCE---------------------------------
   // These settings control how the integrated terminal looks and behaves
 
@@ -220,6 +214,12 @@
   "terminal.integrated.smoothScrolling": true, // Enables smooth scrolling in terminal
   "terminal.integrated.stickyScroll.enabled": true, // Shows which command produced the current output
   "terminal.integrated.tabs.showActiveTerminal": "always", // Always shows the active terminal in tabs
+
+  //=====================================================================
+  //? LANGUAGE & FILE SETTINGS
+  // This section controls language-specific behaviors and file handling
+  //=====================================================================
+
   //------------------EMMET & INTELLISENSE-------------------------------
   // These settings control code completion and suggestions
   "emmet.showSuggestionsAsSnippets": true, // Shows Emmet suggestions as snippets
@@ -230,10 +230,6 @@
   "vsintellicode.modify.editor.suggestSelection": "enabled", // Enables AI-powered suggestions
   // "vsintellicode.modify.editor.suggestSelection": "automaticallyOverrodeDefaultValue",
 
-  //=====================================================================
-  //? LANGUAGE & FILE SETTINGS
-  // This section controls language-specific behaviors and file handling
-  //=====================================================================
   //------------------LANGUAGE-SPECIFIC SETTINGS------------------------
   // General language settings (alphabetically by language)
 
@@ -341,26 +337,11 @@
     "editor.defaultFormatter": "vscode.html-language-features" // Uses built-in formatter for XML
     // "editor.defaultFormatter": "DotJoshJohnson.xml" // Alternate: Use XML extension formatter
   },
-  //------------------EXTERNAL TOOLS & PLUGINS-------------------------
-  // Docker/Containers Settings
-  "containers.containers.sortBy": "CreatedTime", // Sorts containers by creation time
-  "containers.images.sortBy": "CreatedTime", // Sorts images by creation time
 
-  // ESLint Settings
-  "eslint.format.enable": true, // Enables ESLint as a formatter
-  "eslint.lintTask.enable": true, // Enables ESLint task for linting whole workspace
-  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"], // Validates these file types with ESLint
-
-  // Prettier Settings
-  "prettier.printWidth": 100, // Sets print width to 100 characters
-  "prettier.semi": true, // Adds semicolons
-  "prettier.singleQuote": true, // Uses single quotes
-  "prettier.tabWidth": 2, // Sets tab width to 2 spaces
-  "prettier.trailingComma": "all", // Uses trailing commas per ES5 style
-  // "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier", // Custom Prettier path (Windows)
-
-  //------------------SALESFORCE & APEX SETTINGS-----------------------
-  // These settings control Salesforce development tools
+  //=====================================================================
+  //? SALESFORCE
+  // Salesforce development tools and configuration
+  //=====================================================================
 
   // Salesforce Code Analyzer
   "codeAnalyzer.enableV5": true, // Enables Salesforce Code Analyzer v5 (PMD, ESLint, etc.)
@@ -394,8 +375,11 @@
   // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.8/libexec/openjdk.jdk/Contents/Home", // Homebrew OpenJDK 21.0.8
   // "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home", // Zulu Java 21
 
-  //------------------FILE ASSOCIATIONS & SEARCH------------------------
-  // These settings control how VS Code interacts with files
+  //=====================================================================
+  //? FILES & SEARCH
+  // File handling, associations, and search configuration
+  //=====================================================================
+
   // File associations
   "files.associations": {
     "*.apxc": "java", // Treats .apxc files as Java
@@ -444,11 +428,13 @@
   "search.searchOnType": true, // Searches as you type
   "search.smartCase": true, // Smart case-sensitive search (case-sensitive if query contains uppercase)
   "search.sortOrder": "modified", // Sorts search results by last modified date
+
   //=====================================================================
-  //? DEVELOPER TOOLS & INTEGRATIONS
-  // This section controls third-party integrations and developer tools
+  //? DEVELOPER TOOLS
+  // Source control, debugging, and development tools
   //=====================================================================
-  //------------------PROJECT & SOURCE CONTROL--------------------------
+
+  //------------------SOURCE CONTROL & GIT--------------------------
   // Project Manager settings
   "projectManager.git.baseFolders": ["D:\\Orgs\\Aramco"], // Base folders for Project Manager
   // Git Settings
@@ -520,13 +506,43 @@
   // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Users\\Maaz\\AppData\\Local\\Thorium\\Application\\thorium.exe --incognito",
   "liveServer.settings.donotShowInfoMsg": true, // Doesn't show info messages
   "liveServer.settings.donotVerifyTags": true, // Doesn't verify HTML tags
-  //------------------PLUGIN SETTINGS & SPELL CHECKER-----------------
 
+  //=====================================================================
+  //? EXTENSIONS & PLUGINS
+  // Third-party extensions and plugin configuration
+  //=====================================================================
+
+  //------------------EXTENSION MANAGEMENT------------------
+  "extensions.autoUpdate": true, // Auto-updates extensions
+  "extensions.autoCheckUpdates": true, // Checks for extension updates
+  "extensions.closeExtensionDetailsOnViewChange": true, // Closes extension details when changing views
+  "extensions.ignoreRecommendations": true, // Ignores extension recommendations
+
+  //------------------EXTERNAL TOOLS & FORMATTERS------------------
+  // Docker/Containers Settings
+  "containers.containers.sortBy": "CreatedTime", // Sorts containers by creation time
+  "containers.images.sortBy": "CreatedTime", // Sorts images by creation time
+
+  // ESLint Settings
+  "eslint.format.enable": true, // Enables ESLint as a formatter
+  "eslint.lintTask.enable": true, // Enables ESLint task for linting whole workspace
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"], // Validates these file types with ESLint
+
+  // Prettier Settings
+  "prettier.printWidth": 100, // Sets print width to 100 characters
+  "prettier.semi": true, // Adds semicolons
+  "prettier.singleQuote": true, // Uses single quotes
+  "prettier.tabWidth": 2, // Sets tab width to 2 spaces
+  "prettier.trailingComma": "all", // Uses trailing commas per ES5 style
+  // "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier", // Custom Prettier path (Windows)
+
+  //------------------PLUGIN SETTINGS------------------
   // Auto-Rename Tag Settings
   "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"], // Enables auto-rename for these languages
 
-  // Extension Settings
-  "extensions.ignoreRecommendations": true, // Ignores extension recommendations
+  // Indent Rainbow Extension
+  "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
+  "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
 
   // Material Theme Settings
   "materialTheme.accent": "Blue", // Sets Material Theme accent to blue
@@ -539,6 +555,7 @@
 
   // YAML Settings
   "yaml.maxItemsComputed": 50000, // Increases computed item limit for YAML
+
   // Color Info Settings
   "colorInfo.languages": [
     {
@@ -562,115 +579,12 @@
       "colors": "css"
     }
   ],
-  // Custom dictionary for spell checking
-  "cSpell.userWords": [
-    "Adoptium",
-    "apxc",
-    "arrayify",
-    "autocompletion",
-    "Autocompletions",
-    "autofetch",
-    "backgroundColor",
-    "bday",
-    "Bordo",
-    "camelcase",
-    "Cascadia",
-    "Caskaydia",
-    "chevronleft",
-    "chevronright",
-    "CLSMEM",
-    "combobox",
-    "Consolas",
-    "datasource",
-    "Datatable",
-    "datetime",
-    "debouncer",
-    "deserialize",
-    "destructure",
-    "devtools",
-    "dismissable",
-    "donot",
-    "dotenv",
-    "endof",
-    "esbenp",
-    "esversion",
-    "factorypath",
-    "fieldset",
-    "Fira",
-    "flexbox",
-    "focusable",
-    "gridline",
-    "instanceof",
-    "intellisense",
-    "javapath",
-    "keyframes",
-    "Keymap",
-    "kubernetes",
-    "libexec",
-    "lightsaber",
-    "limegreen",
-    "linq",
-    "Maaz",
-    "MERN",
-    "middlewares",
-    "mixin",
-    "momentized",
-    "Monokai",
-    "multiline",
-    "natively",
-    "nestable",
-    "Noctis",
-    "nullish",
-    "nvmrc",
-    "objectify",
-    "onrowselection",
-    "overscroll",
-    "Picklist",
-    "PICKVAL",
-    "preload",
-    "Rahman",
-    "rahman",
-    "Reportees",
-    "salesforcedx",
-    "scrollback",
-    "selectable",
-    "SFDX",
-    "slds",
-    "staging",
-    "steelblue",
-    "stringify",
-    "stylelint",
-    "subgrid",
-    "supabase",
-    "superset",
-    "symfony",
-    "TELEMETRIES",
-    "toastify",
-    "transpile",
-    "truthy",
-    "typeof",
-    "unarchive",
-    "unfetch",
-    "unmount",
-    "unpublish",
-    "unwatch",
-    "upsert",
-    "utilization",
-    "viewport",
-    "vsintellicode",
-    "vuepress",
-    "vueuse",
-    "webdriver",
-    "webhook",
-    "websocket",
-    "workspaces",
-    "wsic",
-    "zindex"
-  ],
+
   //=====================================================================
-  //? PRIVACY, SYNC & MISCELLANEOUS
-  // This section controls privacy settings and miscellaneous options
+  //? PRIVACY
+  // Privacy and telemetry settings - all data collection disabled
   //=====================================================================
+
   //------------------TELEMETRY & PRIVACY------------------------------
   // All Telemetry and Data Collection Disabled
 
@@ -709,15 +623,13 @@
   /* Deprecated in newer VS Code versions:
   "telemetry.enableTelemetry": false,
   "telemetry.enableCrashReporter": false, */
-  //------------------SETTINGS SYNC-----------------------------------
-  // Settings Sync configuration
-  "settingsSync.ignoredExtensions": [], // No extensions ignored during sync
-  "settingsSync.ignoredSettings": [], // No settings ignored during sync
-  //------------------WORKSPACE OPTIMIZATIONS------------------------
-  "security.workspace.trust.untrustedFiles": "open", // Opens untrusted files without warning
-  //------------------ACCESSIBILITY & USABILITY------------------------
-  // Settings for better accessibility and usability
 
+  //=====================================================================
+  //? ACCESSIBILITY
+  // Settings for better accessibility and usability
+  //=====================================================================
+
+  //------------------ACCESSIBILITY SIGNALS & VERBOSITY------------------------
   // Accessibility Signals (Audio Cues)
   "accessibility.signals.lineHasBreakpoint": {
     "sound": "off" // Disables sound when line has breakpoint
@@ -740,6 +652,7 @@
   //? CUSTOMIZATION & PROFILES
   // Visual customizations, window titles, and profile-specific settings
   //=====================================================================
+
   //------------------WINDOW TITLE PROFILES------------------
   // Window title format - uncomment based on your active profile/project
   "window.commandCenter": true, // Enables command center in window title bar
@@ -908,10 +821,130 @@
   "vscode_custom_css.imports": [
     "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css",
     "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js"
-  ]
+  ],
   // macOS/Linux paths:
   // "vscode_custom_css.imports": [
   //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode.css",
   //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js"
   // ]
+
+  //=====================================================================
+  //? MISCELLANEOUS
+  // Miscellaneous settings - sync, workspace trust, and spell checking
+  //=====================================================================
+
+  //------------------SETTINGS SYNC & WORKSPACE TRUST------------------
+  // Settings Sync configuration
+  "settingsSync.ignoredExtensions": [], // No extensions ignored during sync
+  "settingsSync.ignoredSettings": [], // No settings ignored during sync
+
+  // Workspace Trust
+  "security.workspace.trust.untrustedFiles": "open", // Opens untrusted files without warning
+
+  //------------------SPELL CHECKER DICTIONARY------------------
+  // Custom dictionary for spell checking (cSpell)
+  "cSpell.userWords": [
+    "Adoptium",
+    "apxc",
+    "arrayify",
+    "autocompletion",
+    "Autocompletions",
+    "autofetch",
+    "backgroundColor",
+    "bday",
+    "Bordo",
+    "camelcase",
+    "Cascadia",
+    "Caskaydia",
+    "chevronleft",
+    "chevronright",
+    "CLSMEM",
+    "combobox",
+    "Consolas",
+    "datasource",
+    "Datatable",
+    "datetime",
+    "debouncer",
+    "deserialize",
+    "destructure",
+    "devtools",
+    "dismissable",
+    "donot",
+    "dotenv",
+    "endof",
+    "esbenp",
+    "esversion",
+    "factorypath",
+    "fieldset",
+    "Fira",
+    "flexbox",
+    "focusable",
+    "gridline",
+    "instanceof",
+    "intellisense",
+    "javapath",
+    "keyframes",
+    "Keymap",
+    "kubernetes",
+    "libexec",
+    "lightsaber",
+    "limegreen",
+    "linq",
+    "Maaz",
+    "MERN",
+    "middlewares",
+    "mixin",
+    "momentized",
+    "Monokai",
+    "multiline",
+    "natively",
+    "nestable",
+    "Noctis",
+    "nullish",
+    "nvmrc",
+    "objectify",
+    "onrowselection",
+    "overscroll",
+    "Picklist",
+    "PICKVAL",
+    "preload",
+    "Rahman",
+    "rahman",
+    "Reportees",
+    "salesforcedx",
+    "scrollback",
+    "selectable",
+    "SFDX",
+    "slds",
+    "staging",
+    "steelblue",
+    "stringify",
+    "stylelint",
+    "subgrid",
+    "supabase",
+    "superset",
+    "symfony",
+    "TELEMETRIES",
+    "toastify",
+    "transpile",
+    "truthy",
+    "typeof",
+    "unarchive",
+    "unfetch",
+    "unmount",
+    "unpublish",
+    "unwatch",
+    "upsert",
+    "utilization",
+    "viewport",
+    "vsintellicode",
+    "vuepress",
+    "vueuse",
+    "webdriver",
+    "webhook",
+    "websocket",
+    "workspaces",
+    "wsic",
+    "zindex"
+  ]
 }
