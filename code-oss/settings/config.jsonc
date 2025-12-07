@@ -8,7 +8,7 @@
   "editor.fontSize": 20, // Sets the font size to 20pt
   "editor.fontLigatures": true, // Enables font ligatures for coding fonts that support them
   "editor.fontWeight": "400", // Sets font weight to normal (400)
-  "editor.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
+  "editor.fontFamily": "'CaskaydiaCove Nerd Font','CaskaydiaMono Nerd Font','Hack Nerd Font','Cascadia Code','Fira Code',Consolas", // Font priority list
   "editor.codeLensFontFamily": "'Cascadia Code','Fira Code',Consolas", // Font for code lens UI elements
 
   //------------------CURSOR & SELECTION------------------
