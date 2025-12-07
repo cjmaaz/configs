@@ -74,7 +74,7 @@
   "editor.glyphMargin": false, // Hides the glyph margin (used by debugger)
   "editor.minimap.enabled": false, // Disables the code minimap
   "editor.minimap.showSlider": "always", // Always shows the slider in the minimap
-  "editor.stickyScroll.enabled": false, // Disables sticky scroll (keeps code headers visible)
+  "editor.stickyScroll.enabled": false, // Disables sticky scroll (keeps code headers visible) // Code Fold, Top Method View
   "editor.stickyScroll.maxLineCount": 5, // Limits sticky scroll to 5 lines max (when enabled)
   "editor.scrollBeyondLastLine": true, // Allows scrolling beyond the last line
   "editor.smoothScrolling": false, // Disables smooth scrolling
