@@ -33,17 +33,26 @@
   "workbench.editor.closeOnFileDelete": false, // Doesn't close editors when files are deleted
   // Window appearance and behavior
   "window.commandCenter": true,
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️",
-  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚",
-  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟",
+  // Window title format - uncomment based on your active profile/project
+  // Web Development Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 JS/TS💛", // JavaScript/TypeScript
+  "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 MERN🪩", // MERN Stack
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 React⚛️", // React
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Vue💚", // Vue.js
+  // Backend & Systems Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C/C++🚦", // C/C++
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 C#/.NET🪟", // C#/.NET
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Java☕", // Java/Spring
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PHP🐘", // PHP/Laravel
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Python🐍", // Python
+  // Mobile & Cross-Platform Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 Dart💙", // Flutter/Dart
+  // Enterprise & Cloud Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 SF ☁️", // Salesforce
+  // General Purpose Profiles
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 DEFAULT🏠", // Default
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 PERSONAL🧑🏻‍💻", // Personal
+  // "window.title": "${rootName}🗃️${separator}${dirty}${activeEditorShort}👈🏻 ${activeFolderShort}📂 WORK🧑🏻‍💻", // Work
   // Color customizations for themes and bracket highlighting
   "workbench.colorCustomizations": {
     "editorCursor.foreground": "#ffe657", // Sets cursor color to bright yellow
@@ -167,9 +176,7 @@
         }
       },
       {
-        "scope": [
-          "support.function.js"
-        ], // JavaScript built-in functions
+        "scope": ["support.function.js"], // JavaScript built-in functions
         "settings": {
           "fontStyle": "" // Uses normal font style (no bold/italic)
         }
@@ -216,19 +223,21 @@
   // Indent Rainbow extension settings
   "indentRainbow.indicatorStyle": "light", // Sets indent rainbow style to light
   "indentRainbow.lightIndicatorStyleLineWidth": 25, // Sets indent rainbow line width to 25px
-  // Custom CSS and Loader Plugin
+  // Custom CSS and JS Loader Plugin (OS-specific paths)
+  // Windows paths:
   "vscode_custom_css.imports": [
-    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css", // Windows Style Directory
-    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js" // Windows Style Directory
-    // "file:///Users/maaz.rahman/VSCodeCustom/custom—vscode.css", // Mac Style Directory
-    // "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js" // Mac Style Directory
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\style.css",
+    "file:///C:\\Users\\Maaz\\AppData\\Roaming\\VSCodeCustomCSS\\script.js"
   ],
+  // macOS/Linux paths:
+  // "vscode_custom_css.imports": [
+  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode.css",
+  //   "file:///Users/maaz.rahman/VSCodeCustom/custom-vscode-script.js"
+  // ],
   //------------------NOTIFICATIONS & POPUPS--------------------------
   // Notification settings
   "window.dialogStyle": "custom", // Uses VS Code's custom dialog style
-  "notifications.excludeList": [
-    "workbench.action.terminal.allowWorkspaceShell"
-  ], // Excludes these notifications
+  "notifications.excludeList": ["workbench.action.terminal.allowWorkspaceShell"], // Excludes these notifications
   "window.restoreWindows": "all", // Restores all windows when VS Code restarts
   "window.confirmBeforeClose": "always", // Always confirms before closing VS Code
   //------------------USER INTERFACE & EXPERIENCE---------------------
@@ -255,59 +264,57 @@
   "extensions.closeExtensionDetailsOnViewChange": true, // Closes extension details when changing views
   //------------------TERMINAL APPEARANCE---------------------------------
   // These settings control how the integrated terminal looks and behaves
-  // Terminal profile configuration for Windows
+
+  // Windows Terminal Configuration
   "terminal.integrated.defaultProfile.windows": "PowerShell", // Sets default terminal to PowerShell on Windows
   "terminal.integrated.profiles.windows": {
     "PowerShell": {
-      // PowerShell terminal configuration
       "source": "PowerShell", // Uses PowerShell as source
       "color": "terminal.ansiWhite", // Sets color to white
       "icon": "terminal-powershell" // Uses PowerShell icon
     }
+    // Alternate: Git Bash on Windows
+    // "Git Bash": {
+    //   "path": "C:\\Program Files\\Git\\bin\\bash.exe",
+    //   "args": [],
+    //   "icon": "terminal-bash"
+    // }
   },
-  /* Alternate terminal configuration (Git Bash)
-  "terminal.integrated.profiles.windows": {
-    "C:\\Program Files\\Git\\bin\\bash.exe (migrated)": {
-      "path": "C:\\Program Files\\Git\\bin\\bash.exe",
-      "args": []
-    }
-  },
-  "terminal.integrated.defaultProfile.windows": "C:\\Program Files\\Git\\bin\\bash.exe (migrated)", */
-  //____ LINUX INTEGRATED TERMINAL_______
-  "terminal.integrated.defaultProfile.linux": "zsh",
-  // Define the 'zsh' profile, ensuring it points to the correct executable path.
+  // Alternate: Use Git Bash as default on Windows
+  // "terminal.integrated.defaultProfile.windows": "Git Bash",
+
+  // Linux/macOS Terminal Configuration
+  "terminal.integrated.defaultProfile.linux": "zsh", // Sets default terminal to zsh on Linux/macOS
   "terminal.integrated.profiles.linux": {
     "bash": {
-      "path": "bash",
+      "path": "bash", // Standard bash shell
       "icon": "terminal-bash"
     },
     "zsh": {
-      // Check your system to confirm this path.
-      // You can run 'which zsh' in your current terminal to find it.
-      "path": "/bin/zsh",
+      "path": "/bin/zsh", // Z shell (run 'which zsh' to verify path)
       "icon": "terminal-linux"
     },
     "fish": {
-      // Check your system for the exact path. Either  `/usr/bin/fish` or `/bin/fish`.
-      "path": "/usr/bin/fish",
+      "path": "/usr/bin/fish", // Friendly interactive shell (check path: /usr/bin/fish or /bin/fish)
       "icon": "terminal-debian"
     }
-    // You can keep other existing profiles here or remove them.
   },
-  "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas", // Terminal font (works for macOS too)
-  "terminal.integrated.smoothScrolling": true, // Enables smooth scrolling in terminal
+
+  // Terminal Font (cross-platform)
+  "terminal.integrated.fontFamily": "'CaskaydiaMono Nerd Font','CaskaydiaCove Nerd Font','Hack Nerd Font','Cascadia Code','Cascadia Code NF','Fira Code',Consolas",
+  // Terminal Behavior
+  "terminal.integrated.confirmOnExit": "hasChildProcesses", // Confirms exit only when processes are running
+  "terminal.integrated.copyOnSelection": true, // Automatically copies selected text in terminal
   "terminal.integrated.cursorBlinking": true, // Enables cursor blinking in terminal
   "terminal.integrated.cursorStyle": "line", // Uses line cursor style in terminal
-  // Additional terminal settings
   "terminal.integrated.gpuAcceleration": "auto", // Uses GPU acceleration for terminal rendering when available
-  "terminal.integrated.copyOnSelection": true, // Automatically copies selected text in terminal
+  "terminal.integrated.persistentSessionReviveProcess": "onExitAndWindowClose", // Keeps terminal sessions alive
   "terminal.integrated.rightClickBehavior": "copyPaste", // Right-click copies/pastes in terminal
   "terminal.integrated.scrollback": 10000, // Increases scrollback buffer to 10,000 lines
-  "terminal.integrated.persistentSessionReviveProcess": "onExitAndWindowClose", // Keeps terminal sessions alive
-  "terminal.integrated.tabs.showActiveTerminal": "always", // Always shows the active terminal in tabs
-  "terminal.integrated.confirmOnExit": "hasChildProcesses", // Confirms exit only when processes are running
   "terminal.integrated.shellIntegration.enabled": true, // Enables shell integration features
-  "terminal.integrated.stickyScroll.enabled": true, // See which command produced the current output
+  "terminal.integrated.smoothScrolling": true, // Enables smooth scrolling in terminal
+  "terminal.integrated.stickyScroll.enabled": true, // Shows which command produced the current output
+  "terminal.integrated.tabs.showActiveTerminal": "always", // Always shows the active terminal in tabs
   //------------------EMMET & INTELLISENSE-------------------------------
   // These settings control code completion and suggestions
   "emmet.showSuggestionsAsSnippets": true, // Shows Emmet suggestions as snippets
@@ -331,145 +338,160 @@
   // This section controls language-specific behaviors and file handling
   //=====================================================================
   //------------------LANGUAGE-SPECIFIC SETTINGS------------------------
-  // JavaScript/TypeScript
+
+  // JavaScript Settings
+  "javascript.updateImportsOnFileMove.enabled": "always", // Automatically updates imports when files are moved
+
+  // JSHint Settings (Disabled in favor of ESLint)
+  "jshint.enable": false, // Disables JSHint linting
+  "jshint.lintHTML": true, // Enables JSHint in HTML files
   "jshint.options": {
     "esversion": 9 // Sets JSHint to use ECMAScript 9 (ES2018)
   },
-  "jshint.lintHTML": true, // Enables JSHint in HTML files
-  "jshint.enable": false, // Disables JSHint linting
-  "javascript.updateImportsOnFileMove.enabled": "always", // Automatically updates imports when files are moved
-  "typescript.updateImportsOnFileMove.enabled": "always", // Updates TypeScript imports when files move
-  "typescript.suggestionActions.enabled": true, // Shows suggestion actions for TypeScript
+
+  // TypeScript Settings
   "typescript.preferences.importModuleSpecifier": "relative", // Uses relative paths for imports
   "typescript.preferences.quoteStyle": "single", // Uses single quotes in TypeScript
-  // Formatter selection for different languages
-  "[javascript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses built-in formatter for JavaScript
-  },
-  "[typescript]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Prettier for TypeScript
-    "editor.formatOnSave": true // Formats TypeScript files on save
-  },
-  "[markdown]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Markdown All in One formatter
-    "editor.formatOnSave": true, // Formats Markdown files on save
-    "editor.wordWrap": "on" // Enables word wrap for Markdown
-  },
-  "[python]": {
-    "editor.defaultFormatter": "ms-python.python", // Uses Python extension's formatter
-    "editor.formatOnType": true, // Formats Python code as you type
-    "editor.formatOnSave": true, // Formats Python files on save
-    "editor.codeActionsOnSave": {
-      "source.organizeImports": "explicit" // Organizes Python imports on save when explicitly requested
-    }
-  },
-  "[html]": {
-    // "editor.defaultFormatter": "esbenp.prettier-vscode",
-    "editor.defaultFormatter": "vscode.html-language-features", // Uses built-in formatter for HTML
-    "editor.trimAutoWhitespace": false // Disables trimming whitespace in HTML
-  },
-  "[scss]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses Prettier for SCSS
-  },
-  "[jsonc]": {
-    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses Prettier for JSON with comments
-  },
-  "[json]": {
-    "editor.defaultFormatter": "vscode.json-language-features" // Uses built-in formatter for JSON
-  },
-  "[xml]": {
-    "editor.autoClosingQuotes": "always", // Always closes quotes in XML
-    "editor.defaultFormatter": "vscode.html-language-features" // Uses built-in formatter for XML
-    // "editor.defaultFormatter": "DotJoshJohnson.xml"
-  },
+  "typescript.suggestionActions.enabled": true, // Shows suggestion actions for TypeScript
+  "typescript.updateImportsOnFileMove.enabled": "always", // Updates TypeScript imports when files move
+  // Language-Specific Formatter Settings (alphabetically ordered)
   "[css]": {
     "editor.defaultFormatter": "vscode.css-language-features" // Uses built-in formatter for CSS
   },
-  "[vue]": {
-    "editor.defaultFormatter": "Vue.volar" // Uses Volar for Vue files
-  },
-  // HTML specific formatting
-  "html.format.indentInnerHtml": true, // Indents <head> and <body> sections
-  "html.format.extraLiners": "true", // Adds extra line breaks for certain elements
-  "html.format.wrapLineLength": 0, // Disables line wrapping in HTML
-  "vetur.format.defaultFormatter.html": "prettier", // Uses Prettier for HTML in Vue files
-  // JSON settings
-  "json.maxItemsComputed": 7000, // Increases the limit of computed items for JSON intellisense
-  // XML settings
-  "xml.completion.autoCloseTags": true, // Automatically closes XML tags
-  "xml.symbols.maxItemsComputed": 15000, // Increases the limit of computed symbols for XML
-  "xml.server.vmargs": "-Xmx512M", // Allocates 512MB memory to XML server
-  // Dart/Flutter settings
-  "dart.lineLength": 100, // Sets Dart line length to 100 characters
   "[dart]": {
     "editor.formatOnSave": true, // Formats Dart code on save
     "editor.formatOnType": true, // Formats Dart code while typing
-    // "editor.rulers": [80],
     "editor.selectionHighlight": true, // Highlights selections in Dart files
     "editor.suggest.snippetsPreventQuickSuggestions": false, // Allows quick suggestions with snippets
     "editor.suggestSelection": "first", // Selects first suggestion by default
     "editor.tabCompletion": "onlySnippets", // Tab only completes snippets
     "editor.wordBasedSuggestions": "allDocuments" // Uses all open documents for word suggestions
   },
-  // C/C++ settings
+  "[html]": {
+    "editor.defaultFormatter": "vscode.html-language-features", // Uses built-in formatter for HTML
+    // "editor.defaultFormatter": "esbenp.prettier-vscode", // Alternate: Use Prettier for HTML
+    "editor.trimAutoWhitespace": false // Disables trimming whitespace in HTML
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses Prettier for JavaScript
+  },
+  "[json]": {
+    "editor.defaultFormatter": "vscode.json-language-features" // Uses built-in formatter for JSON
+  },
+  "[jsonc]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses Prettier for JSON with comments
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Prettier for Markdown
+    "editor.formatOnSave": true, // Formats Markdown files on save
+    "editor.wordWrap": "on" // Enables word wrap for Markdown
+  },
+  "[python]": {
+    "editor.codeActionsOnSave": {
+      "source.organizeImports": "explicit" // Organizes Python imports on save when explicitly requested
+    },
+    "editor.defaultFormatter": "ms-python.python", // Uses Python extension's formatter
+    "editor.formatOnSave": true, // Formats Python files on save
+    "editor.formatOnType": true // Formats Python code as you type
+  },
+  "[scss]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode" // Uses Prettier for SCSS
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode", // Uses Prettier for TypeScript
+    "editor.formatOnSave": true // Formats TypeScript files on save
+  },
+  "[vue]": {
+    "editor.defaultFormatter": "Vue.volar" // Uses Volar for Vue files
+  },
+  "[xml]": {
+    "editor.autoClosingQuotes": "always", // Always closes quotes in XML
+    "editor.defaultFormatter": "vscode.html-language-features" // Uses built-in formatter for XML
+    // "editor.defaultFormatter": "DotJoshJohnson.xml" // Alternate: Use XML extension formatter
+  },
+  // HTML Formatting Settings
+  "html.format.extraLiners": "true", // Adds extra line breaks for certain elements
+  "html.format.indentInnerHtml": true, // Indents <head> and <body> sections
+  "html.format.wrapLineLength": 0, // Disables line wrapping in HTML
+
+  // JSON Settings
+  "json.maxItemsComputed": 7000, // Increases the limit of computed items for JSON intellisense
+
+  // Vue/Vetur Settings
+  "vetur.format.defaultFormatter.html": "prettier", // Uses Prettier for HTML in Vue files
+
+  // XML Settings
+  "xml.completion.autoCloseTags": true, // Automatically closes XML tags
+  "xml.server.vmargs": "-Xmx512M", // Allocates 512MB memory to XML server
+  "xml.symbols.maxItemsComputed": 15000, // Increases the limit of computed symbols for XML
+  // C/C++ Settings
   "C_Cpp.updateChannel": "Default", // Uses default update channel for C/C++ extension
-  // Python settings
+
+  // Dart/Flutter Settings
+  "dart.lineLength": 100, // Sets Dart line length to 100 characters
+
+  // PHP Settings
+  "php.validate.enable": true, // Enables PHP validation
+  "php.validate.run": "onType", // Validates PHP code as you type
+
+  // Python Settings
+  "python.analysis.typeCheckingMode": "basic", // Enables basic type checking
   "python.formatting.provider": "black", // Uses Black formatter for Python
   "python.linting.enabled": true, // Enables Python linting
   "python.linting.pylintEnabled": true, // Enables Pylint
-  "python.analysis.typeCheckingMode": "basic", // Enables basic type checking
-  // PHP settings
-  "php.validate.enable": true, // Enables PHP validation
-  "php.validate.run": "onType", // Validates PHP code as you type
   //------------------EXTERNAL TOOLS & PLUGINS-------------------------
-  // ESLint settings
-  "eslint.validate": [
-    "javascript",
-    "javascriptreact",
-    "typescript",
-    "typescriptreact"
-  ], // Validates these file types with ESLint
-  "eslint.format.enable": true, // Enables ESLint as a formatter
-  "eslint.lintTask.enable": true, // Enables ESLint task for linting whole workspace
-  // Prettier settings
-  "prettier.singleQuote": true, // Uses single quotes
-  "prettier.trailingComma": "all", // Uses trailing commas per ES5 style
-  "prettier.tabWidth": 2, // Sets tab width to 2 spaces
-  "prettier.semi": true, // Adds semicolons
-  "prettier.printWidth": 100, // Sets print width to 100 characters
-  // "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier",
-  // Docker/Containers settings
+  // Docker/Containers Settings
   "containers.containers.sortBy": "CreatedTime", // Sorts containers by creation time
   "containers.images.sortBy": "CreatedTime", // Sorts images by creation time
+
+  // ESLint Settings
+  "eslint.format.enable": true, // Enables ESLint as a formatter
+  "eslint.lintTask.enable": true, // Enables ESLint task for linting whole workspace
+  "eslint.validate": ["javascript", "javascriptreact", "typescript", "typescriptreact"], // Validates these file types with ESLint
+
+  // Prettier Settings
+  "prettier.printWidth": 100, // Sets print width to 100 characters
+  "prettier.semi": true, // Adds semicolons
+  "prettier.singleQuote": true, // Uses single quotes
+  "prettier.tabWidth": 2, // Sets tab width to 2 spaces
+  "prettier.trailingComma": "all", // Uses trailing commas per ES5 style
+  // "prettier.prettierPath": "\\AppData\\Roaming\\npm\\node_modules\\prettier", // Custom Prettier path (Windows)
+
   //------------------SALESFORCE & APEX SETTINGS-----------------------
   // These settings control Salesforce development tools
-  // Salesforce DX settings
-  "salesforcedx-vscode-core.show-cli-success-msg": false, // Hides CLI success messages
+
+  // Salesforce Code Analyzer
+  "codeAnalyzer.enableV5": true, // Enables Salesforce Code Analyzer v5 (PMD, ESLint, etc.)
+
+  // Salesforce DX Core Settings
+  "salesforcedx-vscode-core.detectConflictsAtSync": true, // Detects conflicts during sync
+  "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": false, // Disables experimental source tracking
   "salesforcedx-vscode-core.push-or-deploy-on-save.overrideConflictsOnPush": false, // Doesn't override conflicts when pushing
   "salesforcedx-vscode-core.retrieve-test-code-coverage": true, // Retrieves test coverage information
-  "salesforcedx-vscode-core.experimental.enableSourceTrackingForDeployAndRetrieve": false, // Disables experimental source tracking
-  "salesforcedx-vscode-core.detectConflictsAtSync": true, // Detects conflicts during sync
+  "salesforcedx-vscode-core.show-cli-success-msg": false, // Hides CLI success messages
   "salesforcedx-vscode-core.telemetry.enabled": false, // Disables Salesforce telemetry
-  // Einstein for Salesforce settings
-  "salesforce.einsteinForDevelopers.enableAutocompletions": false, // Disables Einstein autocompletions
+
+  // Salesforce Apex Language Server Settings
+  "salesforcedx-vscode-apex.advanced.enable-completion-statistics": false, // Disables completion statistics
+  "salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry": false, // Disables error telemetry
+
+  // Einstein for Salesforce Settings
   "salesforce.einsteinForDevelopers.enable": false, // Disables Einstein for Developers
+  "salesforce.einsteinForDevelopers.enableAutocompletions": false, // Disables Einstein autocompletions
   "salesforce.einsteinForDevelopers.enableAutocompletionsSleepModeMonitoring": false, // Disables sleep mode monitoring
   "salesforce.einsteinForDevelopers.enableInlineIndicatorForAutocomplete": true, // Shows inline indicators for autocompletions
-  "salesforcedx-vscode-apex.advanced.enable-completion-statistics": false,
-  "salesforcedx-vscode-apex.enable-apex-ls-error-to-telemetry": false,
-  // Java configuration for Salesforce Apex
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Path to Java JDK for Apex
-  // Alternative Java paths (commented out)
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot", // Path to Java JDK for Apex
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19",
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2",
-  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath",
-  // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home",
-  // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.8/libexec/openjdk.jdk/Contents/Home",
-  // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.7/bin",
-  // "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home",
-  // SF CLI Scanner
-  "codeAnalyzer.enableV5": true,
+  // Java configuration for Salesforce Apex (OS-specific paths)
+  // Windows paths:
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17", // Java 17
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.7.6-hotspot", // Eclipse Adoptium Java 21
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-19", // Java 19
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Java\\jdk-17.0.2", // Java 17.0.2
+  // "salesforcedx-vscode-apex.java.home": "C:\\Program Files\\Common Files\\Oracle\\Java\\javapath", // Oracle Java
+  // macOS paths:
+  // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.6/libexec/openjdk.jdk/Contents/Home", // Homebrew OpenJDK 21.0.6
+  // "salesforcedx-vscode-apex.java.home": "/opt/homebrew/Cellar/openjdk@21/21.0.8/libexec/openjdk.jdk/Contents/Home", // Homebrew OpenJDK 21.0.8
+  // "salesforcedx-vscode-apex.java.home": "/Library/Java/JavaVirtualMachines/zulu-21.jdk/Contents/Home", // Zulu Java 21
+
   //------------------FILE ASSOCIATIONS & SEARCH------------------------
   // These settings control how VS Code interacts with files
   // File associations
@@ -478,100 +500,99 @@
     "*.cmp": "html", // Treats .cmp files as HTML
     "*.gs": "javascript" // Treats .gs files as JavaScript
   },
-  // File handling settings
-  "files.exclude": {
-    "**/*.js.map": false, // Hides build artifacts
-    "**/.classpath": false, // Hides .classpath files
-    "**/.project": false, // Hides .project files
-    "**/.settings": false, // Hides .settings folders
-    "**/.factorypath": false, // Hides .factorypath files
-    "**/.DS_Store": true, // Excludes macOS DS_Store files
-    "**/.git": false, // Excludes Git directories
-    "**/node_modules": false, // Excludes node_modules
-    "**/dist": false, // Excludes distribution directories
-    "**/coverage": false // Excludes test coverage reports
-  },
-  "files.trimFinalNewlines": true, // Trims extra newlines at end of file
-  "files.trimTrailingWhitespace": true, // Do trim trailing whitespace
-  // Search configuration
-  "search.exclude": {
-    "**/node_modules": true, // Excludes node_modules from search
-    "**/bower_components": true, // Excludes bower_components from search
-    "**/.sfdx": true // Excludes .sfdx folders from search
-  },
-  "search.smartCase": true, // Smart case-sensitive search (case-sensitive if query contains uppercase)
-  "search.searchOnType": true, // Searches as you type
-  "search.followSymlinks": false, // Doesn't follow symlinks when searching
-  "search.sortOrder": "modified", // Sorts search results by last modified date
-  "search.quickOpen.includeSymbols": true, // Enable quick file navigation with fuzzy matching
-  // Additional file settings
-  "files.insertFinalNewline": true, // Inserts final newline at end of file
+  // File Handling Settings
   "files.autoSave": "afterDelay", // Auto-saves files after delay
-  "files.autoSaveDelay": 60000, // Sets auto-save delay to 1000ms = 1 sec (60 seconds)
+  "files.autoSaveDelay": 60000, // Sets auto-save delay to 60000ms = 60 seconds
+  "files.eol": "\n", // Uses LF (Unix-style) line endings
+  "files.exclude": {
+    "**/*.js.map": false, // Shows/hides JavaScript map files
+    "**/.classpath": false, // Shows/hides .classpath files (Java)
+    "**/.DS_Store": true, // Hides macOS DS_Store files
+    "**/.factorypath": false, // Shows/hides .factorypath files (Java)
+    "**/.git": false, // Shows/hides Git directories
+    "**/.project": false, // Shows/hides .project files (Eclipse)
+    "**/.settings": false, // Shows/hides .settings folders (Eclipse)
+    "**/coverage": false, // Shows/hides test coverage reports
+    "**/dist": false, // Shows/hides distribution directories
+    "**/node_modules": false // Shows/hides node_modules
+  },
+  "files.hotExit": "onExitAndWindowClose", // Remembers unsaved changes when VS Code exits
+  "files.insertFinalNewline": true, // Inserts final newline at end of file
+  "files.restoreUndoStack": false, // Doesn't restore undo stack when reopening files
+  // "files.restoreUndoStack": true, // Alternate: Restores undo history when reopening files
+  "files.trimFinalNewlines": true, // Trims extra newlines at end of file
+  "files.trimTrailingWhitespace": true, // Trims trailing whitespace on save
   "files.watcherExclude": {
     "**/.git/objects/**": true, // Excludes Git objects from file watcher
     "**/.git/subtree-cache/**": true, // Excludes Git subtree cache
-    "**/node_modules/**": true, // Excludes node_modules from file watcher
-    "**/tmp/**": true, // Excludes temporary directories
     "**/bower_components/**": true, // Excludes bower components
-    "**/dist/**": true // Excludes distribution directories
+    "**/dist/**": true, // Excludes distribution directories
+    "**/node_modules/**": true, // Excludes node_modules from file watcher
+    "**/tmp/**": true // Excludes temporary directories
   },
-  "files.eol": "\n", // Uses LF (Unix-style) line endings
-  // Performance
-  "files.restoreUndoStack": false, // Doesn't restore undo stack when reopening files
-  // "files.restoreUndoStack": true, // Restores undo history when reopening files
-  "files.hotExit": "onExitAndWindowClose", // Remembers unsaved changes when VS Code exits
+
+  // Search Configuration
+  "search.exclude": {
+    "**/.sfdx": true, // Excludes .sfdx folders from search
+    "**/bower_components": true, // Excludes bower_components from search
+    "**/node_modules": true // Excludes node_modules from search
+  },
+  "search.followSymlinks": false, // Doesn't follow symlinks when searching
+  "search.quickOpen.includeSymbols": true, // Enables quick file navigation with fuzzy matching
+  "search.searchOnType": true, // Searches as you type
+  "search.smartCase": true, // Smart case-sensitive search (case-sensitive if query contains uppercase)
+  "search.sortOrder": "modified", // Sorts search results by last modified date
   //=====================================================================
   //? DEVELOPER TOOLS & INTEGRATIONS
   // This section controls third-party integrations and developer tools
   //=====================================================================
   //------------------PROJECT & SOURCE CONTROL--------------------------
   // Project Manager settings
-  "projectManager.git.baseFolders": [
-    "D:\\Orgs\\Aramco"
-  ], // Base folders for Project Manager
-  // Git & GitLens settings
+  "projectManager.git.baseFolders": ["D:\\Orgs\\Aramco"], // Base folders for Project Manager
+  // Git Settings
+  "git.autofetch": true, // Automatically fetches updates from remote repositories
+  "git.branchProtection": ["main", "master", "develop"], // Protects these branches from direct commits
+  "git.branchRandomName.enable": true, // Generates random names for new branches
+  "git.confirmForcePush": true, // Prevents accidental force pushes to repositories
+  "git.confirmSync": true, // Confirms before syncing Git repositories
+  "git.enableSmartCommit": true, // Enables smart Git commits (skips staging area when no staged changes)
+  "git.fetchOnPull": true, // Fetches before pulling changes
+  "git.ignoreMissingGitWarning": true, // Ignores warning about missing Git
+  "git.inputValidation": true, // Validates Git commit messages and input fields
+  "git.mergeEditor": true, // Uses the merge editor for Git merge conflicts
+  "git.openRepositoryInParentFolders": "never", // Doesn't open repositories in parent folders
+  "git.showPushSuccessNotification": true, // Shows a notification when push succeeds
+  "git.suggestSmartCommit": true, // Suggests using smart commit
+
+  // GitLens Settings
   "gitlens.advanced.messages": {
     "suppressGitMissingWarning": true // Suppresses warnings about missing Git
   },
-  "git.ignoreMissingGitWarning": true, // Ignores warning about missing Git
-  "git.autofetch": true, // Automatically fetches updates from remote repositories
-  "git.openRepositoryInParentFolders": "never", // Doesn't open repositories in parent folders
   "gitlens.blame.ignoreWhitespace": true, // Ignores whitespace changes in Git blame
   "gitlens.views.commitDetails.files.layout": "list", // Shows commit files as a list
-  "diffEditor.ignoreTrimWhitespace": false, // Doesn't ignore whitespace in diff view
-  "diffEditor.maxComputationTime": 0, // No time limit for diff computations
-  // Additional Git settings
-  "git.confirmSync": true, // Do confirm before syncing Git repositories
-  "git.confirmForcePush": true, // Prevents accidental force pushes to repositories
-  "git.enableSmartCommit": true, // Enables smart Git commits (skips staging area when no staged changes)
-  "git.fetchOnPull": true, // Fetches before pulling changes
-  "git.mergeEditor": true, // Uses the merge editor for Git merge conflicts
-  "git.suggestSmartCommit": true, // Suggests using smart commit
-  "git.inputValidation": true, //
-  "git.branchProtection": [
-    "main",
-    "master",
-    "develop"
-  ], // Protects these branches from direct commits
-  "git.branchRandomName.enable": true, // Generates random names for new branches
-  "git.showPushSuccessNotification": true, // Shows a notification when push succeeds
+
+  // GitHub Settings
   "github.gitAuthentication": true, // Enables GitHub authentication
   "github.suggestReviewers": true, // Suggests reviewers for pull requests
-  // Additional: Diffing and merging
-  "diffEditor.renderSideBySide": true, // Shows diffs side by side
+
+  // Diff Editor Settings
   "diffEditor.codeLens": true, // Shows code lens in diff view
   "diffEditor.diffAlgorithm": "advanced", // Uses advanced algorithm for better diffs
+  "diffEditor.ignoreTrimWhitespace": false, // Doesn't ignore whitespace in diff view
+  "diffEditor.maxComputationTime": 0, // No time limit for diff computations
+  "diffEditor.renderSideBySide": true, // Shows diffs side by side
   "diffEditor.wordWrap": "off", // Disables word wrap in diff editor
   //------------------DEBUG & DEVELOPMENT------------------------------
-  // Debugging settings
-  "debug.toolBarLocation": "docked", // Docks the debug toolbar
-  "debug.inlineValues": "auto", // Shows variable values inline while debugging
+
+  // Debug Settings
   "debug.console.wordWrap": true, // Enables word wrap in debug console
+  "debug.inlineValues": "auto", // Shows variable values inline while debugging
   "debug.onTaskErrors": "showErrors", // Shows errors when tasks fail
   "debug.showBreakpointsInOverviewRuler": true, // Shows breakpoints in editor overview ruler
   "debug.terminal.clearBeforeReusing": true, // Clears terminal before reusing it for debugging
-  // Task settings
+  "debug.toolBarLocation": "docked", // Docks the debug toolbar
+
+  // Task Settings
   "task.quickOpen.history": 30, // Remembers 30 recent tasks in quick open
   "task.saveBeforeRun": "always", // Saves files before running tasks
   //------------------DATABASE & EXTERNAL CONNECTIONS------------------
@@ -584,50 +605,58 @@
   ],
   "mssql.connections": [], // No saved SQL Server connections
   //------------------LIVE SERVER & BROWSER---------------------------
-  // Live Server settings
-  "liveServer.settings.donotShowInfoMsg": true, // Doesn't show info messages
+  // Live Server Settings
   "liveServer.settings.ChromeDebuggingAttachment": false, // Disables Chrome debugging attachment
-  "liveServer.settings.donotVerifyTags": true, // Doesn't verify HTML tags
-  // Browser options for Live Server (comment/uncomment as needed)
-  "liveServer.settings.CustomBrowser": "chrome:PrivateMode",
-  // "liveServer.settings.CustomBrowser": "chrome",
-  // "liveServer.settings.CustomBrowser": "firefox:PrivateMode",
-  // "liveServer.settings.CustomBrowser": "microsoft-edge",
+  "liveServer.settings.CustomBrowser": "chrome:PrivateMode", // Default browser in private mode
+  // Alternate browser options (uncomment as needed):
+  // "liveServer.settings.CustomBrowser": "chrome", // Chrome normal mode
+  // "liveServer.settings.CustomBrowser": "firefox:PrivateMode", // Firefox private mode
+  // "liveServer.settings.CustomBrowser": "microsoft-edge", // Microsoft Edge
+  // Advanced browser command lines (Windows paths):
   // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe --inPrivate",
+  // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe --incognito",
   // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Users\\Maaz\\AppData\\Local\\Thorium\\Application\\thorium.exe --incognito",
-  // "liveServer.settings.AdvanceCustomBrowserCmdLine": "C:\\Program Files\\BraveSoftware\\Brave-Browser\\Application\\brave.exe --incognito", // Uses Brave browser in incognito mode
+  "liveServer.settings.donotShowInfoMsg": true, // Doesn't show info messages
+  "liveServer.settings.donotVerifyTags": true, // Doesn't verify HTML tags
   //------------------PLUGIN SETTINGS & SPELL CHECKER-----------------
-  // Plugin settings
+
+  // Auto-Rename Tag Settings
+  "auto-rename-tag.activationOnLanguage": ["html", "xml", "php"], // Enables auto-rename for these languages
+
+  // Extension Settings
   "extensions.ignoreRecommendations": true, // Ignores extension recommendations
-  "auto-rename-tag.activationOnLanguage": [
-    "html",
-    "xml",
-    "php"
-  ], // Enables auto-rename for these languages
-  "npm.keybindingsChangedWarningShown": true, // Doesn't show keybinding change warning
-  "yaml.maxItemsComputed": 50000, // Increases computed item limit for YAML
+
+  // Material Theme Settings
   "materialTheme.accent": "Blue", // Sets Material Theme accent to blue
+
+  // NPM Settings
+  "npm.keybindingsChangedWarningShown": true, // Doesn't show keybinding change warning
+
+  // Rainbow CSV Settings
   "rainbow_csv.csv_lint_detect_trailing_spaces": true, // Detects trailing spaces in CSV
-  // CSS Color information
+
+  // YAML Settings
+  "yaml.maxItemsComputed": 50000, // Increases computed item limit for YAML
+  // Color Info Settings
   "colorInfo.languages": [
     {
-      "selector": "css", // Enables color info in CSS
+      "selector": "css",
       "colors": "css"
     },
     {
-      "selector": "sass", // Enables color info in Sass
+      "selector": "html",
       "colors": "css"
     },
     {
-      "selector": "scss", // Enables color info in SCSS
+      "selector": "less",
       "colors": "css"
     },
     {
-      "selector": "less", // Enables color info in Less
+      "selector": "sass",
       "colors": "css"
     },
     {
-      "selector": "html", // Enables color info in HTML
+      "selector": "scss",
       "colors": "css"
     }
   ],
@@ -741,38 +770,44 @@
   // This section controls privacy settings and miscellaneous options
   //=====================================================================
   //------------------TELEMETRY & PRIVACY------------------------------
-  // Disable telemetry and data collection
-  "telemetry.telemetryLevel": "off", // Disables telemetry data collection
-  "telemetry.feedback.enabled": false, // Disables feedback reporting
-  "redhat.telemetry.enabled": false, // Disables Red Hat extension telemetry
+  // All Telemetry and Data Collection Disabled
+
+  // AI Chat Settings (Disabled)
+  "chat.agent.enabled": false, // Disables AI chat agent
+  "chat.agentSessionsViewLocation": "disabled", // Hides agent sessions view
+  "chat.checkpoints.enabled": false, // Disables chat checkpoints
+  "chat.commandCenter.enabled": false, // Disables chat command center
+  "chat.detectParticipant.enabled": false, // Disables participant detection
+  "chat.extensionTools.enabled": false, // Disables extension tools in chat
+  "chat.mcp.discovery.enabled": {
+    "claude-desktop": false, // Disables Claude Desktop discovery
+    "cursor-global": false, // Disables Cursor global discovery
+    "cursor-workspace": false, // Disables Cursor workspace discovery
+    "windsurf": false // Disables Windsurf discovery
+  },
+
+  // Extension Telemetry Settings (Disabled)
   "cody.telemetry.level": "off", // Disables Cody extension telemetry
-  /* Deprecated telemetry settings
+  "github.copilot.advanced.telemetry": false, // Disables GitHub Copilot advanced telemetry
+  "github.copilot.enable": {
+    "*": false // Disables GitHub Copilot for all languages
+  },
+  "githubPullRequests.telemetry.enabled": false, // Disables GitHub PR telemetry
+  "redhat.telemetry.enabled": false, // Disables Red Hat extension telemetry
+  "remotehub.telemetry.enabled": false, // Disables Remote Hub telemetry
+
+  // Core Telemetry Settings (Disabled)
+  "telemetry.editStats.details.enabled": false, // Disables detailed edit statistics
+  "telemetry.editStats.enabled": false, // Disables edit statistics
+  "telemetry.feedback.enabled": false, // Disables feedback reporting
+  "telemetry.telemetryLevel": "off", // Disables all telemetry data collection
+  "typescript.surveys.enabled": false, // Disables TypeScript surveys
+  "workbench.telemetryOptOutShown": true, // Marks telemetry opt-out as shown
+
+  // Deprecated Telemetry Settings (Keep for reference)
+  /* Deprecated in newer VS Code versions:
   "telemetry.enableTelemetry": false,
   "telemetry.enableCrashReporter": false, */
-  "githubPullRequests.telemetry.enabled": false,
-  "typescript.surveys.enabled": false,
-  "workbench.telemetryOptOutShown": true,
-  "remotehub.telemetry.enabled": false,
-  "github.copilot.enable": {
-    "*": false
-  },
-  "github.copilot.advanced.telemetry": false,
-  "telemetry.editStats.enabled": false,
-  "telemetry.editStats.details.enabled": false,
-  //_____________________ PATHETIC AI SLOPS AND PATHETIC AI CONFIGS_________________
-  // Forced AI apps making my VSCode run slow
-  "chat.checkpoints.enabled": false,
-  "chat.detectParticipant.enabled": false,
-  "chat.agentSessionsViewLocation": "disabled",
-  "chat.commandCenter.enabled": false, // Disables Copilot chat command center
-  "chat.agent.enabled": false,
-  "chat.mcp.discovery.enabled": {
-    "claude-desktop": false,
-    "windsurf": false,
-    "cursor-global": false,
-    "cursor-workspace": false
-  },
-  "chat.extensionTools.enabled": false,
   //------------------SETTINGS SYNC-----------------------------------
   // Settings Sync configuration
   "settingsSync.ignoredExtensions": [], // No extensions ignored during sync
@@ -781,18 +816,22 @@
   "security.workspace.trust.untrustedFiles": "open", // Opens untrusted files without warning
   //------------------ACCESSIBILITY & USABILITY------------------------
   // Settings for better accessibility and usability
-  "accessibility.verbosity.diffEditor": true, // Increases verbosity for diff editor (for screen readers)
-  "accessibility.verbosity.panelChat": true, // Doesn't play audio cue for no inlay hints
+
+  // Accessibility Signals (Audio Cues)
+  "accessibility.signals.lineHasBreakpoint": {
+    "sound": "off" // Disables sound when line has breakpoint
+  },
   "accessibility.signals.lineHasError": {
-    "sound": "off"
+    "sound": "off" // Disables sound when line has error
   },
   "accessibility.signals.lineHasFoldedArea": {
-    "sound": "off"
-  },
-  "accessibility.signals.lineHasBreakpoint": {
-    "sound": "off"
+    "sound": "off" // Disables sound when line has folded area
   },
   "accessibility.signals.noInlayHints": {
-    "sound": "off"
-  }
+    "sound": "off" // Disables sound when no inlay hints
+  },
+
+  // Accessibility Verbosity
+  "accessibility.verbosity.diffEditor": true, // Increases verbosity for diff editor (for screen readers)
+  "accessibility.verbosity.panelChat": true // Increases verbosity for panel chat
 }
