@@ -11,7 +11,7 @@ This repository contains my personal IDE configurations, settings profiles, cust
 
 ### Compatibility Note
 
-🔵 **Works with**: Cursor, VSCodium, VS Code OSS, and other Code OSS-based editors  
+🔵 **Works with**: Cursor, VSCodium, VS Code OSS, and other Code OSS-based editors
 ⚠️ **Note**: Some settings are Microsoft VS Code proprietary but are included for completeness and may work partially or not at all in other editors.
 
 ## Repository Structure
@@ -28,6 +28,7 @@ configs/
 │   └── customization/      # Custom CSS/JS for IDE appearance
 ├── salesforce/             # Salesforce development tools
 │   ├── scripts/            # Python schema generation scripts
+│   ├── pmd/                # PMD static code analysis rulesets
 │   └── mcp/                # MCP wrapper for Salesforce CLI
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
@@ -40,11 +41,13 @@ configs/
 ### For General Development
 
 1. **Choose your settings file**:
+
    - [`code-oss/settings/config.json`](code-oss/settings/config.json) - Production-ready settings (recommended)
    - [`code-oss/settings/config.jsonc`](code-oss/settings/config.jsonc) - JSONC variant with comments
    - [`code-oss/settings/commented-config.json`](code-oss/settings/commented-config.json) - Heavily annotated version
 
 2. **Copy to your IDE settings**:
+
    - Open your IDE's settings file (Cmd/Ctrl + Shift + P → "Preferences: Open Settings (JSON)")
    - Copy the contents from your chosen config file
    - Adjust paths (Windows vs macOS) as needed
@@ -85,6 +88,7 @@ Pre-configured profiles for different technology stacks with optimized extension
 ### 3. Custom Styling
 
 Custom CSS and JavaScript for enhanced IDE appearance including:
+
 - Blurred command palette backdrop
 - Custom sidebar shadows
 - Styled hover tooltips
@@ -95,8 +99,10 @@ Custom CSS and JavaScript for enhanced IDE appearance including:
 ### 4. Salesforce Tools
 
 Automated Salesforce development utilities:
+
 - **Schema Generation**: Automated Salesforce object schema extraction
 - **Picklist Enrichment**: Adds active picklist values to schema files
+- **PMD Rulesets**: Static code analysis rulesets for Apex quality and security
 - **MCP Wrapper**: Salesforce CLI integration for AI coding assistants
 
 [→ Salesforce Tools Guide](docs/SALESFORCE_TOOLS.md)
@@ -116,6 +122,7 @@ Automated Salesforce development utilities:
 - [Code OSS Profiles](code-oss/profiles/README.md) - Profile overview
 - [Code OSS Customization](code-oss/customization/README.md) - Quick setup for custom styles
 - [Salesforce Scripts](salesforce/scripts/README.md) - Python script documentation
+- [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
 ### Repository Maintenance
@@ -127,14 +134,17 @@ Automated Salesforce development utilities:
 ### December 2025 Reorganization
 
 #### Directory Structure Changes
+
 - Renamed `VSCode/` → `code-oss/` for IDE-agnostic naming
 - Consolidated settings into `code-oss/settings/`
 - Moved Salesforce tools to dedicated `salesforce/` directory
 
 #### Settings File Reorganization ⚡ **NEW**
+
 The main configuration file (`config.jsonc`) has been completely reorganized:
 
 **✨ Key Improvements:**
+
 - **10 major sections** organized by importance and workflow
 - **33 granular subsections** for better navigation
 - **3 new dedicated sections**: SALESFORCE, FILES & SEARCH, EXTENSIONS & PLUGINS
@@ -143,18 +153,20 @@ The main configuration file (`config.jsonc`) has been completely reorganized:
 - **Importance-based ordering** - Most used settings at the top
 
 **📋 New Section Order:**
+
 1. EDITOR CORE SETTINGS - Daily editing features
 2. WORKBENCH & UI - Visual appearance and layout
 3. TERMINAL - Terminal configuration
 4. LANGUAGE & FILE SETTINGS - Language-specific behaviors
-5. **SALESFORCE** ⚡ *New dedicated section*
-6. **FILES & SEARCH** ⚡ *New dedicated section*
+5. **SALESFORCE** ⚡ _New dedicated section_
+6. **FILES & SEARCH** ⚡ _New dedicated section_
 7. DEVELOPER TOOLS - Git, debug, development tools
-8. **EXTENSIONS & PLUGINS** ⚡ *New dedicated section*
+8. **EXTENSIONS & PLUGINS** ⚡ _New dedicated section_
 9. PRIVACY, SYNC & MISCELLANEOUS - Privacy and system settings
 10. CUSTOMIZATION & PROFILES - Window titles, colors, custom CSS
 
 **🔧 What Changed:**
+
 - Removed all duplicate settings (5 duplicates eliminated)
 - Moved Emmet settings from TERMINAL to LANGUAGE & FILE SETTINGS
 - Moved Indent Rainbow from WORKBENCH to EXTENSIONS & PLUGINS
@@ -169,10 +181,10 @@ See [Settings README](code-oss/settings/README.md) for detailed section breakdow
 
 The following deprecated settings were automatically migrated to their modern equivalents:
 
-| Deprecated | Migrated To | Reason |
-|------------|-------------|---------|
+| Deprecated                 | Migrated To                    | Reason                                 |
+| -------------------------- | ------------------------------ | -------------------------------------- |
 | `docker.containers.sortBy` | `containers.containers.sortBy` | Docker extension renamed to Containers |
-| `docker.images.sortBy` | `containers.images.sortBy` | Docker extension renamed to Containers |
+| `docker.images.sortBy`     | `containers.images.sortBy`     | Docker extension renamed to Containers |
 
 ## Platform Differences
 
@@ -180,31 +192,32 @@ The following deprecated settings were automatically migrated to their modern eq
 
 Some settings require platform-specific paths. Search and replace as needed:
 
-| Setting | Windows Example | macOS Example |
-|---------|----------------|---------------|
-| Custom CSS | `file:///C:\\Users\\...\\style.css` | `file:///Users/.../style.css` |
-| Java Home (SF) | `C:\\Program Files\\Java\\jdk-21` | `/Library/Java/JavaVirtualMachines/...` |
-| Terminal Font | Works cross-platform | Works cross-platform |
+| Setting        | Windows Example                     | macOS Example                           |
+| -------------- | ----------------------------------- | --------------------------------------- |
+| Custom CSS     | `file:///C:\\Users\\...\\style.css` | `file:///Users/.../style.css`           |
+| Java Home (SF) | `C:\\Program Files\\Java\\jdk-21`   | `/Library/Java/JavaVirtualMachines/...` |
+| Terminal Font  | Works cross-platform                | Works cross-platform                    |
 
 ## IDE Compatibility
 
 ### Fully Supported Features
 
-✅ All editor settings (fonts, colors, formatting)  
-✅ Language-specific configurations  
-✅ Keybindings  
-✅ File associations  
-✅ Git integration settings  
+✅ All editor settings (fonts, colors, formatting)
+✅ Language-specific configurations
+✅ Keybindings
+✅ File associations
+✅ Git integration settings
 
 ### Partially Supported (VS Code Specific)
 
-⚠️ Custom CSS/JS loader (requires extension)  
-⚠️ Some proprietary extension settings  
-⚠️ Telemetry settings (may not exist in non-VS Code builds)  
+⚠️ Custom CSS/JS loader (requires extension)
+⚠️ Some proprietary extension settings
+⚠️ Telemetry settings (may not exist in non-VS Code builds)
 
 ## Contributing
 
 This is a personal configuration repository, but feel free to:
+
 - Fork for your own use
 - Submit issues for questions
 - Suggest improvements via pull requests
@@ -238,8 +251,9 @@ See [Cursor AI Configuration](.cursor/README.md) for detailed documentation.
 - **Settings Files**: 3 variants (JSON, JSONC, Commented)
 - **Profiles**: 13 development profiles
 - **Scripts**: 4 Python automation scripts
+- **PMD Rulesets**: 2 Apex static analysis rulesets
 - **Custom Files**: 2 (CSS + JS)
-- **Documentation**: 9 comprehensive guides (including Cursor AI docs)
+- **Documentation**: 10 comprehensive guides (including Cursor AI docs + PMD docs)
 - **AI Configuration**: 6 rules + 2 config files (mcp.json, worktrees.json)
 
 ## License
@@ -248,6 +262,6 @@ This configuration repository is provided as-is for personal and educational use
 
 ---
 
-**Last Updated**: December 2025  
-**Maintained by**: [Maaz Rahman](https://github.com/cjmaaz)  
+**Last Updated**: December 2025
+**Maintained by**: [Maaz Rahman](https://github.com/cjmaaz)
 **Compatible Editors**: Cursor, VSCodium, VS Code OSS, and other Code OSS-based editors

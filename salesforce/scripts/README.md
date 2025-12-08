@@ -19,12 +19,14 @@ This directory contains automation scripts for Salesforce schema management and 
 9. **Enriches schemas with picklist values & metadata** ⭐
 
 **Usage:**
+
 ```bash
 # Just run it - no inputs required!
 python3 scripts/auto_generate_schema.py
 ```
 
 That's it! The script automatically:
+
 - Uses your configured default org
 - Retrieves all objects
 - Generates and splits schema
@@ -38,6 +40,7 @@ Enriches existing Salesforce schema YAML files with complete metadata from the o
 You typically don't need to run it manually unless updating specific objects.
 
 **What it adds:**
+
 - Picklist values (**ACTIVE ONLY** - inactive values excluded)
 - Formula definitions
 - Default values
@@ -47,6 +50,7 @@ You typically don't need to run it manually unless updating specific objects.
 - Field dependencies (controlling/dependent picklists)
 
 **Manual Usage (when needed):**
+
 ```bash
 # Enrich all objects (auto-detects org from .sf/config.json)
 python3 scripts/enrich_schema_with_picklists.py
@@ -65,19 +69,23 @@ python3 scripts/enrich_schema_with_picklists.py --schema-dir custom/schema/path
 ```
 
 **Note:** The `--org` parameter is now **optional**. The script auto-detects your org from:
+
 - `.sf/config.json` (SF CLI v2), or
 - `.sfdx/sfdx-config.json` (legacy)
 
 If no org is found, you'll be prompted to either:
+
 1. Set a default org: `sf config set target-org YourOrg`, or
 2. Provide `--org` parameter explicitly
 
 **Requirements:**
+
 - Salesforce CLI (`sf`) installed and authenticated
 - Python 3.7+
 - PyYAML: `pip install pyyaml`
 
 **SF CLI Command Used:**
+
 ```bash
 sf sobject describe --sobject <ObjectName> --target-org <org> --json
 ```
@@ -100,6 +108,7 @@ python3 scripts/auto_generate_schema.py
 ```
 
 This single command:
+
 1. Detects your org
 2. Retrieves all objects
 3. Generates complete schema
@@ -163,6 +172,7 @@ Comprehensive reference for Salesforce metadata extraction using SF CLI.
 ### 1. Field Metadata (Picklists, Formulas, Types)
 
 **Get all fields for an object:**
+
 ```bash
 # Method 1: Describe command (fastest, most complete)
 sf sobject describe --sobject Account --target-org YourOrg --json
@@ -172,6 +182,7 @@ sf data query --query "SELECT QualifiedApiName, DataType, Label FROM FieldDefini
 ```
 
 **Output includes:**
+
 - Field names, types, labels
 - **Picklist values (active and inactive)**
 - Formula definitions
@@ -181,18 +192,19 @@ sf data query --query "SELECT QualifiedApiName, DataType, Label FROM FieldDefini
 - Lookup relationships (referenceTo)
 
 **Python example to get picklist values:**
+
 ```python
 import subprocess, json
 
 def get_picklist_values(object_name, field_name, org_alias):
-    cmd = ['sf', 'sobject', 'describe', '--sobject', object_name, 
+    cmd = ['sf', 'sobject', 'describe', '--sobject', object_name,
            '--target-org', org_alias, '--json']
     result = subprocess.run(cmd, capture_output=True, text=True)
     metadata = json.loads(result.stdout)
-    
+
     for field in metadata['result']['fields']:
         if field['name'] == field_name:
-            return [pv['value'] for pv in field.get('picklistValues', []) 
+            return [pv['value'] for pv in field.get('picklistValues', [])
                     if pv.get('active')]
     return []
 
@@ -204,6 +216,7 @@ print(values)  # ['Individual', 'Organization', 'Group']
 ### 2. Validation Rules
 
 **Get validation rules for an object:**
+
 ```bash
 # Query ValidationRule metadata
 sf data query --query "SELECT ValidationName, Active, ErrorConditionFormula, ErrorMessage FROM ValidationRule WHERE EntityDefinition.QualifiedApiName = 'Account'" --target-org YourOrg --json
@@ -213,6 +226,7 @@ sf project retrieve start --metadata ValidationRule:Account --target-org YourOrg
 ```
 
 After retrieval, validation rules are in:
+
 ```
 force-app/main/default/objects/Account/validationRules/*.validationRule-meta.xml
 ```
@@ -220,6 +234,7 @@ force-app/main/default/objects/Account/validationRules/*.validationRule-meta.xml
 ### 3. Record Types
 
 **Get record types for an object:**
+
 ```bash
 # Query RecordType
 sf data query --query "SELECT DeveloperName, Name, IsActive, Description FROM RecordType WHERE SobjectType = 'Account'" --target-org YourOrg --json
@@ -231,6 +246,7 @@ sf project retrieve start --metadata RecordType:Account --target-org YourOrg
 ### 4. Apex Triggers
 
 **Get triggers for an object:**
+
 ```bash
 # List all triggers
 sf data query --query "SELECT Name, TableEnumOrId, Status FROM ApexTrigger" --target-org YourOrg --json
@@ -245,6 +261,7 @@ sf project retrieve start --metadata ApexTrigger:AccountTrigger --target-org You
 ### 5. Flows & Process Builders
 
 **Get flow metadata:**
+
 ```bash
 # List all flows
 sf data query --query "SELECT DeveloperName, Label, ProcessType, Status FROM FlowDefinitionView" --target-org YourOrg --json
@@ -259,6 +276,7 @@ sf data query --query "SELECT DeveloperName FROM FlowDefinitionView WHERE Proces
 ### 6. Complete Object Metadata
 
 **Get full object definition:**
+
 ```bash
 # Method 1: Describe (fields only, best for enrichment)
 sf sobject describe --sobject Account --target-org YourOrg --json
@@ -271,6 +289,7 @@ sf data query --query "SELECT QualifiedApiName, Label, IsCustomizable, IsQueryab
 ```
 
 **For custom objects, retrieval includes:**
+
 - Field definitions
 - Validation rules
 - Record types
@@ -280,6 +299,7 @@ sf data query --query "SELECT QualifiedApiName, Label, IsCustomizable, IsQueryab
 - Weblinks
 
 **Location after retrieval:**
+
 ```
 force-app/main/default/objects/Account/
 ├── fields/
@@ -295,17 +315,20 @@ force-app/main/default/objects/Account/
 ### 7. Useful Query Examples
 
 **Find all objects with a specific field:**
+
 ```bash
 sf data query --query "SELECT EntityDefinition.QualifiedApiName FROM FieldDefinition WHERE QualifiedApiName = 'IsActive'" --target-org YourOrg --json
 ```
 
 **Get picklist values using jq (command-line JSON processor):**
+
 ```bash
 sf sobject describe --sobject HealthcareProviderNpi --target-org YourOrg --json | \
   jq '.result.fields[] | select(.name=="NpiType") | .picklistValues[].value'
 ```
 
 **List all custom metadata types:**
+
 ```bash
 sf data query --query "SELECT QualifiedApiName, Label FROM EntityDefinition WHERE IsCustomizable = true AND QualifiedApiName LIKE '%mdt'" --target-org YourOrg --json
 ```
@@ -328,18 +351,18 @@ object:
   api_name: HealthcareProviderNpi
   type: Standard
   fields:
-  - api_name: NpiType
-    type: Picklist
-    label: NPI Type
-    help_text: Identifies whether the NPI is for an individual or an organization.
-    picklist_values:      # ✅ Added by enrichment script
-    - Individual
-    - Organization
-    - Group
-    required: false       # ✅ Added by enrichment script
-  - api_name: AccountId
-    type: Lookup
-    reference_to: Account # ✅ Added by enrichment script
+    - api_name: NpiType
+      type: Picklist
+      label: NPI Type
+      help_text: Identifies whether the NPI is for an individual or an organization.
+      picklist_values: # ✅ Added by enrichment script
+        - Individual
+        - Organization
+        - Group
+      required: false # ✅ Added by enrichment script
+    - api_name: AccountId
+      type: Lookup
+      reference_to: Account # ✅ Added by enrichment script
   validation_rules: []
   record_types: []
 ```
@@ -349,6 +372,7 @@ object:
 ### Error: "sf command not found"
 
 **Solution:** Install Salesforce CLI
+
 ```bash
 # macOS
 brew install sf
@@ -363,6 +387,7 @@ sf --version
 ### Error: "This org hasn't been authenticated"
 
 **Solution:** Authenticate to your org
+
 ```bash
 sf org login web --alias YourOrg
 ```
@@ -370,6 +395,7 @@ sf org login web --alias YourOrg
 ### Error: "ModuleNotFoundError: No module named 'yaml'"
 
 **Solution:** Install PyYAML
+
 ```bash
 pip install pyyaml
 ```
@@ -377,6 +403,7 @@ pip install pyyaml
 ### Error: "Permission denied: ./scripts/enrich_schema_with_picklists.py"
 
 **Solution:** Make script executable
+
 ```bash
 chmod +x scripts/enrich_schema_with_picklists.py
 ```
@@ -408,6 +435,7 @@ To add new enrichment capabilities:
 
 ## See Also
 
+- [PMD Rulesets](../pmd/README.md) - Static code analysis rulesets for Apex
 - [Schema README](../config/schema/README.md) - Schema file structure and usage
 - [Schema Validation Ruleset](../.cursor/rules/salesforce-schema-validation.mdc) - How to properly validate and search schema files
 - [Salesforce CLI Reference](https://developer.salesforce.com/docs/atlas.en-us.sfdx_cli_reference.meta/sfdx_cli_reference/) - Official SF CLI documentation
