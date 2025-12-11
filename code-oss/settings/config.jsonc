@@ -337,6 +337,10 @@
     "editor.defaultFormatter": "vscode.html-language-features" // Uses built-in formatter for XML
     // "editor.defaultFormatter": "DotJoshJohnson.xml" // Alternate: Use XML extension formatter
   },
+  "[apex]": {
+    "files.insertFinalNewline": false, // Disables adding final newline for Apex classes
+    "files.trimFinalNewlines": true // Removes extra newlines at end of Apex files
+  },
 
   //=====================================================================
   //? SALESFORCE
