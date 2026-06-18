@@ -49,7 +49,7 @@
 
 <!--
   ONE row per code commit on this thread. New commits APPEND a row here
-  rather than spawning a new doc. See `.cursor/rules/changes-doc-mandatory.mdc`
+  rather than spawning a new doc. See `.cursor/rules/documentation-workflow.mdc`
   "Same thread, same doc" for the rule.
 
   - For a one-shot refactor that ships in a single commit, this section is
@@ -107,9 +107,11 @@
 
 ## 5. Before / after architecture
 
+> Full design — current state, target state, and the alternatives weighed — lives in the LLD at [`docs/lld/<work-id>-<slug>.md`](../docs/lld/<work-id>-<slug>.md). Keep this section a before/after summary that links there.
+
 <!--
   ──────────────────────────────────────────────────────────────────────
-  FILL UP FRONT (per `.cursor/rules/changes-doc-mandatory.mdc` Step E4)
+  FILL UP FRONT (per `.cursor/rules/documentation-workflow.mdc` Step E5 — keep it a summary that links to the LLD)
   ──────────────────────────────────────────────────────────────────────
   Both halves of this diagram belong UP FRONT, before any code edit.
     - The BEFORE half is the output of Step E1 + Step E2 from the
@@ -158,7 +160,7 @@ flowchart LR
   way), call it out separately so reviewers don't miss it.
 
   ──────────────────────────────────────────────────────────────────────
-  FILL UP FRONT (per `.cursor/rules/changes-doc-mandatory.mdc` Step E4)
+  FILL UP FRONT (per `.cursor/rules/documentation-workflow.mdc` Step E5 — keep it a summary that links to the LLD)
   ──────────────────────────────────────────────────────────────────────
   The invariant list is itself the output of Step E3 (intended-vs-
   accidental side-effect classification). Every INTENDED row from E3
@@ -236,7 +238,7 @@ flowchart LR
   ▸ TRIVIAL change (1-2 line callsite update repeated across N files):
     Show ONE example diff and write "Same pattern applied to N callers — see commit `<hash>`".
 
-  See `.cursor/rules/changes-doc-mandatory.mdc` "Diff-style highlights"
+  See `.cursor/rules/documentation-workflow.mdc` "Diff-style highlights"
   for the full guidance.
 
   Add one sub-section per significant change. On iterative threads

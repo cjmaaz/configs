@@ -9,6 +9,7 @@
 - [Overview](#overview)
 - [Python Schema Scripts (`schemapy`)](#python-schema-scripts-schemapy)
 - [AI-Agent Rules Bootstrap (`initagentrulespy`)](#ai-agent-rules-bootstrap-initagentrulespy)
+- [Git Change Viewer (`git-change-viewer`)](#git-change-viewer-git-change-viewer)
 - [PMD Rulesets for Apex](#pmd-rulesets-for-apex)
 - [MCP Wrapper for Salesforce](#mcp-wrapper-for-salesforce)
 - [IDE Integration](#ide-integration)
@@ -28,17 +29,21 @@ This repository contains powerful automation tools for Salesforce development:
 
 ### 2. AI-Agent Rules Bootstrap (`initagentrulespy`)
 
-Self-contained Python kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~48 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes them in.
+Self-contained Python kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~47 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes them in.
 
-### 3. PMD Rulesets
+### 3. Git Change Viewer (`git-change-viewer`)
+
+Local-only Node + Vite web app that merges git changes from two sources — ticked `changes/*.md` docs (auto-extracting their referenced commit hashes) and hand-picked commits from history — into one GitHub-style diff view, then exports the changed files to a Salesforce `package.xml` (with optional `destructiveChanges.xml`).
+
+### 4. PMD Rulesets
 
 Pre-configured static code analysis rulesets for Apex code quality, security, and best practices enforcement.
 
-### 4. MCP Wrapper
+### 5. MCP Wrapper
 
 Node.js wrapper for integrating Salesforce CLI with AI coding assistants (Cursor, Continue, etc.) via Model Context Protocol.
 
-### 5. IDE Integration
+### 6. IDE Integration
 
 Settings and configurations optimized for Salesforce development in Code OSS-based editors.
 
@@ -326,7 +331,7 @@ Self-contained Python kit (no third-party dependencies) that materializes a cura
 
 # 2. From inside your new Salesforce repo, run:
 python3 /path/to/initagentrulespy/init.py
-# Writes ~48 files into the current directory and prints a summary.
+# Writes ~47 files into the current directory and prints a summary.
 
 # 3. Open .cursor/rules/sf-cli-commands.mdc — the canonical entry point.
 ```
@@ -335,11 +340,12 @@ python3 /path/to/initagentrulespy/init.py
 
 | Path                             | Count                              | What it is                                                                                                                                                                                                              |
 | -------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.cursor/rules/`                 | 11                                 | Cursor rules (always-applied + on-demand). Includes a stub `org-data-model.mdc` you fill in for your own org, and `ut-evidence-doc.mdc` for screenshot-based UT/UAT test-evidence docs.                                  |
+| `.cursor/rules/`                 | 8                                  | Cursor rules (always-applied + on-demand). Consolidated set: `apex-development.mdc` (deploy / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc`, plus omnistudio-deploy-cache-bust, salesforce-schema-validation, sf-cli-commands, python-selenium-automation, and a stub `org-data-model.mdc`. |
 | `.cursor/permissions.json`       | 1                                  | Cursor IDE terminal command allowlist (`terminalAllowlist`) — read-only `sf` / `git` / shell command prefixes that auto-run without approval. Mirrors the Claude-side `.claude/settings.json` allowlist.                |
-| `.claude/skills/`                | 6 skills + `.claude/settings.json` | Claude Code skills mirroring the rules, plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                          |
-| `docs/`                          | 9                                  | Reference docs (OmniStudio guides, sf-retrieve playbook, schema-quickref). Includes a stub `docs/omnistudio/org-conventions.md`.                                                                                        |
-| `changes/_templates/`            | 3                                  | Bug-fix / story / refactor doc templates referenced by the `changes-doc-mandatory` rule.                                                                                                                                |
+| `.cursor/sandbox.json`           | 1                                  | Cursor agent sandbox config — workspace read/write plus the `sf` config dirs (`~/.sf`, `~/.sfdx`, …) and a deny-by-default network policy allowlisting Salesforce domains. Home path auto-filled at init.               |
+| `.claude/skills/`                | 5 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (apex-development, documentation-workflow, retrieve-before-edit, omnistudio-deploy-cache-bust, schema-lookup), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`. |
+| `docs/`                          | 12                                 | Reference docs (OmniStudio guides, sf-retrieve playbook, schema-quickref) plus `docs/_templates/` design-doc templates (LLD, questions-and-KT, walkthrough). Includes a stub `docs/omnistudio/org-conventions.md`.      |
+| `changes/_templates/`            | 4                                  | Bug-fix / story / refactor / retrieve-audit doc templates referenced by the `documentation-workflow` rule.                                                                                                              |
 | `.vscode/`                       | 1                                  | `settings.json` only (with detected Java home). `extensions.json` and `launch.json` intentionally NOT generated — leave those to per-project preference.                                                                |
 | `.mcp.json` + `.cursor/mcp.json` | 2 (same content)                   | MCP server config. Same content written to both paths so Claude Code (reads `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. Filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/fullpackage/`          | 11                                 | Pre-sharded full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                                                   |
@@ -365,7 +371,7 @@ Options:
 
 ### Placeholder substitution
 
-`templates/` ships with five `{{...}}` placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
+`templates/` ships with six `{{...}}` placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
 
 | Placeholder          | Becomes                           | Detection chain                                                                                                          |
 | -------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------------------------------ |
@@ -374,6 +380,7 @@ Options:
 | `{{JAVA_HOME}}`      | Detected JDK home                 | `/usr/libexec/java_home -v 21\|17\|11` (macOS), `$JAVA_HOME`, `/usr/lib/jvm/java-*` glob (Linux), `where java` (Windows) |
 | `{{PMD_PATH}}`       | Absolute pmd binary path          | `shutil.which("pmd")`, then OS-specific install paths and `pmd-bin-*` glob, then `$PMD_HOME`                             |
 | `{{WORKSPACE_PATH}}` | Target dir absolute path          | `os.path.abspath(target_dir)`                                                                                            |
+| `{{HOME_PATH}}`      | The current user's home directory | `Path.home()` (used in `.cursor/sandbox.json`)                                                                          |
 
 If detection falls back to a sentinel, the script prints a warning at the end of the run with instructions on how to fix it.
 
@@ -382,6 +389,46 @@ If detection falls back to a sentinel, the script prints a warning at the end of
 ### Shareable kit
 
 The shareable kit is just two things: `init.py` and the sibling `templates/` folder — that's all a colleague needs. `templates/` ships pre-tokenized with `{{...}}` placeholders, which `init.py` substitutes at the colleague's end. The template generator that produced `templates/` is intentionally local-only (it holds the source repo's real literals as find-replace targets) and is not part of the committed/shareable kit.
+
+---
+
+## Git Change Viewer (`git-change-viewer`)
+
+### Location
+
+[`salesforce/scripts/git-change-viewer/`](../salesforce/scripts/git-change-viewer/)
+
+### What it does
+
+A **local-only** Node + Vite web app for assembling a Salesforce deploy manifest from git history. It merges changes from two sources into one working set:
+
+- **Files pane** — browse the repo (defaults to `changes/`), tick `changes/*.md` docs, and the app auto-extracts the commit hashes referenced inside each doc (a doc with no hash shakes).
+- **Git History pane** — browse, search, and paginate recent commits; tick a whole commit or expand it to tick individual files.
+
+Both sources merge into one set (each commit tagged `GIT` or `FILE: <doc>`), render as a combined GitHub-style diff (via `diff2html`), and export to a Salesforce `package.xml` — with a file chooser to exclude entries and an option to emit `destructiveChanges.xml` for deletions. Output uses API version `66.0`; the path → metadata-type mapping follows the same table as the `retrieve-before-edit` rule.
+
+> It is **not** a deployment tool — it reads the local filesystem and runs `git` against the repo it lives in. Filesystem browsing is sandboxed to the repository root.
+
+### Setup & run
+
+```bash
+cd salesforce/scripts/git-change-viewer
+npm install
+
+# Development (Vite dev server + hot reload on :5173, API on :3001)
+npm run dev          # open http://localhost:5173
+
+# Production-style (build once, serve UI + API from one port)
+npm run build && npm start   # open http://localhost:3001
+```
+
+Run it from inside the git repository you want to inspect (it resolves the repo root via `git rev-parse --show-toplevel`). A self-contained API smoke test is available via `node smoke.mjs`.
+
+### Requirements
+
+- Node.js 20.11+ (developed on Node 24)
+
+For the full pane-by-pane workflow + REST API reference, see [`salesforce/scripts/git-change-viewer/README.md`](../salesforce/scripts/git-change-viewer/README.md).
 
 ---
 
@@ -1122,9 +1169,15 @@ For comprehensive documentation on each component:
   - What gets generated + placeholder substitution
   - Sharing with colleagues + troubleshooting
 
+- **Git Change Viewer**: See [`salesforce/scripts/git-change-viewer/README.md`](../salesforce/scripts/git-change-viewer/README.md)
+
+  - Pane-by-pane workflow (changes docs + git history → combined diff)
+  - `package.xml` / `destructiveChanges.xml` export
+  - REST API reference + smoke test
+
 - **Scripts Index**: See [`salesforce/scripts/README.md`](../salesforce/scripts/README.md)
 
-  - Quick comparison of `schemapy` vs `initagentrulespy`
+  - Quick comparison of `schemapy`, `initagentrulespy`, and `git-change-viewer`
 
 - **PMD Rulesets**: See [`salesforce/pmd/README.md`](../salesforce/pmd/README.md)
 

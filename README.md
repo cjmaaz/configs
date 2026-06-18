@@ -24,7 +24,7 @@ configs/
 │   ├── keybindings/        # Custom keybindings
 │   └── customization/      # Custom CSS/JS for IDE appearance
 ├── salesforce/             # Salesforce development tools
-│   ├── scripts/            # Python schema generation scripts
+│   ├── scripts/            # Salesforce dev kits (schema gen, rules bootstrap, git diff viewer)
 │   ├── pmd/                # PMD static code analysis rulesets
 │   └── mcp/                # MCP wrapper for Salesforce CLI
 ├── docs/                   # Comprehensive documentation
@@ -96,7 +96,8 @@ Custom CSS and JavaScript for enhanced IDE appearance including:
 Automated Salesforce development utilities:
 
 - **Schema Pipeline (`schemapy`)**: 12-step pipeline that retrieves metadata, emits a TOON-encoded ER schema, enriches every field with active picklist values, layers in live record-count usage stats, structurally detects junction objects, and renders an `ER.md` Mermaid diagram
-- **AI-Agent Rules Bootstrap (`initagentrulespy`)**: One-command Python kit that drops ~44 curated rule / skill / doc / manifest / config files into any new Salesforce repo (auto-detects target-org, Java home, and PMD path)
+- **AI-Agent Rules Bootstrap (`initagentrulespy`)**: One-command Python kit that drops ~47 curated rule / skill / doc / manifest / config files into any new Salesforce repo (auto-detects target-org, Java home, and PMD path)
+- **Git Change Viewer (`git-change-viewer`)**: Local-only Node + Vite web app that merges git changes from `changes/*.md` docs and hand-picked commits into one diff view, then exports a Salesforce `package.xml`
 - **PMD Rulesets**: Static code analysis rulesets for Apex quality and security
 - **MCP Wrapper**: Salesforce CLI integration for AI coding assistants
 
@@ -116,9 +117,10 @@ Automated Salesforce development utilities:
 - [Code OSS Settings](code-oss/settings/README.md) - Configuration file variants explained
 - [Code OSS Profiles](code-oss/profiles/README.md) - Profile overview
 - [Code OSS Customization](code-oss/customization/README.md) - Quick setup for custom styles
-- [Salesforce Scripts](salesforce/scripts/README.md) - Index of the `schemapy` and `initagentrulespy` Python kits
+- [Salesforce Scripts](salesforce/scripts/README.md) - Index of the `schemapy`, `initagentrulespy`, and `git-change-viewer` kits
 - [`schemapy` — Schema Pipeline](salesforce/scripts/schemapy/README.md) - 12-step TOON-encoded schema generator
 - [`initagentrulespy` — Rules Bootstrap](salesforce/scripts/initagentrulespy/README.md) - Bootstrap AI-agent rules into a new Salesforce repo
+- [`git-change-viewer` — Diff & package.xml](salesforce/scripts/git-change-viewer/README.md) - Combine git changes and export a Salesforce manifest
 - [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
@@ -219,7 +221,7 @@ This is a personal configuration repository, but feel free to:
 
 - **Settings Files**: 3 variants (JSON, JSONC, Commented)
 - **Profiles**: 13 development profiles
-- **Scripts**: 4 Python automation scripts
+- **Scripts**: 3 Salesforce dev kits (`schemapy`, `initagentrulespy`, `git-change-viewer`)
 - **PMD Rulesets**: 2 Apex static analysis rulesets
 - **Custom Files**: 2 (CSS + JS)
 - **Documentation**: 10 comprehensive guides (including PMD docs)

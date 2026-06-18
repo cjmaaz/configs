@@ -52,7 +52,7 @@
 
 <!--
   ONE row per code commit on this thread. New commits APPEND a row here
-  rather than spawning a new doc. See `.cursor/rules/changes-doc-mandatory.mdc`
+  rather than spawning a new doc. See `.cursor/rules/documentation-workflow.mdc`
   "Same thread, same doc" for the rule.
 
   - "What was done" — one-line plain English.
@@ -64,13 +64,15 @@
     "(superseded by <hash> — see row N)". Don't delete superseded rows.
 -->
 
-| # | Date (UTC) | Code commit | What was done | Why |
-|---|---|---|---|---|
-| 1 | YYYY-MM-DD HH:MM | [`<short-hash>`](#15-deploy-ids-and-commit-references) | <one-line plain English> | <initial discovery / QA finding / cascade> |
+| #   | Date (UTC)       | Code commit                                            | What was done            | Why                                        |
+| --- | ---------------- | ------------------------------------------------------ | ------------------------ | ------------------------------------------ |
+| 1   | YYYY-MM-DD HH:MM | [`<short-hash>`](#15-deploy-ids-and-commit-references) | <one-line plain English> | <initial discovery / QA finding / cascade> |
 
 ---
 
 ## 3. Architecture / context
+
+> Full design — current behavior, the precise gap/root cause, and the proposed fix with alternatives — lives in the LLD at [`docs/lld/<work-id>-<slug>.md`](../docs/lld/<work-id>-<slug>.md). Keep this section just-enough context that links there.
 
 <!--
   Just enough architecture for a reader to follow the rest of the doc. Skip if the
@@ -81,7 +83,7 @@
   re-explaining (e.g. "see docs/flows/<flow>.md for the full call tree").
 
   ──────────────────────────────────────────────────────────────────────
-  FILL UP FRONT (per `.cursor/rules/changes-doc-mandatory.mdc` Step E4)
+  FILL UP FRONT (per `.cursor/rules/documentation-workflow.mdc` Step E5 — keep it a summary that links to the LLD)
   ──────────────────────────────────────────────────────────────────────
   This section is the OUTPUT of the pre-coding analysis protocol (rule
   steps E1-E3), not a wrap-up afterthought. Spawn the preliminary
@@ -97,10 +99,10 @@ flowchart TD
   Component --> Downstream[Downstream call]
 ```
 
-| Type / variant | Path | Status today |
-|---|---|---|
-| <Variant A> | `<file/component path>` | <Fixed / Untouched / Pending> |
-| <Variant B> | `<file/component path>` | <Fixed / Untouched / Pending> |
+| Type / variant | Path                    | Status today                  |
+| -------------- | ----------------------- | ----------------------------- |
+| <Variant A>    | `<file/component path>` | <Fixed / Untouched / Pending> |
+| <Variant B>    | `<file/component path>` | <Fixed / Untouched / Pending> |
 
 ---
 
@@ -137,11 +139,11 @@ Diff of the triggering change (if known):
   If the bug had a single symptom and a single fix, this can be a one-row table.
 -->
 
-| Run window | Status | Visible error / symptom | Underlying cause uncovered |
-|---|---|---|---|
-| <date/time> | Failure | `<error message>` thrown by `<component>` | <Family 1 — short label> |
-| After fix #1 | Failure | `<next error message>` | <Family 2 — short label> |
-| After fix #2 | Success | (clean) | — |
+| Run window   | Status  | Visible error / symptom                   | Underlying cause uncovered |
+| ------------ | ------- | ----------------------------------------- | -------------------------- |
+| <date/time>  | Failure | `<error message>` thrown by `<component>` | <Family 1 — short label>   |
+| After fix #1 | Failure | `<next error message>`                    | <Family 2 — short label>   |
+| After fix #2 | Success | (clean)                                   | —                          |
 
 ---
 
@@ -162,9 +164,9 @@ Diff of the triggering change (if known):
 
 **Metadata** (verified by <how — anonymous Apex, schema query, Tooling API, etc.>):
 
-| Object | Field/component | Property A | Property B | Property C |
-|---|---|---|---|---|
-| `<SObject>` | `<Field>` | <value> | <value> | <value> |
+| Object      | Field/component | Property A | Property B | Property C |
+| ----------- | --------------- | ---------- | ---------- | ---------- |
+| `<SObject>` | `<Field>`       | <value>    | <value>    | <value>    |
 
 **Why the prior state tolerated it:** <one paragraph>
 **Why the new state rejects it:** <one paragraph>
@@ -239,10 +241,10 @@ flowchart TD
   the new behavior provably correct?
 -->
 
-| # | File | Change | Why safe |
-|---|---|---|---|
-| 1 | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
-| 2 | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
+| #   | File               | Change             | Why safe                        |
+| --- | ------------------ | ------------------ | ------------------------------- |
+| 1   | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
+| 2   | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
 
 ### Drift files (no semantic change by us)
 
@@ -278,7 +280,7 @@ flowchart TD
     A single line that says "see commit `<hash>` (1-line addition)" is
     enough — don't pad.
 
-  See `.cursor/rules/changes-doc-mandatory.mdc` "Diff-style highlights"
+  See `.cursor/rules/documentation-workflow.mdc` "Diff-style highlights"
   for the full guidance.
 
   Add one sub-section per significant change. On iterative threads
@@ -362,10 +364,10 @@ sf project deploy start \
   "before" column.
 -->
 
-| Check | Expected | Baseline (pre-bug) | Today (post-fix) | Match |
-|---|---|---|---|---|
-| <Metric 1> | <value> | <value or n/a> | <value> | yes/no |
-| <Metric 2> | <value> | <value or n/a> | <value> | yes/no |
+| Check      | Expected | Baseline (pre-bug) | Today (post-fix) | Match  |
+| ---------- | -------- | ------------------ | ---------------- | ------ |
+| <Metric 1> | <value>  | <value or n/a>     | <value>          | yes/no |
+| <Metric 2> | <value>  | <value or n/a>     | <value>          | yes/no |
 
 ### Apex log verification (if applicable)
 
@@ -374,9 +376,9 @@ sf project deploy start \
   results too.
 -->
 
-| Log Id | Type | Component | Status |
-|---|---|---|---|
-| `07L<...>` | sync | <component> | Success |
+| Log Id     | Type       | Component      | Status             |
+| ---------- | ---------- | -------------- | ------------------ |
+| `07L<...>` | sync       | <component>    | Success            |
 | `07L<...>` | Batch Apex | `<BatchClass>` | Success / 0 errors |
 
 ---
@@ -388,10 +390,10 @@ sf project deploy start \
   and which weren't? Be explicit about pending verification.
 -->
 
-| Scenario | Verified today? | Notes |
-|---|---|---|
-| <Scenario A> | Yes | <evidence> |
-| <Scenario B> | No (pending) | <why pending, what input to use, where the sample data is> |
+| Scenario     | Verified today? | Notes                                                      |
+| ------------ | --------------- | ---------------------------------------------------------- |
+| <Scenario A> | Yes             | <evidence>                                                 |
+| <Scenario B> | No (pending)    | <why pending, what input to use, where the sample data is> |
 
 ---
 
@@ -403,8 +405,8 @@ sf project deploy start \
   questions during review.
 -->
 
-| Asset | Reason untouched |
-|---|---|
+| Asset              | Reason untouched  |
+| ------------------ | ----------------- |
 | [`<path>`](<path>) | <one-line reason> |
 | [`<path>`](<path>) | <one-line reason> |
 
@@ -471,9 +473,9 @@ sf project deploy start --metadata "<Type>:<Name>" -o <sandbox-alias> --ignore-c
 
 ### Deploys to `<sandbox-alias>`
 
-| # | Deploy ID | Components | Time (UTC) | Code commit | Purpose |
-|---|---|---|---|---|---|
-| 1 | `0Af<...>` | <count> | YYYY-MM-DD HH:MM:SS | [`<short-hash>`](#) | <one-line purpose> |
+| #   | Deploy ID  | Components | Time (UTC)          | Code commit         | Purpose            |
+| --- | ---------- | ---------- | ------------------- | ------------------- | ------------------ |
+| 1   | `0Af<...>` | <count>    | YYYY-MM-DD HH:MM:SS | [`<short-hash>`](#) | <one-line purpose> |
 
 <!--
   On iterative threads, add one row per code commit on the thread.
@@ -482,10 +484,10 @@ sf project deploy start --metadata "<Type>:<Name>" -o <sandbox-alias> --ignore-c
 
 ### Commit references
 
-| Commit | What | When |
-|---|---|---|
+| Commit                                   | What                                          | When       |
+| ---------------------------------------- | --------------------------------------------- | ---------- |
 | **`<short-hash>`** (initial code change) | <one-line summary of all files in the commit> | YYYY-MM-DD |
-| **`<short-hash>`** (this doc — initial) | `changes/<slug>.md` documenting the above | YYYY-MM-DD |
+| **`<short-hash>`** (this doc — initial)  | `changes/<slug>.md` documenting the above     | YYYY-MM-DD |
 
 <!--
   On iterative threads, append rows here for every additional code/doc
@@ -508,6 +510,6 @@ git show --stat <short-hash>
 -->
 
 1. <Concrete next step — e.g. "Test scenario B in <sandbox-alias> after metadata cache flush.">
-2. <Concrete next step — e.g. "Smoke-test the related but untouched IBC path before promotion.">
+2. <Concrete next step — e.g. "Smoke-test the related but untouched XYZ path before promotion.">
 3. <Concrete next step — e.g. "Open Salesforce/managed-package support case with this doc as evidence.">
 4. <Concrete next step — e.g. "Cleanup commit before UAT promotion: revert section 10 temporary changes.">

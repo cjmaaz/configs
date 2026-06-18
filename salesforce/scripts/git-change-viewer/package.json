@@ -1,0 +1,27 @@
+{
+  "name": "git-change-viewer",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "Local web app to combine git changes from changes/*.md commit hashes (left pane) and git history (right pane) into one diff view, then export changed files to a Salesforce package.xml.",
+  "scripts": {
+    "dev": "concurrently -k -n SERVER,WEB -c blue,green \"npm:dev:server\" \"npm:dev:web\"",
+    "dev:server": "nodemon --watch server server/index.js",
+    "dev:web": "vite",
+    "build": "vite build",
+    "start": "node server/index.js"
+  },
+  "dependencies": {
+    "diff2html": "^3.4.56",
+    "express": "^5.2.1",
+    "react": "^19.2.7",
+    "react-dom": "^19.2.7",
+    "simple-git": "^3.36.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.0.2",
+    "concurrently": "^10.0.3",
+    "nodemon": "^3.1.14",
+    "vite": "^8.0.16"
+  }
+}

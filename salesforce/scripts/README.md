@@ -1,12 +1,13 @@
 # Salesforce Scripts
 
-Two self-contained Python kits live under this directory. Each ships its own
+Three self-contained kits live under this directory. Each ships its own
 detailed README — start there once you know which one you want.
 
 | Kit | Purpose | README |
 |---|---|---|
-| [`schemapy/`](schemapy/) | 12-step pipeline that retrieves Salesforce metadata, generates a TOON-encoded ER schema (`config/salesforce-er-schema.toon`), splits it into per-object folders under `config/schema/`, enriches every field with picklist values / formulas / lookups, then layers in live record-count usage stats, junction detection, and an `ER.md` diagram. | [`schemapy/README.md`](schemapy/README.md) |
-| [`initagentrulespy/`](initagentrulespy/) | Bootstrap kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~44 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes those into the generated files so the rules work out of the box on macOS, Linux, and Windows. | [`initagentrulespy/README.md`](initagentrulespy/README.md) |
+| [`schemapy/`](schemapy/) | **(Python)** 12-step pipeline that retrieves Salesforce metadata, generates a TOON-encoded ER schema (`config/salesforce-er-schema.toon`), splits it into per-object folders under `config/schema/`, enriches every field with picklist values / formulas / lookups, then layers in live record-count usage stats, junction detection, and an `ER.md` diagram. | [`schemapy/README.md`](schemapy/README.md) |
+| [`initagentrulespy/`](initagentrulespy/) | **(Python)** Bootstrap kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~47 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes those into the generated files so the rules work out of the box on macOS, Linux, and Windows. | [`initagentrulespy/README.md`](initagentrulespy/README.md) |
+| [`git-change-viewer/`](git-change-viewer/) | **(Node + Vite)** Local-only web app that combines git changes from two sources — ticked `changes/*.md` docs (auto-extracting their referenced commit hashes) and hand-picked commits from history — into one GitHub-style diff view, then exports the changed files to a Salesforce `package.xml` (with optional `destructiveChanges.xml`). | [`git-change-viewer/README.md`](git-change-viewer/README.md) |
 
 ## Quick Start
 
@@ -28,18 +29,29 @@ cd /path/to/new-sf-repo
 python3 /path/to/initagentrulespy/init.py
 ```
 
-Drops `.cursor/rules/`, `.claude/skills/`, `docs/`, `changes/_templates/`,
-`.vscode/settings.json`, `.mcp.json`, `.cursor/mcp.json`,
-`manifest/fullpackage/`, and `config/pmd-ruleset.xml` into the current
-directory.
+Drops `.cursor/rules/`, `.cursor/permissions.json`, `.cursor/sandbox.json`,
+`.claude/skills/`, `docs/`, `changes/_templates/`, `.vscode/settings.json`,
+`.mcp.json`, `.cursor/mcp.json`, `manifest/fullpackage/`, and
+`config/pmd-ruleset.xml` into the current directory.
+
+### Combine git changes and export a package.xml
+
+```bash
+# Run from inside the git repo you want to inspect
+cd salesforce/scripts/git-change-viewer
+npm install
+npm run dev          # Vite UI on :5173, API on :3001 — open http://localhost:5173
+```
 
 ## Requirements
 
 - Salesforce CLI (`sf`) installed and authenticated
-- Python 3.9+
-- Per-kit Python deps:
+- Python 3.9+ (for `schemapy` and `initagentrulespy`)
+- Node.js 20.11+ (for `git-change-viewer`)
+- Per-kit deps:
   - `schemapy`: `pip install -r salesforce/scripts/schemapy/requirements.txt`
   - `initagentrulespy`: stdlib only — no external dependencies
+  - `git-change-viewer`: `npm install` (inside the kit folder)
 
 ## See Also
 

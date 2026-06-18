@@ -1,0 +1,65 @@
+---
+description: The org is the source of truth, not the local repo. Retrieve the latest version of any Salesforce metadata component from {{ORG_ALIAS}} before editing it. The canonical home for the "retrieve before editing" mandate that every other rule defers to.
+alwaysApply: true
+---
+
+# 🚨 MANDATORY: Retrieve BEFORE editing (ZERO TOLERANCE)
+
+**`{{ORG_ALIAS}}` (sandbox) is the source of truth — the local repo is NOT.** Teammates and admins deploy directly to the org, so files on disk can be hours/days/weeks stale. **Before modifying ANY metadata you plan to deploy — Apex, LWC, Aura, OmniStudio, objects/fields, validation rules, web links, layouts, FlexiPages, permission sets, flows, custom metadata, etc. — you MUST retrieve the current version from `{{ORG_ALIAS}}` first.**
+
+Editing a stale file and then deploying **silently overwrites the org's newer state**. This step is non-negotiable and precedes every other rule (syntax validation, schema lookup, styling, cache-bust, doc workflow — all of them assume you retrieved first).
+
+> Full `sf` retrieve flag surface: [`sf-cli-commands.mdc`](./sf-cli-commands.mdc). This rule is the *mandate*; that rule is the *reference*.
+
+## Step 1 — Map the file path to the metadata type + API name
+
+| Path under `force-app/main/default/` | Metadata type | API name |
+|---|---|---|
+| `classes/<Name>.cls` | `ApexClass` | `<Name>` |
+| `triggers/<Name>.trigger` | `ApexTrigger` | `<Name>` |
+| `lwc/<bundle>/...` | `LightningComponentBundle` | `<bundle>` |
+| `aura/<bundle>/...` | `AuraDefinitionBundle` | `<bundle>` |
+| `omniScripts/<Type_SubType_Lang>.os-meta.xml` | `OmniScript` | `<Type_SubType_Lang>` |
+| `omniIntegrationProcedures/<Name>.oip-meta.xml` | `OmniIntegrationProcedure` | `<Name>` |
+| `omniDataTransforms/<Name>.rpt-meta.xml` | `OmniDataTransform` | `<Name>` |
+| `objects/<SObj>/fields/<F>.field-meta.xml` | `CustomField` | `<SObj>.<F>` |
+| `objects/<SObj>/webLinks/<W>.webLink-meta.xml` | `WebLink` | `<SObj>.<W>` |
+| `objects/<SObj>/validationRules/<R>.validationRule-meta.xml` | `ValidationRule` | `<SObj>.<R>` |
+| `objects/<SObj>/recordTypes/<RT>.recordType-meta.xml` | `RecordType` | `<SObj>.<RT>` |
+| `objects/<SObj>/listViews/<L>.listView-meta.xml` | `ListView` | `<SObj>.<L>` |
+| `objects/<SObj>.object-meta.xml` | `CustomObject` | `<SObj>` |
+| `flexipages/<Name>.flexipage-meta.xml` | `FlexiPage` | `<Name>` |
+| `layouts/<SObj>-<Layout>.layout-meta.xml` | `Layout` | `<SObj>-<Layout>` |
+| `permissionsets/<Name>.permissionset-meta.xml` | `PermissionSet` | `<Name>` |
+| `flows/<Name>.flow-meta.xml` | `Flow` | `<Name>` |
+| `customMetadata/<Type>.<Record>.md-meta.xml` | `CustomMetadata` | `<Type>.<Record>` |
+
+For multi-file bundles (LWC / Aura / OmniScript), the API name is the **bundle / parent name**, not the inner file. There is no way to retrieve a single `.js` inside an LWC, Aura, or OmniScript — you get the whole bundle.
+
+## Step 2 — Run the retrieve
+
+```bash
+# Single component (preferred — fast, precise)
+sf project retrieve start --metadata <Type>:<ApiName> -o {{ORG_ALIAS}}
+
+# Multiple related components — use a scoped manifest
+sf project retrieve start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}}
+```
+
+If the retrieve reports `nothing retrieved`, the component may no longer exist in the org. **Stop and confirm with the user** before editing or recreating it.
+
+## Step 3 — Compare, then edit
+
+Re-read the file after the retrieve completes. If git shows the retrieve changed it, your local copy was stale — review the new contents before applying your edit so you don't reintroduce removed code.
+
+## Scope
+
+- **Default org alias is `{{ORG_ALIAS}}`** (sandbox). Every `sf` command in this repo assumes `-o {{ORG_ALIAS}}`. Confirm with `sf org list --all`.
+- This is about **single-file or scoped** retrieves in the normal edit loop. For full-org refreshes, use the pre-sharded `manifest/fullpackage/` manifests — never a single org-wide `*` retrieve (it hits the 10k-component limit).
+- Schema TOON files under `config/schema/` are refreshed separately via `python3 scripts/schemapy/auto_generate_schema.py`, not by this flow. See [`salesforce-schema-validation.mdc`](./salesforce-schema-validation.mdc).
+
+## When NOT to retrieve
+
+- Files outside `force-app/main/default/` (docs, scripts, manifests, schema TOONs).
+- Read-only inspection — only required before **edits**.
+- Brand-new components you are creating from scratch (nothing to retrieve).

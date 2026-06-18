@@ -11,7 +11,7 @@
 
   Prerequisite: this doc is written at WRAP-UP, but §4 (Requirements) is filled
   from the INTAKE transcription you (or the agent) captured at work-start
-  per `.cursor/rules/changes-doc-mandatory.mdc` "Intake protocol". If you
+  per `.cursor/rules/documentation-workflow.mdc` "Intake protocol". If you
   skipped intake, go back and do it now — re-read the original AC source,
   transcribe to text, confirm with the user, THEN come back here.
 -->
@@ -56,7 +56,7 @@
 
 <!--
   ONE row per code commit on this thread. New commits APPEND a row here
-  rather than spawning a new doc. See `.cursor/rules/changes-doc-mandatory.mdc`
+  rather than spawning a new doc. See `.cursor/rules/documentation-workflow.mdc`
   "Same thread, same doc" for the rule.
 
   - "What was done" — one-line plain English.
@@ -91,7 +91,7 @@
 <!--
   ▸ This section MUST be filled from the Step 0 intake transcription —
     the plain text you (or the agent) wrote down off the AC screenshot / ticket
-    panel BEFORE writing any code. See `.cursor/rules/changes-doc-mandatory.mdc`
+    panel BEFORE writing any code. See `.cursor/rules/documentation-workflow.mdc`
     "Intake protocol" for why screenshots alone are not acceptable.
 
   ▸ Rules:
@@ -138,7 +138,7 @@
   able to revisit these without re-running the analysis.
 
   ──────────────────────────────────────────────────────────────────────
-  FILL UP FRONT (per `.cursor/rules/changes-doc-mandatory.mdc` Step E4)
+  FILL UP FRONT (per `.cursor/rules/documentation-workflow.mdc` Step E5 — keep it a summary that links to the LLD)
   ──────────────────────────────────────────────────────────────────────
   Design decisions belong UP FRONT (after intake, before any code edit),
   not after-the-fact. Spawn the preliminary changes/<slug>.md as soon as
@@ -169,12 +169,14 @@
 
 ## 6. Architecture
 
+> Full design — current behavior, gap, proposed mechanism, and the alternatives weighed — lives in the LLD at [`docs/lld/<work-id>-<slug>.md`](../docs/lld/<work-id>-<slug>.md). Keep this section a summary diagram + table that links there; don't duplicate the design.
+
 <!--
   Diagram + table. The diagram should show the new component(s) in the context
   of the existing system, with the new pieces visually distinguished.
 
   ──────────────────────────────────────────────────────────────────────
-  FILL UP FRONT (per `.cursor/rules/changes-doc-mandatory.mdc` Step E4)
+  FILL UP FRONT (per `.cursor/rules/documentation-workflow.mdc` Step E5 — keep it a summary that links to the LLD)
   ──────────────────────────────────────────────────────────────────────
   The architecture diagram is the output of Step E2 (cascading-impact
   map) from the pre-coding analysis protocol. Draft it BEFORE any code
@@ -255,7 +257,7 @@ flowchart TD
     A single line that says "see commit `<hash>` (1-line addition)" is
     enough — don't pad.
 
-  See `.cursor/rules/changes-doc-mandatory.mdc` "Diff-style highlights"
+  See `.cursor/rules/documentation-workflow.mdc` "Diff-style highlights"
   for the full guidance.
 
   Add one sub-section per significant change. On iterative threads

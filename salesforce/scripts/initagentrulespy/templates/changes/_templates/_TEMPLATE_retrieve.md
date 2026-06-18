@@ -44,7 +44,7 @@
   EXEMPTION FROM THE GENERAL STAGING RULE
   ─────────────────────────────────────────────────────────────────────
 
-  The general "selective staging" rule in `.cursor/rules/changes-doc-mandatory.mdc`
+  The general "selective staging" rule in `.cursor/rules/documentation-workflow.mdc`
   (name every file explicitly, never `git add force-app/`) DOES NOT APPLY
   to the retrieve audit workflow.
 
@@ -483,7 +483,7 @@ git show <short-hash> -- changes/git/      # confirm this doc not yet in mirror 
 <!--
   Reminder: this doc is committed AFTER the metadata-snapshot commit
   referenced in §9. The two-commit pattern is mandatory and matches the
-  rule in `.cursor/rules/changes-doc-mandatory.mdc`. The runbook
+  rule in `.cursor/rules/documentation-workflow.mdc`. The runbook
   `docs/sf-org-mirror-retrieve.md` (Phase 3) lays out the exact git
   commands to use.
 -->

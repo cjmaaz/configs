@@ -1,0 +1,21 @@
+{
+  "type": "workspace_readwrite",
+  "additionalReadwritePaths": [
+    "{{HOME_PATH}}/.sfdx",
+    "{{HOME_PATH}}/.sf",
+    "{{HOME_PATH}}/.config/sf",
+    "{{HOME_PATH}}/.cache"
+  ],
+  "networkPolicy": {
+    "default": "deny",
+    "allow": [
+      "*.my.salesforce.com",
+      "*.salesforce.com",
+      "*.force.com",
+      "*.sforce.com",
+      "*.cloudforce.com",
+      "login.salesforce.com",
+      "test.salesforce.com"
+    ]
+  }
+}

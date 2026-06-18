@@ -15,7 +15,7 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
    python3 /path/to/initagentrulespy/init.py
    ```
 
-   That's it. The script writes ~48 files into the current directory and reports a summary.
+   That's it. The script writes ~47 files into the current directory and reports a summary.
 
 3. Open `.cursor/rules/sf-cli-commands.mdc` in your editor — that's the canonical entry point for the rules.
 
@@ -23,11 +23,12 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
 
 | Path                             |                              Count | What it is                                                                                                                                                                                                                                       |
 | -------------------------------- | ---------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `.cursor/rules/`                 |                                 11 | Cursor rules (always-applied + on-demand). Includes a stub `org-data-model.mdc` you fill in for your own org, and `ut-evidence-doc.mdc` for screenshot-based UT/UAT test-evidence docs.                                                           |
+| `.cursor/rules/`                 |                                  8 | Cursor rules (always-applied + on-demand). Consolidated set: `apex-development.mdc` (deploy / validate / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc` (org-is-source-of-truth mandate), plus `omnistudio-deploy-cache-bust`, `salesforce-schema-validation`, `sf-cli-commands`, `python-selenium-automation`, and a stub `org-data-model.mdc` you fill in for your own org.                |
 | `.cursor/permissions.json`       |                                  1 | Cursor IDE terminal command allowlist (`terminalAllowlist`) — read-only `sf` / `git` / shell command prefixes that auto-run without approval. Mirrors the Claude-side `.claude/settings.json` allowlist.                                         |
-| `.claude/skills/`                | 6 skills + `.claude/settings.json` | Claude Code skills mirroring the rules, plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                                                   |
-| `docs/`                          |                                  9 | Reference docs (OmniStudio guides, sf retrieve playbook, schema-quickref). Includes a stub `docs/omnistudio/org-conventions.md`.                                                                                                                 |
-| `changes/_templates/`            |                                  3 | Bug-fix / story / refactor doc templates referenced by the `changes-doc-mandatory` rule.                                                                                                                                                         |
+| `.cursor/sandbox.json`           |                                  1 | Cursor agent sandbox config — workspace read/write plus the `sf` CLI config dirs (`~/.sf`, `~/.sfdx`, `~/.config/sf`, `~/.cache`) and a deny-by-default network policy that allowlists Salesforce domains. Home path is auto-filled at init.     |
+| `.claude/skills/`                | 5 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (`apex-development`, `documentation-workflow`, `retrieve-before-edit`, `omnistudio-deploy-cache-bust`, `schema-lookup`), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                                                   |
+| `docs/`                          |                                 12 | Reference docs (OmniStudio guides, sf retrieve playbook, schema-quickref) plus `docs/_templates/` design-doc templates (LLD, open-questions-and-KT, session walkthrough) used by the `documentation-workflow` LLD step. Includes a stub `docs/omnistudio/org-conventions.md`.                                                                                                                 |
+| `changes/_templates/`            |                                  4 | Bug-fix / story / refactor / retrieve-audit doc templates referenced by the `documentation-workflow` rule.                                                                                                                                       |
 | `.vscode/`                       |                                  1 | `settings.json` only (with detected Java home). `extensions.json` and `launch.json` are intentionally NOT generated — leave those to per-project preference.                                                                                     |
 | `.mcp.json` + `.cursor/mcp.json` |                   2 (same content) | MCP server config. Same file content is written to BOTH paths so Claude Code (reads project-root `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. The filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/fullpackage/`          |                                 11 | Pre-sharded full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                                                                            |
@@ -53,15 +54,16 @@ Options:
 
 ### What gets substituted
 
-`templates/` ships with five placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
+`templates/` ships with six placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
 
 | Placeholder in `templates/`                                    | Becomes (at init time)                                 | Detection chain                                                                                                                                                                                             | Fallback if detection / CLI flag missing                                   |
 | -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `{{ORG_ALIAS}}`                                                | Your `target-org` alias                                | `<target>/.sf/config.json` → `target-org`, then `<target>/.sfdx/sfdx-config.json` → `defaultusername`, then `--alias` flag, then interactive prompt                                                         | `<TARGET_ORG_ALIAS>` (sentinel)                                            |
 | `{{ORG_NAME}}`                                                 | Human-readable project / org name (e.g. "Acme Health") | `--org-name` CLI flag only — no auto-detect                                                                                                                                                                 | `CURR ORG` (deliberate readable default; grep + replace later if you want) |
 | `{{JAVA_HOME}}` (in `.vscode/settings.json`)                   | Detected JDK home                                      | `/usr/libexec/java_home -v 21\|17\|11` (macOS), `$JAVA_HOME`, `/usr/lib/jvm/java-*` glob (Linux), `where java` parent (Windows)                                                                             | `<JAVA_HOME>` (sentinel)                                                   |
-| `{{PMD_PATH}}` (in `.cursor/rules/pmd-ruleset.mdc` etc.)       | Absolute pmd binary path                               | `shutil.which("pmd")`, then OS-specific install paths and `pmd-bin-*` glob, then `$PMD_HOME`. **The full absolute path is baked in** so Windows users without PATH-edit access still get a working command. | `<PMD_PATH>` (sentinel)                                                    |
+| `{{PMD_PATH}}` (in `.cursor/rules/apex-development.mdc` etc.)  | Absolute pmd binary path                               | `shutil.which("pmd")`, then OS-specific install paths and `pmd-bin-*` glob, then `$PMD_HOME`. **The full absolute path is baked in** so Windows users without PATH-edit access still get a working command. | `<PMD_PATH>` (sentinel)                                                    |
 | `{{WORKSPACE_PATH}}` (in `.mcp.json` filesystem-server `args`) | Target dir absolute path                               | `os.path.abspath(target_dir)`                                                                                                                                                                               | n/a (always available)                                                     |
+| `{{HOME_PATH}}` (in `.cursor/sandbox.json`)                    | The current user's home directory                      | `Path.home()`                                                                                                                                                                                               | n/a (always available)                                                     |
 
 If detection falls back to a sentinel, the script prints a warning at the end of the run with instructions on how to fix it.
 
@@ -99,7 +101,7 @@ sf config set target-org=<your-alias>
 python3 init.py --force
 ```
 
-**Sentinel `<PMD_PATH>` left in pmd-ruleset.mdc** — PMD isn't installed (or installed in a non-standard location). Either install via Homebrew (`brew install pmd`) / Chocolatey (`choco install pmd`) and re-run, or pass `--pmd-path /absolute/path/to/pmd` directly.
+**Sentinel `<PMD_PATH>` left in apex-development.mdc** — PMD isn't installed (or installed in a non-standard location). Either install via Homebrew (`brew install pmd`) / Chocolatey (`choco install pmd`) and re-run, or pass `--pmd-path /absolute/path/to/pmd` directly.
 
 **Sentinel `<JAVA_HOME>` in .vscode/settings.json** — Same idea: install a JDK or set `JAVA_HOME` and re-run, or pass `--java-home /absolute/path/to/jdk`.
 

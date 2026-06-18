@@ -1,0 +1,144 @@
+---
+description: The mandatory documentation workflow for every piece of work — intake (confirm ticket + transcribe AC screenshots to text), pre-coding analysis (map cascading impact + author the LLD before code), and wrap-up (the changes/ doc + two-commit). Also covers LLD design docs and UT/UAT screenshot-evidence docs. Apply at all three chronological touchpoints, proactively, without being asked.
+alwaysApply: true
+---
+
+# Documentation workflow (intake → pre-coding/LLD → wrap-up + UT evidence)
+
+Three chronological touchpoints in EVERY piece of work — skip none. **Be proactive at all three; do not wait to be asked.**
+
+1. **Intake** (work starts) — confirm the ticket number, transcribe any acceptance-criteria screenshot to plain text.
+2. **Pre-coding analysis** (before the first code edit) — map the cascading impact, then author the **Low-Level Design (LLD)** FIRST, then spawn the preliminary `changes/<slug>.md` that summarizes + links to it.
+3. **Wrap-up** (work ends) — finalize the `changes/` doc and commit code first, doc second.
+
+All three are part of Definition of Done. Retrieve before any edit ([`retrieve-before-edit.mdc`](./retrieve-before-edit.mdc)); analysis on stale local copies gives wrong answers.
+
+---
+
+## Touchpoint 1 — Intake (run BEFORE any code)
+
+Trigger the FIRST time the user attaches a requirements screenshot (Jira/ADO panel, email, Figma, Slack, slide), says "start/build/fix <ticket>", or mentions a new ticket/case number. When unsure, treat it as a fresh intake. Run all five sub-steps; do not collapse into one message:
+
+1. **Get the ticket number — extract it, or PROACTIVELY ASK for it.** First try to pull the bug/story/case number from what the user shared — the message text AND any attached screenshot/panel. If you can't find one there and the user didn't state it, **proactively ASK before doing anything else** (_"What's the bug/story number for this?"_) — never start work without it. Then read it back to confirm: _"Confirming this is for **<TRACKER-NNN>** — <one-line summary>. Right?"_ Accept Jira (`PROJ-1234`), ADO (`Bug 567890`), Salesforce Case Id, or an ad-hoc reference ("Slack request from John, 2026-04-10"). Do NOT proceed without a confirmed reference; if the user contradicts your read-back, STOP and re-ask — never silently move on with a guessed number.
+2. **Name the chat after the ticket.** Once confirmed, rename the current conversation to `<Bug/Story number> - <short description/context from what was shared>` (e.g. `Bug 567890 - PDA activation skips vendor effective date`). In Cursor, use the rename-chat capability (the `cursor-app-control` `rename_chat` tool); in other tools set the conversation title equivalently. If there's genuinely no ticket (rare ad-hoc work), name it `<short description>`.
+3. **Transcribe any visual requirement to TEXT.** Screenshots rot and don't survive PR tooling. Read every AC off the image, write them as numbered plain text (`AC1`, `AC2`, …), post them back for confirmation, and hold them through the work. Transcription is mandatory even if the screenshot "looks obvious".
+4. **Capture explicit out-of-scope items.** Transcribe any "not now / follow-up / won't fix" items. If none were stated, ASK: _"Anything to mark explicitly out-of-scope?"_
+5. **Stash the intake bundle** (confirmed ticket + transcribed ACs + out-of-scope) for wrap-up. It feeds the doc header, §3 In/Out-of-scope, and §7 AC verification.
+
+The §3 ACs in the final doc MUST be the transcribed text — **never** "see attached screenshot".
+
+---
+
+## Touchpoint 2 — Pre-coding analysis + LLD (after intake, BEFORE any code edit)
+
+Salesforce is a heavily-cascading runtime: one insert can fire a process builder → flow → trigger → another trigger updating a third sObject. A "just create one record" change can ripple into 4-5 sObjects and queued jobs. Walk that landscape BEFORE coding, while the accidental ripples are still cheap to design around.
+
+Run these as a `TodoWrite` plan (one entry each) for resumability:
+
+- **E1 — Identify the touched surface.** List every component the change reads/writes/triggers: sObjects (confirm shapes in `config/schema/`), triggers (`grep -l "<sObject>" force-app/main/default/triggers/*.trigger`), flows, validation rules (`ls .../objects/<sObj>/validationRules/`), OmniStudio (`grep` the IP/DR/OS dirs), Apex callers, custom metadata/settings.
+- **E2 — Map cascading impact.** For each create/update/delete, walk downstream: which triggers + flows fire, what DML they do, what other sObjects they touch — recurse until the chain terminates. Sketch it (a mermaid `flowchart` for the doc).
+- **E3 — Classify intended vs accidental.** Tag each downstream effect INTENDED (matches an AC) or ACCIDENTAL. **Each ACCIDENTAL effect becomes a question to confirm with the user BEFORE coding.** INTENDED effects become evidence in the doc.
+- **E4 — Author the LLD FIRST** (see below). This is the "design first, then proceed" gate — do NOT open a source file until the LLD's current-behavior + gap + proposed-design sections exist.
+- **E5 — Spawn the preliminary `changes/<slug>.md`**, filling only its architecture/design sections as a SHORT summary that links to the LLD. Leave the rest as placeholders. **Do NOT commit the LLD or the change doc yet** — both are working files until wrap-up.
+
+Tiny work (typo, label rename, comment) collapses E1-E5 to a one-sentence note in the doc — but run the step explicitly so the record exists.
+
+### The Low-Level Design (LLD)
+
+The design output of pre-coding analysis. Copy [`docs/_templates/_TEMPLATE_lld.md`](../../docs/_templates/_TEMPLATE_lld.md) to `docs/lld/<work-id>-<short-kebab-slug>.md`. It proves you understand the system before touching it: what it does today, the precise gap, and the minimal proposed change with alternatives weighed and cascading impact mapped.
+
+Sections: header + summary; Purpose & scope; Intake (transcribed AC text); Domain mapping; Current behavior (+ diagram); Gap analysis; Before-state evidence (read-only queries + headline numbers); Proposed design (principle, mechanism, where it plugs in, alternatives w/ pros-cons); Affected components; Cascading impact (intended vs accidental); Draft test scenarios; Open questions & reverse-KT; Pre-implementation checklist; References.
+
+Authoring rules:
+- **Read the latest source, don't guess** — pull every component you describe and cite concrete paths/methods/fields.
+- **Evidence over assertion** — back the gap with read-only queries and numbers; back behavior with actual code paths.
+- **Design minimally** — smallest additive change reusing existing mechanisms; always list rejected alternatives so the next person doesn't re-litigate.
+- **Separate decided from pending** — park unconfirmed assumptions in the Open-questions section; never bake an unconfirmed predicate into the design as settled.
+
+The LLD is mandatory for non-trivial work. Two **conditional** companions (do NOT produce by reflex): `docs/lld/<work-id>-questions-and-kt.md` (only when assumptions need stakeholder confirmation; [`_TEMPLATE_questions-and-kt.md`](../../docs/_templates/_TEMPLATE_questions-and-kt.md)) and `docs/lld/<work-id>-walkthrough.md` (only when a live alignment session is warranted; [`_TEMPLATE_walkthrough.md`](../../docs/_templates/_TEMPLATE_walkthrough.md)). The change doc summarizes + links to the LLD — never duplicate the full design into both.
+
+---
+
+## Touchpoint 3 — Wrap-up (`changes/` doc + two-commit)
+
+Run the moment work appears done: deploy `Succeeded` with tests passing, an OmniStudio/IP run produced the expected records, a `git commit` closed out the work, or the user said "looks good / works now / done / ship it". If unsure, ask — don't skip the doc.
+
+### Pick a template & name the doc
+
+Copy from `changes/_templates/` to `changes/<short-kebab-slug>.md`:
+- `_TEMPLATE_bugfix.md` — defect/regression/incident (heavy on root cause + symptom timeline).
+- `_TEMPLATE_story.md` — new functionality (heavy on requirements + AC verification).
+- `_TEMPLATE_refactor.md` — internal restructuring, no user-visible change (heavy on behavioral-invariant parity).
+- `_TEMPLATE_retrieve.md` — after an org-wide mirror retrieve; saves to `changes/git/retrieve-<date>-<alias>.md` and follows [`docs/sf-org-mirror-retrieve.md`](../../docs/sf-org-mirror-retrieve.md) (plan-first: spawn the full phase plan as todos before any `sf` retrieve).
+
+Slug = kebab-case description of the work, NOT the ticket number (`account-trigger-recursion-fix.md`, not `STORY-12345.md`). The ticket reference lives inside the doc.
+
+### Header block (every doc)
+
+```markdown
+**Date:** YYYY-MM-DD
+**Sandbox:** `{{ORG_ALIAS}}`
+**Lead:** <Name> (<role>)
+**Story / ticket:** [<TRACKER-NNN>](<url>) — <one-line summary>
+**Code commit(s):** [`<short-hash>`](#deploy-ids-and-commit-references) (latest; full list in section X)
+**Manifest:** [`manifest/<feature>.xml`](../manifest/<feature>.xml) (deploy manifest; XML inlined in section X)
+**Status:** Resolved / Delivered / In progress / Pending observation
+```
+
+`**Manifest:**` is REQUIRED whenever the work used `--manifest`; inline the full XML in the Deploy-IDs section so reviewers don't open another file.
+
+### Two-commit strategy (mandatory): code first, doc second
+
+1. **Stage ONLY the files you intentionally modified** — name every path explicitly. NEVER blanket-add a directory (`git add force-app/`) — another agent/user/job may have in-flight changes you'd mangle. Sanity-check with `git status -s`; if you lost track, recover with `git diff --name-only [--cached|HEAD]`. If a dirty file isn't yours, leave it — never silently revert it. (Exception: the org-wide retrieve workflow commits the whole mirrored `force-app/` as one snapshot by design.)
+2. **Commit the code** with a multi-line HEREDOC message (subject ≤72 chars imperative; paragraph of what/why; bullet list of sub-changes).
+3. **Capture the hash:** `git log -1 --format='%H%n%h%n%s'` — the short hash goes in the header + Deploy-IDs section.
+4. **Author the doc** (below), then commit it SEPARATELY: `docs: <title> (refs <short-hash>)`. Never inline the doc into the code commit — reviewers must separate code review from doc review.
+5. **Verify:** `git log -2` + `git status -s`; report both hashes.
+
+### Filling the doc
+
+- Header: paste the confirmed ticket from intake; fill `**Manifest:**` if applicable.
+- §3 Requirements: paste the transcribed AC text verbatim (one row per AC, Source column = origin); out-of-scope as a bullet list. NEVER "see attached screenshot".
+- Revision log (near the top): first row = date, hash, what, why.
+- **Key changes — diff highlights:** for OmniScripts / IPs / DataRaptors / FlexiPages / layouts / validation rules / formula fields / new Apex classes the raw `git diff` is unreadable — paste a trimmed ```diff``` snippet (small/medium changes) OR cite line ranges + key method names (large/new files). Skip only for 1-2 line changes where the diff is self-evident.
+- Replace every `<...>` placeholder; delete every `<!-- -->` guidance comment; write `n/a` (with a reason) for genuinely inapplicable sections — no stub headings. Mermaid encouraged (camelCase node ids, no colors).
+
+### Same thread, same doc
+
+When a thread iterates on the SAME flow/class/OmniScript, use ONE doc — don't spawn a new one per iteration. Append the new commit hash to the header, add a Revision-log row, add a Diff-highlights sub-section, and restate §1 (TL;DR) to the CUMULATIVE state. If iteration N+1 invalidates N, restate §1/§7 to the latest stable state and mark the superseded Revision-log row `(superseded by <hash>)` — never delete it. Start a NEW doc only when the work shifts to a clearly different feature, or the previous doc merged to `main`.
+
+---
+
+## UT / UAT test-evidence docs (when asked)
+
+When the user asks for a "UT doc", "UAT doc", "test evidence", "QA walkthrough", or "screenshot proof each AC works": produce a minimal, screenshot-heavy before→after walkthrough that PROVES each AC by running the REAL process end-to-end. Evidence beats prose.
+
+**Shape:** `docs/ut/<work-id>/<slug>.md` + sibling `assets/` (+ optional PDF). One `#` title + ONE intro line; one `##` per scenario (`AC1`, `AC2`, …), each = ONE sentence (condition → expected outcome) + before screenshots + after screenshots with captions naming the concrete IDs/values. NO "Purpose / Components / Reproduce / Summary" sections. Screenshot names predictable: `ac1-before-<what>.png`, `ac1-after-<what>.png`.
+
+**Staging + run protocol:**
+1. FIND a real record the process will pick up (prefer real over synthetic). If none qualifies, MODIFY one so it does; for a negative case, FORCE the gap on a real record.
+2. **Snapshot everything you modify** (persist original values) so it can be restored.
+3. Verify eligibility + blast radius with a query BEFORE running — only your intended records should be processed.
+4. Capture ALL before screenshots → run the ACTUAL shipped process ONCE (not the underlying function directly) → verify outcomes with queries (counts, IDs, error codes) → capture ALL after screenshots.
+5. **Roll back** the staged/forced changes from the snapshot; LEAVE the process-created records (the evidence) in place.
+
+Virtualized/iframed lists (reports, infinite-scroll grids) usually can't be searched via automation — scroll the container programmatically until the target row renders, then screenshot (newest-first sorts surface a just-created record at the top). Never fake a row that isn't there.
+
+**Commit (only when asked, two-commit, explicit staging):** Commit 1 = staging/rollback scripts + UT doc + screenshots + PDF. Commit 2 = backfill the living/feature doc with links, referencing commit 1's hash.
+
+---
+
+## Anti-patterns (all touchpoints)
+
+- Starting code without a confirmed ticket — extract the number from the message/screenshot, or ASK if it's missing (never guess) — or forgetting to rename the chat to `<ticket> - <description>` after confirming, or treating a screenshot as the source of truth instead of transcribing it.
+- Letting "see attached screenshot" land in §3.
+- Skipping the pre-coding analysis / writing the LLD AFTER coding as a rationalization. The LLD is a design tool — author it before code.
+- Producing the questions-and-kt or walkthrough doc by reflex when there are no open questions; duplicating the full design into both the LLD and the change doc.
+- Inlining the doc into the code commit, or skipping the doc "because the commit message says it all" (it has no rollback/verification/follow-ups).
+- `git add force-app/` (blanket-add) when another agent may be active; including someone else's file because it was "already modified".
+- Missing the `**Manifest:**` line for a `--manifest` deploy; skipping Diff-highlights for OmniScripts/IPs/DRs/layouts; pasting a 500-line file into a diff fence.
+- UT: synthetic data when a real record exists; modifying real records without snapshot+rollback; calling the underlying function instead of the shipped process; a report screenshot that doesn't actually show the target row.
+
+## Adapting to other projects
+
+Stack-agnostic. Map terms to your stack: process under test → batch/job/endpoint; record → entity/row; component/engine → class/module/service; downstream automation → triggers/jobs/events; read-only query → DB/API read. Keep `changes/`, `docs/lld/`, `docs/ut/` at the repo root (or adjust paths consistently here and in the templates). Sandbox alias is `{{ORG_ALIAS}}` in this repo; set per-project from `sf config get target-org`.

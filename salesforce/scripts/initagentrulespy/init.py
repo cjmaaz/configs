@@ -3,7 +3,7 @@
 init.py — Bootstrap a Salesforce repo with the AI-agent rule/skill kit.
 
 Reads the bundled `templates/` folder (sibling of this script) and writes
-each file into a target directory, replacing five placeholder tokens:
+each file into a target directory, replacing six placeholder tokens:
 
   • {{ORG_ALIAS}}        → the workspace's target-org alias (sf CLI alias)
   • {{ORG_NAME}}         → human-readable project / org name (e.g. "Acme Health")
@@ -11,6 +11,7 @@ each file into a target directory, replacing five placeholder tokens:
   • {{JAVA_HOME}}        → detected JDK home (used in .vscode/settings.json)
   • {{PMD_PATH}}         → detected PMD binary absolute path
   • {{WORKSPACE_PATH}}   → target dir absolute path (used in .mcp.json)
+  • {{HOME_PATH}}        → the current user's home dir (used in .cursor/sandbox.json)
 
 The placeholders are baked into templates/ ahead of time by the
 maintainer; end users never see the original literal values, so nothing
@@ -71,6 +72,7 @@ TOKEN_ORG_NAME = "{{ORG_NAME}}"
 TOKEN_JAVA_HOME = "{{JAVA_HOME}}"
 TOKEN_PMD_PATH = "{{PMD_PATH}}"
 TOKEN_WORKSPACE = "{{WORKSPACE_PATH}}"
+TOKEN_HOME = "{{HOME_PATH}}"
 
 # Default for {{ORG_NAME}} when the user doesn't pass `--org-name`. Not a
 # sentinel — this is a deliberate, human-readable placeholder ("CURR ORG"
@@ -263,15 +265,15 @@ def detect_pmd_path(cli_pmd_path: str | None) -> tuple[str, str]:
 
 
 def substitute_text(content: str, *, alias: str, org_name: str, pmd_path: str,
-                    java_home: str, workspace_path: str) -> str:
+                    java_home: str, workspace_path: str, home_path: str) -> str:
     """Replace {{...}} placeholders with detected runtime values.
 
     The placeholders only appear in templates/ files where the relevant
     value belongs (e.g. {{JAVA_HOME}} only in .vscode/settings.json,
     {{WORKSPACE_PATH}} only in the two MCP configs — .mcp.json and
-    .cursor/mcp.json — which share the same content), so unconditional
-    global replacement is safe — nothing else collides with the {{...}}
-    syntax.
+    .cursor/mcp.json — which share the same content, and {{HOME_PATH}} only
+    in .cursor/sandbox.json), so unconditional global replacement is safe —
+    nothing else collides with the {{...}} syntax.
     """
     out = content
     out = out.replace(TOKEN_ORG_ALIAS, alias)
@@ -279,6 +281,7 @@ def substitute_text(content: str, *, alias: str, org_name: str, pmd_path: str,
     out = out.replace(TOKEN_JAVA_HOME, java_home)
     out = out.replace(TOKEN_PMD_PATH, pmd_path)
     out = out.replace(TOKEN_WORKSPACE, workspace_path)
+    out = out.replace(TOKEN_HOME, home_path)
     return out
 
 
@@ -348,6 +351,7 @@ def main() -> int:
     java_home, java_src = detect_java_home(args.java_home)
     pmd_path, pmd_src = detect_pmd_path(args.pmd_path)
     workspace_path = str(target)
+    home_path = str(Path.home())
 
     print()
     print(f"  Alias:       {alias}    ({alias_src})")
@@ -355,6 +359,7 @@ def main() -> int:
     print(f"  Java home:   {java_home}    ({java_src})")
     print(f"  PMD path:    {pmd_path}    ({pmd_src})")
     print(f"  Workspace:   {workspace_path}    (used for {{{{WORKSPACE_PATH}}}} in .mcp.json)")
+    print(f"  Home:        {home_path}    (used for {{{{HOME_PATH}}}} in .cursor/sandbox.json)")
     print()
 
     # Walk templates/ and write each file.
@@ -375,6 +380,7 @@ def main() -> int:
                     pmd_path=pmd_path,
                     java_home=java_home,
                     workspace_path=workspace_path,
+                    home_path=home_path,
                 )
                 new_bytes = content.encode("utf-8")
             else:

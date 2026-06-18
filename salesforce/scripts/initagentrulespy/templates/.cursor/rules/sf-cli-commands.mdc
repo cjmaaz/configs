@@ -28,7 +28,7 @@ Skipping this step silently overwrites newer org state on your next deploy. The 
 3. Source API version is **66.0**; package directory is `force-app/`.
 4. Manifests live in `manifest/<feature>.xml` — create a NEW one per feature, never overwrite `apex.xml` / `mainpackage.xml`.
 5. `--ignore-conflicts` is used in this repo because source tracking is not the source of truth — trust the manifest.
-6. After ANY Apex execution, fetch logs (`sf apex get log --log-id recent`) and grep for `EXCEPTION|ERROR|FATAL`. See [`test-deploy-ruleset.mdc`](./test-deploy-ruleset.mdc).
+6. After ANY Apex execution, fetch logs (`sf apex get log --log-id recent`) and grep for `EXCEPTION|ERROR|FATAL`. See [`apex-development.mdc`](./apex-development.mdc).
 
 ---
 
@@ -497,7 +497,7 @@ sf apex run test --concise -n MyClassTest -o {{ORG_ALIAS}}                      
 sf apex get test --test-run-id <id> -o {{ORG_ALIAS}} --code-coverage --result-format human
 sf apex get test -i <id> -o {{ORG_ALIAS}} -c -r json -d ./test-results
 
-# Logs — MANDATORY after any Apex run (see test-deploy-ruleset.mdc)
+# Logs — MANDATORY after any Apex run (see apex-development.mdc)
 sf apex list log -o {{ORG_ALIAS}}                           # Recent log IDs
 sf apex get log --log-id recent -o {{ORG_ALIAS}}            # Most recent
 sf apex get log -i recent -o {{ORG_ALIAS}}                  # Same, short form (-i ≡ --log-id)
@@ -1308,7 +1308,6 @@ sf project deploy quick -i <deploy-id> -o {{ORG_ALIAS}} -w 10                   
 
 ## Related Rules
 
-- [`test-deploy-ruleset.mdc`](./test-deploy-ruleset.mdc) — mandatory deploy/test/log-verify workflow
-- [`apex-test-class-creation.mdc`](./apex-test-class-creation.mdc) — Apex test structure
-- [`pmd-ruleset.mdc`](./pmd-ruleset.mdc) — static analysis
+- [`retrieve-before-edit.mdc`](./retrieve-before-edit.mdc) — retrieve before editing any metadata
+- [`apex-development.mdc`](./apex-development.mdc) — deploy/test/log-verify + test authoring + PMD + formatting
 - [`salesforce-schema-validation.mdc`](./salesforce-schema-validation.mdc) — schema-first workflow

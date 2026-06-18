@@ -447,7 +447,7 @@ Expected per-call wall-clock (varies 3-10x by org load):
 
 ## Phase 3 — Audit + commit (mandatory)
 
-Every retrieve run ends with a persistent audit doc under `changes/git/`, committed via the same two-commit pattern as [`changes-doc-mandatory.mdc`](../.cursor/rules/changes-doc-mandatory.mdc) (mirror commit first, doc commit second referencing the mirror commit hash).
+Every retrieve run ends with a persistent audit doc under `changes/git/`, committed via the same two-commit pattern as [`documentation-workflow.mdc`](../.cursor/rules/documentation-workflow.mdc) (mirror commit first, doc commit second referencing the mirror commit hash).
 
 **Why this matters:** in a Salesforce repo where teammates deploy directly to the org — often via a VDI pipeline that commits later, or sometimes never — the local repo is rarely the source of truth. Most of the diff in any retrieve is someone else's work. The audit doc lets a future investigator bisect by retrieve date and pinpoint when a given component shifted, even if no commit ever landed in the repo from the person who shipped it.
 
@@ -974,7 +974,7 @@ git log --oneline HEAD@{1}..HEAD 2>/dev/null        # any commits during retriev
 ## Related references
 
 - `.cursor/rules/sf-cli-commands.mdc` — canonical `sf` CLI reference (every flag, every command).
-- `.cursor/rules/test-deploy-ruleset.mdc` — Apex deploy + test workflow (the inverse direction).
+- `.cursor/rules/apex-development.mdc` — Apex deploy + test workflow (the inverse direction).
 - `manifest/fullpackage.xml` — master manifest of all 127 metadata types this org cares about.
 - `manifest/fullpackage/` — pre-sharded versions of the master manifest.
 
