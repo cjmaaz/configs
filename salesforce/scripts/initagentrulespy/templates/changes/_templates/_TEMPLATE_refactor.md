@@ -2,7 +2,7 @@
   TEMPLATE: Refactor / tech-debt / optimization changes doc
   =========================================================
   Copy this file to changes/<short-kebab-slug>.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
   Strip any sections that genuinely do not apply.
 
   Naming: short kebab-case describing the refactor or perf win.
@@ -19,6 +19,11 @@
 **Code commit(s):** [`<short-hash>`](#13-deploy-ids-and-commit-references) (latest; full list in section 13)
 **Manifest:** [`manifest/<feature>.xml`](../manifest/<feature>.xml) (the deploy manifest used; XML inlined in section 13)
 **Status:** Delivered / Functional parity verified, perf gain pending measurement / In progress
+<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized digest -->
+**Adversarial Gate B:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Implementation revision reviewed:** `<base..head / working-diff fingerprint / commit>`
+**Adversarial artifact SHA-256:** `<digest>`
+<!-- END ADVERSARIAL RECEIPT HEADER -->
 
 <!--
   **Code commit(s)** — singular hash for a one-shot refactor; comma-separated
@@ -97,6 +102,11 @@
 
 - <one-line item>
 - <one-line item>
+
+| AC / invariant | Verbatim requirement / behavior to preserve | Source |
+|---|---|---|
+| AC1 | <confirmed text; never “see screenshot”> | <ticket/design/comment> |
+| INV1 | <existing observable behavior that must remain unchanged> | <source/test> |
 
 ### Out of scope (explicitly)
 
@@ -294,6 +304,13 @@ sf apex run test --class-names <TestClass1>,<TestClass2> -o <sandbox-alias> \
 |---|---|---|---|
 | `<TestClass>` | <count> | 0 | <percent>% |
 
+### Acceptance criteria / invariant evidence
+
+| AC / invariant | Verification | Evidence | Pass? |
+|---|---|---|---|
+| AC1 | <test/scenario> | <result/log/snapshot> | yes/no |
+| INV1 | <old-vs-new comparison> | <evidence> | yes/no |
+
 ### Side-by-side comparison (if possible)
 
 | Input | Old output | New output | Match |
@@ -329,6 +346,39 @@ sf apex run test --class-names <TestClass1>,<TestClass2> -o <sandbox-alias> \
 | <e.g. "missed caller in another package"> | low/med/high | low/med/high | <e.g. "global search confirmed zero references"> |
 | <e.g. "subtle semantics drift in null-handling"> | low/med/high | low/med/high | <e.g. "added test case TestX.testNullPath"> |
 
+<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized implementation/doc digest -->
+### Mandatory adversarial Gate B
+
+<!-- At least three independent parallel reviewers; see .cursor/rules/adversarial-review.mdc. -->
+
+**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
+**Review context/profile:** `<purpose; in scope; out of scope; selected profile>`
+**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
+**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+
+| Reviewer / run | Lens | Revision reviewed | Verdict |
+|---|---|---|---|
+| `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 3>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+
+| Mandatory attack category | Result | Evidence / finding IDs |
+|---|---|---|
+| `<selected profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
+| Requirements/correctness + shared-dependency/regression | Pass / findings / N/A | <evidence> |
+| Explicit out-of-scope categories | N/A | <why they do not apply> |
+
+| Finding | Severity | Evidence + failure scenario | Disposition | Fix/test/owner | Re-review |
+|---|---|---|---|---|---|
+| `<AR-B-001>` | Critical/High/Medium/Low | <path/line + triggering shape> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + parity/regression test or ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+
+**Caller/shared-dependency inventory:** <all callers/callees/config/metadata consumers searched and outcome>.
+**Old-vs-new parity proof:** <snapshot/diff/tests proving unchanged behavior, including sibling/legacy paths>.
+**Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
+<!-- END ADVERSARIAL GATE B RECEIPT -->
+
 ---
 
 ## 11. Untouched assets (explicit non-changes)
@@ -361,8 +411,8 @@ sf project deploy start \
 
 | Migration step | Reversible? | Reversal command |
 |---|---|---|
-| <step from 6> | yes | `<command>` |
-| <step from 6> | no | <explanation: e.g. "data backfilled, would need fresh dump from prod"> |
+| <step from 7> | yes | `<command>` |
+| <step from 7> | no | <explanation: e.g. "data backfilled, would need fresh dump from prod"> |
 
 ---
 

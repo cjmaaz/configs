@@ -15,7 +15,7 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
    python3 /path/to/initagentrulespy/init.py
    ```
 
-   That's it. The script writes ~47 files into the current directory and reports a summary.
+   That's it. The script writes ~63 files (the 62-file kit plus an `.initagentrulespy-manifest.json` install-tracking marker) into the current directory and reports a summary.
 
 3. Open `.cursor/rules/sf-cli-commands.mdc` in your editor — that's the canonical entry point for the rules.
 
@@ -23,16 +23,19 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
 
 | Path                             |                              Count | What it is                                                                                                                                                                                                                                       |
 | -------------------------------- | ---------------------------------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `.cursor/rules/`                 |                                  8 | Cursor rules (always-applied + on-demand). Consolidated set: `apex-development.mdc` (deploy / validate / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc` (org-is-source-of-truth mandate), plus `omnistudio-deploy-cache-bust`, `salesforce-schema-validation`, `sf-cli-commands`, `python-selenium-automation`, and a stub `org-data-model.mdc` you fill in for your own org.                |
+| `.cursor/rules/`                 |                                  9 | Cursor rules (always-applied + on-demand). Consolidated set: `adversarial-review.mdc` (mandatory parallel multi-critic Gate A/Gate B review protocol), `apex-development.mdc` (deploy / validate / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc` (org-is-source-of-truth mandate), plus `omnistudio-deploy-cache-bust`, `salesforce-schema-validation`, `sf-cli-commands`, `python-selenium-automation`, and a stub `org-data-model.mdc` you fill in for your own org.                |
 | `.cursor/permissions.json`       |                                  1 | Cursor IDE terminal command allowlist (`terminalAllowlist`) — read-only `sf` / `git` / shell command prefixes that auto-run without approval. Mirrors the Claude-side `.claude/settings.json` allowlist.                                         |
 | `.cursor/sandbox.json`           |                                  1 | Cursor agent sandbox config — workspace read/write plus the `sf` CLI config dirs (`~/.sf`, `~/.sfdx`, `~/.config/sf`, `~/.cache`) and a deny-by-default network policy that allowlists Salesforce domains. Home path is auto-filled at init.     |
-| `.claude/skills/`                | 5 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (`apex-development`, `documentation-workflow`, `retrieve-before-edit`, `omnistudio-deploy-cache-bust`, `schema-lookup`), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                                                   |
+| `.claude/skills/`                | 6 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (`adversarial-review`, `apex-development`, `documentation-workflow`, `retrieve-before-edit`, `omnistudio-deploy-cache-bust`, `schema-lookup`), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                                                   |
 | `docs/`                          |                                 12 | Reference docs (OmniStudio guides, sf retrieve playbook, schema-quickref) plus `docs/_templates/` design-doc templates (LLD, open-questions-and-KT, session walkthrough) used by the `documentation-workflow` LLD step. Includes a stub `docs/omnistudio/org-conventions.md`.                                                                                                                 |
 | `changes/_templates/`            |                                  4 | Bug-fix / story / refactor / retrieve-audit doc templates referenced by the `documentation-workflow` rule.                                                                                                                                       |
+| `scripts/`                       |                                 11 | Bundled Python tooling: `schemapy/` (10-file `config/schema/` TOON generation pipeline invoked by `salesforce-schema-validation`) + `adversarial_review_snapshot.py` (the canonical reproducible-snapshot / receipt utility the `adversarial-review` gates require).                                                                                                    |
+| `config/schema/`                 |                                  1 | `README.md` documenting the per-object TOON schema-file layout that `scripts/schemapy/` generates and `salesforce-schema-validation` reads. The schema TOON files themselves are generated per-org, not shipped.                                 |
 | `.vscode/`                       |                                  1 | `settings.json` only (with detected Java home). `extensions.json` and `launch.json` are intentionally NOT generated — leave those to per-project preference.                                                                                     |
 | `.mcp.json` + `.cursor/mcp.json` |                   2 (same content) | MCP server config. Same file content is written to BOTH paths so Claude Code (reads project-root `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. The filesystem-MCP path is auto-set to your repo's absolute path. |
-| `manifest/fullpackage/`          |                                 11 | Pre-sharded full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                                                                            |
+| `manifest/`                      |                     12 (1 + 11) | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                            |
 | `config/pmd-ruleset.xml`         |                                  1 | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                                             |
+| `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker written into the target: records the kit protocol version, the source-release digest, and per-file hashes so a later `--update` run can tell customized files from stale ones. (The `.initagentrulespy-release.json` inventory itself ships inside `templates/` and is NOT copied out.)                                                          |
 
 ### CLI reference
 
@@ -47,10 +50,15 @@ Options:
   --org-name NAME         Human-readable project / org name. Default: 'CURR ORG'.
   --java-home PATH        Override Java JDK home detection.
   --pmd-path PATH         Override PMD binary path detection.
-  --force                 Overwrite existing files (default: skip).
+  --force                 Overwrite all managed files (default: fail on a differing collision).
+  --update                Stage changed/new kit files under .initagentrulespy-updates/<gen>/
+                          instead of overwriting; never clobbers a customized target.
+  --missing-only          Explicitly install only missing files (accepts mixed-version risk).
   --dry-run               Print what would be written; do not touch the filesystem.
   --no-prompt             Never prompt; fall back to sentinel placeholders.
 ```
+
+`--force`, `--update`, and `--missing-only` are mutually exclusive.
 
 ### What gets substituted
 
@@ -69,9 +77,20 @@ If detection falls back to a sentinel, the script prints a warning at the end of
 
 > **Why `{{...}}` tokens instead of literal values?** The kit is meant to be shared. Carrying real values like a specific sf alias, an absolute workspace path, or the source org's brand name through the templates would leak personal/org info into anything a colleague clones or zips. So `templates/` ships pre-tokenized with `{{...}}` placeholders, and `init.py` substitutes them at write time using values it detects in (or are passed to) the colleague's own workspace.
 
-### Existing files
+### Existing files & re-runs
 
-By default, the script **skips** any file that already exists in the target dir (and logs the skip). Pass `--force` to overwrite. Use `--dry-run` first if you're unsure.
+A fresh run into an empty (or kit-free) directory just writes every file. On a **re-run** the behaviour depends on whether existing managed files still match this release:
+
+- **Missing files** are always installed.
+- **Identical files** are left alone (counted as skipped).
+- If any managed file **differs** from this release (you customized it, or you're on an older kit), the default run **fails** rather than silently clobbering or half-upgrading. Pick one:
+  - `--update` — stages the changed/new/obsolete candidates under `.initagentrulespy-updates/<generation>/` with a merge manifest, leaving your live files untouched so you can diff and merge deliberately.
+  - `--force` — overwrites all managed files and deletes now-obsolete ones (clean re-baseline; discards local edits).
+  - `--missing-only` — installs only the missing files and explicitly accepts the resulting mixed-kit-version risk.
+
+Use `--dry-run` first to preview any of these.
+
+**Integrity & safety.** Before touching the target, `init.py` verifies the bundled `templates/` against `.initagentrulespy-release.json` (per-file SHA-256 + size) and refuses to run on an incomplete or tampered kit. Writes are atomic and transactional — a target lock (`.initagentrulespy.lock`) blocks concurrent runs, a journal (`.initagentrulespy-transactions/`) rolls the whole run back on any failure or interruption, and the `.initagentrulespy-manifest.json` marker records what was installed so later `--update` runs can distinguish your edits from stale kit files.
 
 ---
 

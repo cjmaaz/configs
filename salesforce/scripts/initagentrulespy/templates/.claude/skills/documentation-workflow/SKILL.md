@@ -1,6 +1,6 @@
 ---
 name: documentation-workflow
-description: The mandatory documentation workflow at THREE chronological touchpoints — INTAKE (confirm the ticket + transcribe AC screenshots to text before any code), PRE-CODING ANALYSIS (map cascading impact + author the Low-Level Design BEFORE code, then spawn the preliminary changes/<slug>.md), and WRAP-UP (finalize the doc + two-commit). Also covers LLD design docs and UT/UAT screenshot-evidence docs. INVOKE PROACTIVELY at all three points; do not wait to be asked. Mirrors `.cursor/rules/documentation-workflow.mdc`.
+description: Runs the mandatory documentation lifecycle for every requirement, plan, bug, implementation, and wrap-up: intake, current-state/cascade analysis, LLD before code, blocking adversarial plan and implementation gates, changes documentation, and two commits. Invoke proactively; mirrors `.cursor/rules/documentation-workflow.mdc`.
 ---
 
 # Documentation workflow — intake + pre-coding/LLD + wrap-up + UT evidence
@@ -8,8 +8,10 @@ description: The mandatory documentation workflow at THREE chronological touchpo
 Three chronological touchpoints in every piece of work. **Be proactive at all three.** Retrieve before any edit (`retrieve-before-edit` skill); analysis on stale copies is wrong.
 
 1. **Intake** (work starts) — confirm the ticket, transcribe any AC screenshot to text.
-2. **Pre-coding analysis** (before the first code edit) — map cascading impact, author the **LLD** FIRST, then spawn the preliminary `changes/<slug>.md`.
-3. **Wrap-up** (work ends) — finalize the `changes/` doc and commit code first, doc second.
+2. **Pre-coding analysis** — map cascading impact, author the **LLD**, then pass adversarial Gate A before editing.
+3. **Implementation gate + wrap-up** — pass Gate B against the final diff/tests before deploy, mutation, commit, or handoff; then finalize the change doc and two commits.
+
+The `adversarial-review` skill / `.cursor/rules/adversarial-review.mdc` is the sole authority for reviewer count, lenses, prompts, evidence, blockers, and re-review.
 
 ---
 
@@ -21,9 +23,9 @@ Trigger the first time the user attaches a requirements screenshot, says "start/
 2. **Name the chat after the ticket.** Once confirmed, rename the conversation to `<Bug/Story number> - <short description from what was shared>` (e.g. `Bug 567890 - PDA activation skips vendor effective date`). In Cursor, use the `cursor-app-control` `rename_chat` tool; in other tools set the conversation title equivalently. No ticket (rare ad-hoc)? Name it `<short description>`.
 3. **Transcribe any visual requirement to TEXT** — read every AC off the image, write as numbered `AC1`, `AC2`, …, post back for confirmation, hold through the work. Mandatory even if "obvious"; screenshots rot and don't survive PR tooling.
 4. **Capture explicit out-of-scope items**; if none stated, ASK.
-5. **Stash the bundle** (ticket + ACs + out-of-scope) — it feeds the doc header, §3, and §7 at wrap-up.
+5. **Stash the bundle** (ticket + ACs + out-of-scope) — it feeds the change-doc header, Requirements/In-scope/Out-of-scope, and AC-verification sections.
 
-The §3 ACs in the final doc MUST be the transcribed text — never "see attached screenshot".
+The final doc's ACs MUST be the transcribed text — never "see attached screenshot".
 
 ---
 
@@ -34,14 +36,15 @@ Salesforce cascades hard: one insert → process builder → flow → trigger �
 - **E1 — Identify the touched surface:** sObjects (confirm shapes via `schema-lookup`), triggers (`grep -l "<sObject>" force-app/main/default/triggers/*.trigger`), flows, validation rules, OmniStudio (grep the IP/DR/OS dirs), Apex callers, custom metadata.
 - **E2 — Map cascading impact:** for each create/update/delete, walk downstream (which triggers + flows fire, what DML, which other sObjects) recursively. Sketch a mermaid `flowchart`.
 - **E3 — Classify intended vs accidental:** tag each downstream effect. **Each ACCIDENTAL effect → a question to the user BEFORE coding.**
-- **E4 — Author the LLD FIRST** (below). This is the "design first" gate — don't open a source file until the LLD's current-behavior + gap + proposed-design sections exist.
-- **E5 — Spawn the preliminary `changes/<slug>.md`**, filling only architecture/design sections as a SHORT summary linking to the LLD. **Don't commit either yet.**
+- **E4 — Author the draft LLD FIRST** (below). Don't edit source until current behavior, gap, and proposed design exist; reading current source is required.
+- **E5 — Pass adversarial Gate A** via the `adversarial-review` skill. Record reviewer provenance, exact LLD revision, findings/dispositions, residual risk, and re-review. Resolve blockers before editing.
+- **E6 — Spawn the preliminary `changes/<slug>.md`**, filling only architecture/design sections as a SHORT summary linking to the LLD. **Don't commit either yet.**
 
-Tiny work collapses E1-E5 to a one-sentence note — but run the step so the record exists.
+Tiny work may keep analysis concise but still runs Gate A with evidence-backed `N/A` entries. Planning-only work ends only after Gate A passes.
 
 ### The LLD
 
-Copy `docs/_templates/_TEMPLATE_lld.md` → `docs/lld/<work-id>-<short-kebab-slug>.md`. It proves you understand the system before touching it. Sections: header + summary; Purpose & scope; Intake (transcribed ACs); Domain mapping; Current behavior (+ diagram); Gap analysis; Before-state evidence (read-only queries + numbers); Proposed design (mechanism, where it plugs in, alternatives w/ pros-cons); Affected components; Cascading impact (intended vs accidental); Draft test scenarios; Open questions & reverse-KT; Pre-implementation checklist; References.
+Copy `docs/_templates/_TEMPLATE_lld.md` → `docs/lld/<work-id>-<short-kebab-slug>.md`. It proves you understand the system before touching it. Include current behavior, gap, evidence, design/alternatives, affected surface, cascading impact, Gate A reviewer evidence/dispositions, tests derived from findings, open questions, and a gated pre-implementation checklist.
 
 Rules: read the LATEST source and cite paths/methods (don't guess); back the gap with read-only queries + headline numbers; design minimally (smallest additive change reusing existing mechanisms, list rejected alternatives); park unconfirmed assumptions in Open-questions — never bake them in as settled.
 
@@ -49,9 +52,9 @@ Two **conditional** companions (don't produce by reflex): `docs/lld/<work-id>-qu
 
 ---
 
-## Touchpoint 3 — Wrap-up (`changes/` doc + two-commit)
+## Touchpoint 3 — Implementation gate + wrap-up (`changes/` doc + two-commit)
 
-Run the moment work appears done (deploy Succeeded + tests pass, an OmniStudio run produced records, a commit closed the work, or "looks good / done / ship it"). If unsure, ask — don't skip.
+When implementation/validation tests are ready, run Gate B through `adversarial-review` before a real deploy/mutation/commit. Use the selected profile's evidence. After deploy verification and code commit, finalize all non-receipt change-doc fields and run a separate documentation-profile Gate B before the doc commit.
 
 ### Template + name
 
@@ -73,19 +76,25 @@ Copy from `changes/_templates/` → `changes/<short-kebab-slug>.md`: `_TEMPLATE_
 
 ### Two-commit strategy: code first, doc second
 
+Prerequisite: Gate B is `PASS` or `PASS_WITH_FINDINGS`; no Critical/High; every Medium resolved or explicitly accepted.
+
+Recompute the implementation digest before code commit. Before doc commit, recompute the final documentation digest; after its gate only uniquely marked adversarial receipt blocks may change. All IDs/prose must already be final.
+
 1. **Stage ONLY files you intentionally modified** — name each path. NEVER `git add force-app/` (blanket) — another agent/job may have in-flight changes. Sanity-check `git status -s`; recover with `git diff --name-only [--cached|HEAD]`. A dirty file that isn't yours: leave it. (Exception: the org-wide retrieve commits the whole mirror as one snapshot by design.)
-2. Commit the code (multi-line HEREDOC: subject ≤72 chars imperative; what/why; bullet sub-changes).
+   If unrelated dirty work prevents a complete Gate B snapshot, use an isolated worktree or stop/coordinate; never omit changed paths and claim complete review.
+2. Commit the code with `Adversarial-Artifact-SHA256` and `Adversarial-Receipt-SHA256` trailers.
 3. Capture the hash: `git log -1 --format='%H%n%h%n%s'`.
-4. Author the doc, then commit it SEPARATELY: `docs: <title> (refs <short-hash>)`. Never inline the doc into the code commit.
+4. Finalize the doc, run a documentation Gate B against its normalized digest, hash-chain its receipt blocks, then commit it SEPARATELY with both digest trailers.
 5. Verify: `git log -2` + `git status -s`; report both hashes.
 
 ### Filling the doc
 
 - Header: paste the confirmed ticket from intake; fill `**Manifest:**` if used.
-- §3 Requirements: paste the transcribed AC text verbatim (one row per AC, Source column = origin); out-of-scope as a bullet list. Never "see attached screenshot".
+- Requirements: paste the transcribed AC text verbatim (one row per AC, Source column = origin); out-of-scope as a bullet list. Never "see attached screenshot".
 - Revision log (top): first row = date, hash, what, why.
+- Adversarial review: record Gate B status/revision, reviewer provenance, category coverage, findings/dispositions, residual risk, and re-review; link Gate A details from the LLD.
 - **Key changes — diff highlights:** for OmniScripts / IPs / DataRaptors / FlexiPages / layouts / validation rules / formula fields / new Apex, paste a trimmed ```diff``` (small/medium) OR cite line ranges + key method names (large/new). Skip only for 1-2 line obvious changes.
-- Replace every `<...>`; delete every `<!-- -->` comment; write `n/a` (+ reason) for inapplicable sections. Mermaid encouraged (camelCase ids, no colors).
+- Replace every `<...>`; delete guidance comments except machine-required `BEGIN/END ADVERSARIAL ... RECEIPT` markers; write `n/a` (+ reason) for inapplicable sections.
 
 ### Same thread, same doc
 
@@ -99,7 +108,7 @@ When asked for a "UT doc", "UAT doc", "test evidence", "QA walkthrough", or "scr
 
 **Shape:** `docs/ut/<work-id>/<slug>.md` + sibling `assets/` (+ optional PDF). One `#` title + ONE intro line; one `##` per scenario (`AC1`…), each = ONE sentence (condition → expected) + before + after screenshots, captions naming concrete IDs. NO Purpose/Components/Reproduce/Summary sections. Names: `ac1-before-<what>.png`, `ac1-after-<what>.png`.
 
-**Protocol:** (1) FIND a real record the process picks up (prefer real over synthetic); if none, MODIFY one, or FORCE the gap for a negative case. (2) **Snapshot everything you modify** so it restores. (3) Verify eligibility + blast radius with a query BEFORE running. (4) Capture all before → run the ACTUAL shipped process ONCE (not the underlying function) → verify with queries → capture all after. (5) **Roll back** staged changes; LEAVE the process-created records (the evidence). For virtualized/iframed lists, scroll the container programmatically until the target row renders, then screenshot — never fake it.
+**Protocol:** (1) FIND a real record the process picks up (prefer real over synthetic); if none, MODIFY one, or FORCE the gap for a negative case. (2) **Snapshot everything you modify** so it restores. (3) Include negative/bulk/concurrency/regression scenarios required by accepted Gate A/Gate B findings. (4) Verify eligibility + blast radius with a query BEFORE running. (5) Capture all before → run the ACTUAL shipped process ONCE (not the underlying function) → verify with queries → capture all after. (6) **Roll back** staged changes; LEAVE the process-created records (the evidence). For virtualized/iframed lists, scroll the container programmatically until the target row renders, then screenshot — never fake it.
 
 **Commit (only when asked, two-commit, explicit staging):** Commit 1 = staging/rollback scripts + UT doc + assets + PDF. Commit 2 = backfill the living doc with links, referencing commit 1's hash.
 
@@ -109,6 +118,7 @@ When asked for a "UT doc", "UAT doc", "test evidence", "QA walkthrough", or "scr
 
 - Starting code without a confirmed ticket (extract or ASK — never guess), or without renaming the chat `<ticket> - <description>`; treating a screenshot as the source of truth; "see attached screenshot" in §3.
 - Writing the LLD AFTER coding; producing questions-and-kt / walkthrough by reflex; duplicating the full design into both LLD and change doc.
+- Skipping/serializing/coaching reviewers, using fewer than three, self-certifying when subagents are unavailable, majority-voting away blockers, or relying on a verdict for a materially changed plan/diff.
 - Inlining the doc into the code commit; `git add force-app/` (blanket) when another agent may be active; including a file you didn't touch.
 - Missing the `**Manifest:**` line; skipping Diff-highlights for OmniScripts/IPs/DRs/layouts; pasting a 500-line file into a diff fence.
 - UT: synthetic data when a real record exists; modifying real records without snapshot+rollback; calling the underlying function instead of the shipped process; a report screenshot that doesn't show the target row.

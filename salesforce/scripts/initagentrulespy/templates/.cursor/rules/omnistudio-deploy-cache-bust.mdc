@@ -7,7 +7,8 @@ alwaysApply: true
 
 **OmniStudio runs from compiled artifacts cached in `OmniProcessCompilation` rows, not from the metadata you just deployed.** A vanilla `sf project deploy start` doesn't reliably invalidate that cache. **Either delete the compilation row OR run the full 5-step deactivate/reactivate dance** before assuming your deploy took effect. Apply this for **every deploy of an active OmniProcess version** — not "when symptoms appear" (by the time probes don't fire you've already burned an hour debugging working code).
 
-> Retrieve before editing ([`retrieve-before-edit.mdc`](./retrieve-before-edit.mdc)) — OmniStudio metadata drifts especially fast because admins edit IPs/DRs directly in the org UI. Companion skill: [`.claude/skills/omnistudio-deploy-cache-bust/SKILL.md`](../../.claude/skills/omnistudio-deploy-cache-bust/SKILL.md) — keep both in sync.
+> Retrieve before editing ([`retrieve-before-edit.mdc`](./retrieve-before-edit.mdc)) — OmniStudio metadata drifts especially fast because admins edit IPs/DRs directly in the org UI. Pass implementation Gate B from [`adversarial-review.mdc`](./adversarial-review.mdc) before deleting compilations, swapping active versions, or deploying. Companion skill: [`.claude/skills/omnistudio-deploy-cache-bust/SKILL.md`](../../.claude/skills/omnistudio-deploy-cache-bust/SKILL.md) — keep both in sync.
+> Every anonymous-Apex operation below uses the TraceFlag/time-window/user/job correlation and async polling from [`apex-development.mdc`](./apex-development.mdc); `sf apex list log` alone is not proof of lineage.
 
 ## The cache model (the WHY)
 
@@ -26,56 +27,60 @@ alwaysApply: true
 
 **Symptoms the cache is stale** (run the dance, don't debug your code): a just-added probe/Set-Values/Remote-Action isn't in the IP debug response; a conditional fires/skips against your edited `executionConditionalFormula`; a DR call uses the old `bundle`; a renamed step still shows the old name; two identical-input runs differ; description tweak deploys as `Unchanged`.
 
-## Path A — minimal (3 steps, low-risk edits)
+## Preparation — final bytes BEFORE Gate B
 
-Use for a small diagnostic edit when nothing else depends on the in-flight cache, or after a recent successful Path B.
+1. Apply every functional edit **and** the one-character top-level `<description>` byte-flip before snapshot/review.
+2. Dry-run the final manifest and survey the exact Type/SubType/Language family plus caller-chain process IDs.
+3. Before Gate B, create exact executable invalidation/reactivation scripts and compensating metadata rollback under `.adversarial-review/<generation>/operations/`; include these ignored files explicitly in the artifact snapshot.
+4. Run Gate B against final bytes, caller-chain IDs, dry-run/runtime evidence, operation scripts, and rollback artifact.
+5. Hold an exclusive component maintenance window from final freshness check through deploy/invalidation. Any byte, caller-chain, operation-script, or org-state change reruns Gate B.
 
-```bash
-# 1. Delete the cached compilation
-sf data query -o {{ORG_ALIAS}} --query "SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId = '<Vcurrent.Id>'"
-sf data delete record --sobject OmniProcessCompilation --record-id '<compilation.Id>' -o {{ORG_ALIAS}}
-# 2. Tweak the top-level <description> (flip one '.' / ',' to force a byte change) in the IDE
-# 3. Redeploy
-sf project deploy start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}} --ignore-conflicts --wait 5
-```
+Never edit `<description>` or any metadata after Gate B.
 
-Run the self-check. If it fails, escalate to Path B.
+## Path A — deploy first, then invalidate exact compilations
 
-## Path B — full 5-step dance (non-trivial changes, or Path A failed)
-
-`Vcurrent` = the version you want active; `Vold` = the highest older version of the same `UniqueName` (so you can re-register cleanly).
-
-> **Two package constraints (both `FIELD_INTEGRITY_EXCEPTION`) dictate the step order:** (1) you can't update/delete an ACTIVE OmniProcess — deactivate first; (2) only ONE version per Type/SubType/Language can be active at a time.
+Use for a low-risk edit when same-version reactivation is unnecessary.
 
 ```bash
-# Step 1 — survey, capture both Ids
-sf data query -o {{ORG_ALIAS}} --query "SELECT Id, UniqueName, IsActive, VersionNumber, LastModifiedDate FROM OmniProcess WHERE UniqueName LIKE '<Type>_<SubType>_%' ORDER BY VersionNumber DESC"
-
-# Step 2 — deactivate Vcurrent, then activate Vold (sequential updates in ONE apex run; --file avoids shell heredoc quoting bugs)
-cat > /tmp/swap.apex <<'EOF'
-update new OmniProcess(Id = '<Vcurrent.Id>', IsActive = false);
-update new OmniProcess(Id = '<Vold.Id>',     IsActive = true);
-EOF
-sf apex run -o {{ORG_ALIAS}} --file /tmp/swap.apex
-
-# Step 3a — delete Vcurrent's compilation (the actual cached artifact — MANDATORY)
-sf data delete record --sobject OmniProcessCompilation --record-id '<compilation.Id>' -o {{ORG_ALIAS}}
-# Step 3b/3c — try to delete the OmniIntegrationProcConfig row, then the OmniProcess row.
-#   Both often fail with DEPENDENCY_EXISTS when an upstream caller references the IP — that's fine, skip.
-#   🚨 NEVER rm / git rm the local .oip/.os/.rpt file — you redeploy from local in Step 5.
-
-# Step 4 — deactivate Vold (now no version is active → clean re-registration in Step 5)
-cat > /tmp/deact.apex <<'EOF'
-update new OmniProcess(Id = '<Vold.Id>', IsActive = false);
-EOF
-sf apex run -o {{ORG_ALIAS}} --file /tmp/deact.apex
-
-# Step 5 — tweak the top-level <description> by one char, confirm <isActive>true</isActive>, redeploy
+# 1. Deploy the already-reviewed final bytes.
 sf project deploy start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}} --ignore-conflicts --wait 5
-# Deploy summary must read State: Changed (or Created). If Unchanged, the description tweak didn't hit disk — redo.
+
+# 2. AFTER deploy, delete exact Vcurrent + reviewed caller-chain compilations atomically.
+cat > .adversarial-review/<generation>/operations/invalidate-reviewed-chain.apex <<'EOF'
+delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId IN ('<current>','<caller-1>','<caller-2>')];
+EOF
+sf apex run -o {{ORG_ALIAS}} --file .adversarial-review/<generation>/operations/invalidate-reviewed-chain.apex
+sf apex list log -o {{ORG_ALIAS}} --json
 ```
 
-Don't batch the Step 2 updates into one `update new List<>{...}` — the per-record active-check can fail on Vold in arbitrary order. Don't modify upstream callers just to enable 3b/3c — Step 3a is the invalidation that matters.
+Deploy-first prevents an invocation from recompiling old metadata between invalidation and deployment. Run the self-check; if runtime still serves stale logic, use Path B.
+
+## Path B — atomic same-version reactivation
+
+Use one Apex transaction after deploying reviewed bytes. If any statement fails, Salesforce rolls back the whole transaction, so the process remains active—no `Vold` swap or downtime recovery is needed.
+
+```bash
+# 1. Deploy reviewed final bytes first.
+sf project deploy start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}} --ignore-conflicts --wait 5
+
+# 2. Prepare one atomic reactivation transaction with exact reviewed IDs.
+cat > .adversarial-review/<generation>/operations/reactivate-current.apex <<'EOF'
+Set<Id> reviewedProcessIds = new Set<Id>{'<Vcurrent.Id>','<caller-1>','<caller-2>'};
+List<OmniProcess> lockedProcesses = [SELECT Id, IsActive FROM OmniProcess WHERE Id IN :reviewedProcessIds ORDER BY Id FOR UPDATE];
+if (lockedProcesses.size() != reviewedProcessIds.size()) throw new IllegalArgumentException('Reviewed process set changed');
+OmniProcess current;
+for (OmniProcess process : lockedProcesses) if (process.Id == '<Vcurrent.Id>') current = process;
+if (!current.IsActive) throw new IllegalArgumentException('Expected Vcurrent active');
+update new OmniProcess(Id = current.Id, IsActive = false);
+delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId IN :reviewedProcessIds];
+update new OmniProcess(Id = current.Id, IsActive = true);
+EOF
+sf apex run -o {{ORG_ALIAS}} --file .adversarial-review/<generation>/operations/reactivate-current.apex
+sf apex list log -o {{ORG_ALIAS}} --json
+# Fetch/inspect every log ID created by this anonymous-Apex operation.
+```
+
+Do NOT delete `OmniIntegrationProcConfig`, any `OmniProcess`, or local metadata files. A concurrent operator either waits on `FOR UPDATE` or fails/rolls back; it cannot commit a half-active family. If post-deploy verification fails, execute the exact Gate-B-reviewed compensating metadata deploy, verify prior runtime behavior/compilation, and start a new generation before any forward retry.
 
 ## Caller chain — the #1 reason "the dance worked but probes still don't fire"
 
@@ -89,31 +94,33 @@ cat > /tmp/nuke-chain.apex <<'EOF'
 delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId IN ('<entry>','<mid>','<edited>')];
 EOF
 sf apex run -o {{ORG_ALIAS}} --file /tmp/nuke-chain.apex
+sf apex list log -o {{ORG_ALIAS}} --json
+# Fetch/inspect every log ID created by this anonymous-Apex operation.
 ```
 
-Diagnostic: if the parent IP's `OmniProcessCompilation.LastModifiedDate` predates your edit's activation, the parent is serving stale — that's the culprit. When in doubt, nuke all active compilations older than ~2h (`delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcess.IsActive = true AND LastModifiedDate < :Datetime.now().addHours(-2)]`) — use sparingly (every active IP pays a recompile). For a multi-component feature, bust **leaves first** (callee → callers → top OmniScript) or do one bulk compilation-delete + one bulk redeploy.
+Diagnostic: if the parent IP's `OmniProcessCompilation.LastModifiedDate` predates your edit's activation, the parent is serving stale — that's the culprit. Never “nuke all stale compilations” by default: any bulk deletion outside the proven caller chain requires an explicit adversarial finding/disposition, exact scoped IDs, user approval, and a recovery plan because unrelated active features pay the recompile/concurrency cost. For a multi-component feature, bust **leaves first** (callee → callers → top OmniScript) or do one reviewed, ID-scoped compilation-delete + one bulk redeploy.
 
 ## Edge cases
 
-- **Deploy still `Unchanged` at Step 5:** an editor "format on save" reverted your description tweak — `grep "<description>" <file>` to confirm, disable format-on-save for `*.oip/.os-meta.xml`.
-- **No Vold exists locally:** snapshot the file, copy it to an unused version number with `<isActive>false</isActive>`, deploy that as a synthetic Vold, restore the original, run Path B.
+- **Dry-run/deploy reports `Unchanged`:** the pre-Gate-B description flip didn't persist. Stop before mutation, fix it, create a new artifact generation, and rerun all reviewers.
 - **OmniScripts add a browser cache layer:** after the server-side bust, hard-refresh (Cmd/Ctrl+Shift+R) the host Lightning page, or sign out/in.
 
 ## Self-check (before declaring success)
 
 - [ ] `OmniProcess`: Vcurrent `IsActive=true`, `LastModifiedDate` within the last minute.
 - [ ] `OmniProcessElement`: your changed elements have NEW `Id`s.
-- [ ] `OmniProcessCompilation`: **0 rows** for Vcurrent (recompiles fresh on next invocation).
+- [ ] Before first invocation: 0 compilation rows; OR after a concurrent/intentional invocation: compilation `LastModifiedDate` is post-deploy and runtime behavior/probes prove it compiled the reviewed elements.
 - [ ] If probes write to a sink, trigger the flow and confirm the probe label appears.
 - [ ] `git diff` shows only your intended change + the description byte-flip.
+- [ ] Gate B reviewer identities, reviewed diff, caller-chain scope, findings/dispositions, and re-review verdict are recorded.
 
 ## Common errors (literal strings)
 
 | Error / symptom | Cause | Fix |
 |---|---|---|
-| `FIELD_INTEGRITY_EXCEPTION: You can't update or delete an active Omniscript record...` | Touched Vcurrent while active | Deactivate it first (Step 2) |
-| `FIELD_INTEGRITY_EXCEPTION: Another active Omniscript with the same Type, Subtype, and Language exists.` | Activated Vold while Vcurrent still active | Deactivate Vcurrent + activate Vold in ONE apex run |
-| `DEPENDENCY_EXISTS: ... Omni Integration Procedure Configuration` | Upstream caller references this IP | Skip 3b/3c; rely on the Step 3a compilation delete |
+| `FIELD_INTEGRITY_EXCEPTION: You can't update or delete an active Omniscript record...` | Attempted process/config deletion or unsupported active-state mutation | Use reviewed Path A or atomic Path B; never delete process/config rows |
+| `UNABLE_TO_LOCK_ROW` | Another operator owns the family/current row | Abort; recheck state and maintenance window, then create a new gate generation |
+| `DEPENDENCY_EXISTS: ... Omni Integration Procedure Configuration` | Someone attempted unnecessary config/process deletion | Keep config/process rows; delete only the compilation |
 | `Status: Succeeded` + `State: Unchanged` | File matches org byte-for-byte | Description tweak didn't persist — re-edit |
 | `No source-backed components present...` | Manifest member used slash syntax | Use `<Type>_<SubType>_Procedure_<N>` underscores |
 | `sObject type 'OmniProcess' is not supported.` | Used `--use-tooling-api` | Drop it (standard data API) |
@@ -121,4 +128,4 @@ Diagnostic: if the parent IP's `OmniProcessCompilation.LastModifiedDate` predate
 
 ## Why it works
 
-The runtime caches the deserialized `OmniProcessCompilation` payload keyed on Type/SubType. Invalidation reliability: **deleting the compilation row (Step 3a) = highest**; `IsActive false→true` flip on redeploy (Step 5) = high; a plain redeploy with neither = very low. The 5-step dance does both, so it's bulletproof. The description byte-flip is the safety net that forces MDAPI to emit `Changed` (and thus fire the package's post-deploy hooks) instead of short-circuiting on `Unchanged`.
+The runtime caches the deserialized `OmniProcessCompilation` payload keyed on Type/SubType. Both paths deploy reviewed bytes first. Path A then removes exact stale artifacts so the next invocation compiles deployed metadata. Path B additionally performs false→true reactivation and exact compilation deletion in one rollback-safe transaction. The pre-review description byte-flip forces MDAPI to emit `Changed` instead of short-circuiting on `Unchanged`.

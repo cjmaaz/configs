@@ -2,7 +2,7 @@
   TEMPLATE: Bug-fix changes doc
   =============================
   Copy this file to changes/<short-kebab-slug>.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
   Strip any sections that genuinely do not apply (note "n/a" rather than deleting
   the heading if the section is part of your team's required minimum).
 
@@ -20,6 +20,11 @@
 **Code commit(s):** [`<short-hash>`](#15-deploy-ids-and-commit-references) (latest; full list in section 15)
 **Manifest:** [`manifest/<feature>.xml`](../manifest/<feature>.xml) (the deploy manifest used; XML inlined in section 15)
 **Status:** Resolved / Resolved for <subset>, pending observation on <other subset> / In progress
+<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized digest -->
+**Adversarial Gate B:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Implementation revision reviewed:** `<base..head / working-diff fingerprint / commit>`
+**Adversarial artifact SHA-256:** `<digest>`
+<!-- END ADVERSARIAL RECEIPT HEADER -->
 
 <!--
   For "Status" — be honest. If only one of three sub-scenarios was verified, say so here and detail in section 12.
@@ -64,15 +69,24 @@
     "(superseded by <hash> — see row N)". Don't delete superseded rows.
 -->
 
-| #   | Date (UTC)       | Code commit                                            | What was done            | Why                                        |
-| --- | ---------------- | ------------------------------------------------------ | ------------------------ | ------------------------------------------ |
-| 1   | YYYY-MM-DD HH:MM | [`<short-hash>`](#15-deploy-ids-and-commit-references) | <one-line plain English> | <initial discovery / QA finding / cascade> |
+| # | Date (UTC) | Code commit | What was done | Why |
+|---|---|---|---|---|
+| 1 | YYYY-MM-DD HH:MM | [`<short-hash>`](#15-deploy-ids-and-commit-references) | <one-line plain English> | <initial discovery / QA finding / cascade> |
 
 ---
 
 ## 3. Architecture / context
 
 > Full design — current behavior, the precise gap/root cause, and the proposed fix with alternatives — lives in the LLD at [`docs/lld/<work-id>-<slug>.md`](../docs/lld/<work-id>-<slug>.md). Keep this section just-enough context that links there.
+
+### 3.1 Requirement / acceptance-criteria traceability
+
+| AC | Verbatim requirement / expected fixed behavior | Source |
+|---|---|---|
+| AC1 | <confirmed text; never “see screenshot”> | <ticket/screenshot/comment> |
+| AC2 | <confirmed text> | <source> |
+
+**Out of scope:** <explicit non-goals/follow-up tickets>.
 
 <!--
   Just enough architecture for a reader to follow the rest of the doc. Skip if the
@@ -99,10 +113,10 @@ flowchart TD
   Component --> Downstream[Downstream call]
 ```
 
-| Type / variant | Path                    | Status today                  |
-| -------------- | ----------------------- | ----------------------------- |
-| <Variant A>    | `<file/component path>` | <Fixed / Untouched / Pending> |
-| <Variant B>    | `<file/component path>` | <Fixed / Untouched / Pending> |
+| Type / variant | Path | Status today |
+|---|---|---|
+| <Variant A> | `<file/component path>` | <Fixed / Untouched / Pending> |
+| <Variant B> | `<file/component path>` | <Fixed / Untouched / Pending> |
 
 ---
 
@@ -139,11 +153,11 @@ Diff of the triggering change (if known):
   If the bug had a single symptom and a single fix, this can be a one-row table.
 -->
 
-| Run window   | Status  | Visible error / symptom                   | Underlying cause uncovered |
-| ------------ | ------- | ----------------------------------------- | -------------------------- |
-| <date/time>  | Failure | `<error message>` thrown by `<component>` | <Family 1 — short label>   |
-| After fix #1 | Failure | `<next error message>`                    | <Family 2 — short label>   |
-| After fix #2 | Success | (clean)                                   | —                          |
+| Run window | Status | Visible error / symptom | Underlying cause uncovered |
+|---|---|---|---|
+| <date/time> | Failure | `<error message>` thrown by `<component>` | <Family 1 — short label> |
+| After fix #1 | Failure | `<next error message>` | <Family 2 — short label> |
+| After fix #2 | Success | (clean) | — |
 
 ---
 
@@ -164,9 +178,9 @@ Diff of the triggering change (if known):
 
 **Metadata** (verified by <how — anonymous Apex, schema query, Tooling API, etc.>):
 
-| Object      | Field/component | Property A | Property B | Property C |
-| ----------- | --------------- | ---------- | ---------- | ---------- |
-| `<SObject>` | `<Field>`       | <value>    | <value>    | <value>    |
+| Object | Field/component | Property A | Property B | Property C |
+|---|---|---|---|---|
+| `<SObject>` | `<Field>` | <value> | <value> | <value> |
 
 **Why the prior state tolerated it:** <one paragraph>
 **Why the new state rejects it:** <one paragraph>
@@ -241,10 +255,10 @@ flowchart TD
   the new behavior provably correct?
 -->
 
-| #   | File               | Change             | Why safe                        |
-| --- | ------------------ | ------------------ | ------------------------------- |
-| 1   | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
-| 2   | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
+| # | File | Change | Why safe |
+|---|---|---|---|
+| 1 | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
+| 2 | [`<path>`](<path>) | <one-line summary> | <one-paragraph proof of safety> |
 
 ### Drift files (no semantic change by us)
 
@@ -320,13 +334,13 @@ See commit `<short-hash>` for the full file.
 > **WARNING — these changes are scoped to `<sandbox-alias>` debugging only. They MUST be reverted before promotion to UAT, Pre-Prod, or Production.**
 
 <!--
-  If your fix included no temporary instrumentation, delete this entire section
-  (and update the section numbering downstream). If you added even one probe,
+  If your fix included no temporary instrumentation, keep this section and write
+  `n/a — no temporary instrumentation` so downstream anchors remain stable. If you added even one probe,
   one rollback flip, one extra log statement, document it here with EXPLICIT
   removal commands.
 -->
 
-### 8.1 — <short label of the temporary change>
+### 10.1 — <short label of the temporary change>
 
 **File:** [`<path>`](<path>)
 **Change:** <one-line summary>
@@ -345,7 +359,7 @@ sf project deploy start \
   -o <sandbox-alias> --ignore-conflicts
 ```
 
-### 8.2 — <next temporary change, if any>
+### 10.2 — <next temporary change, if any>
 
 <!-- repeat -->
 
@@ -364,10 +378,17 @@ sf project deploy start \
   "before" column.
 -->
 
-| Check      | Expected | Baseline (pre-bug) | Today (post-fix) | Match  |
-| ---------- | -------- | ------------------ | ---------------- | ------ |
-| <Metric 1> | <value>  | <value or n/a>     | <value>          | yes/no |
-| <Metric 2> | <value>  | <value or n/a>     | <value>          | yes/no |
+| Check | Expected | Baseline (pre-bug) | Today (post-fix) | Match |
+|---|---|---|---|---|
+| <Metric 1> | <value> | <value or n/a> | <value> | yes/no |
+| <Metric 2> | <value> | <value or n/a> | <value> | yes/no |
+
+### Acceptance criteria evidence
+
+| AC | Verification | Evidence | Pass? |
+|---|---|---|---|
+| AC1 | <test/scenario> | <record/log/screenshot/query> | yes/no |
+| AC2 | <test/scenario> | <evidence> | yes/no |
 
 ### Apex log verification (if applicable)
 
@@ -376,10 +397,42 @@ sf project deploy start \
   results too.
 -->
 
-| Log Id     | Type       | Component      | Status             |
-| ---------- | ---------- | -------------- | ------------------ |
-| `07L<...>` | sync       | <component>    | Success            |
+| Log Id | Type | Component | Status |
+|---|---|---|---|
+| `07L<...>` | sync | <component> | Success |
 | `07L<...>` | Batch Apex | `<BatchClass>` | Success / 0 errors |
+
+<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized implementation/doc digest -->
+### Mandatory adversarial Gate B
+
+<!-- At least three independent parallel reviewers; see .cursor/rules/adversarial-review.mdc. -->
+
+**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
+**Review context/profile:** `<purpose; in scope; out of scope; selected profile>`
+**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
+**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+
+| Reviewer / run | Lens | Revision reviewed | Verdict |
+|---|---|---|---|
+| `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 3>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+
+| Mandatory attack category | Result | Evidence / finding IDs |
+|---|---|---|
+| `<selected profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
+| Requirements/correctness + shared-dependency/regression | Pass / findings / N/A | <evidence> |
+| Explicit out-of-scope categories | N/A | <why they do not apply> |
+
+| Finding | Severity | Evidence + failure scenario | Disposition | Fix/test/owner | Re-review |
+|---|---|---|---|---|---|
+| `<AR-B-001>` | Critical/High/Medium/Low | <path/line + triggering shape> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + test/ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+
+**Legacy/sibling/previously-working path proof:** <tests or before/after evidence>.
+**Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
+<!-- END ADVERSARIAL GATE B RECEIPT -->
 
 ---
 
@@ -390,10 +443,10 @@ sf project deploy start \
   and which weren't? Be explicit about pending verification.
 -->
 
-| Scenario     | Verified today? | Notes                                                      |
-| ------------ | --------------- | ---------------------------------------------------------- |
-| <Scenario A> | Yes             | <evidence>                                                 |
-| <Scenario B> | No (pending)    | <why pending, what input to use, where the sample data is> |
+| Scenario | Verified today? | Notes |
+|---|---|---|
+| <Scenario A> | Yes | <evidence> |
+| <Scenario B> | No (pending) | <why pending, what input to use, where the sample data is> |
 
 ---
 
@@ -405,8 +458,8 @@ sf project deploy start \
   questions during review.
 -->
 
-| Asset              | Reason untouched  |
-| ------------------ | ----------------- |
+| Asset | Reason untouched |
+|---|---|
 | [`<path>`](<path>) | <one-line reason> |
 | [`<path>`](<path>) | <one-line reason> |
 
@@ -473,9 +526,9 @@ sf project deploy start --metadata "<Type>:<Name>" -o <sandbox-alias> --ignore-c
 
 ### Deploys to `<sandbox-alias>`
 
-| #   | Deploy ID  | Components | Time (UTC)          | Code commit         | Purpose            |
-| --- | ---------- | ---------- | ------------------- | ------------------- | ------------------ |
-| 1   | `0Af<...>` | <count>    | YYYY-MM-DD HH:MM:SS | [`<short-hash>`](#) | <one-line purpose> |
+| # | Deploy ID | Components | Time (UTC) | Code commit | Purpose |
+|---|---|---|---|---|---|
+| 1 | `0Af<...>` | <count> | YYYY-MM-DD HH:MM:SS | [`<short-hash>`](#) | <one-line purpose> |
 
 <!--
   On iterative threads, add one row per code commit on the thread.
@@ -484,10 +537,10 @@ sf project deploy start --metadata "<Type>:<Name>" -o <sandbox-alias> --ignore-c
 
 ### Commit references
 
-| Commit                                   | What                                          | When       |
-| ---------------------------------------- | --------------------------------------------- | ---------- |
+| Commit | What | When |
+|---|---|---|
 | **`<short-hash>`** (initial code change) | <one-line summary of all files in the commit> | YYYY-MM-DD |
-| **`<short-hash>`** (this doc — initial)  | `changes/<slug>.md` documenting the above     | YYYY-MM-DD |
+| **`<short-hash>`** (this doc — initial) | `changes/<slug>.md` documenting the above | YYYY-MM-DD |
 
 <!--
   On iterative threads, append rows here for every additional code/doc
@@ -510,6 +563,6 @@ git show --stat <short-hash>
 -->
 
 1. <Concrete next step — e.g. "Test scenario B in <sandbox-alias> after metadata cache flush.">
-2. <Concrete next step — e.g. "Smoke-test the related but untouched XYZ path before promotion.">
+2. <Concrete next step — e.g. "Smoke-test the related but untouched sibling path before promotion.">
 3. <Concrete next step — e.g. "Open Salesforce/managed-package support case with this doc as evidence.">
 4. <Concrete next step — e.g. "Cleanup commit before UAT promotion: revert section 10 temporary changes.">

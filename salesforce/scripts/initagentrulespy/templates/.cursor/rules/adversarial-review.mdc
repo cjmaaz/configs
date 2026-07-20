@@ -1,0 +1,171 @@
+---
+description: Mandatory adversarial review for every requirement, plan, diagnosis, implementation, bug fix, refactor, metadata change, and pre-ship handoff. Requires at least three independent parallel critics at both the plan and implementation gates to find concrete failure and regression paths before work proceeds.
+alwaysApply: true
+---
+
+# Mandatory adversarial review protocol
+
+**Protocol version: 1.0. ZERO TOLERANCE — this is a blocking gate, not optional advice.**
+
+The reviewers' job is to attack the plan or implementation and explain **why it can fail**. They are not there to praise, summarize, rubber-stamp, or improve the prose. A new path working is insufficient if a trigger cascade, shared dependency, legacy flow, sibling RecordType, bulk transaction, async race, or existing caller now fails.
+
+## Scope and ordering
+
+Apply to every change, bug fix, requirement, diagnosis, plan, refactor, data fix, script, metadata edit, and implementation continuation. Planning-only work runs Gate A; implemented work runs Gate A and Gate B. Tiny work may use concise `N/A` evidence, but it does not skip review.
+
+If work is inherited mid-implementation, freeze and fingerprint the inherited state, reconstruct current behavior/design, label which changes pre-existed, and run Gate A before any further edit.
+
+Canonical order:
+
+`intake → retrieve/current-state evidence → schema/domain inspection → draft plan/LLD → Gate A → edit/build/tests → Gate B → deploy or mutate → runtime verification → commit/handoff`
+
+Only the root/orchestrating agent launches reviewers. Reviewers are read-only and MUST NOT recursively spawn more reviewers.
+
+The only pre-Gate-B org write allowed is Gate-A-reviewed observability setup (for example a narrowly scoped, time-bounded TraceFlag) when validation evidence cannot otherwise be captured. Hash-bind its exact payload/identity/expiry/cleanup; it must not change business data or deployable metadata.
+
+## Gate A — plan/design (before editing)
+
+Run after current behavior, affected surface, cascading impact, and the draft design/LLD are available. Run before the first source edit or before delivering a planning-only conclusion.
+
+Give every reviewer the same immutable snapshot: requirements/ACs, current behavior evidence, affected components, dependency/cascade map, assumptions, proposed design, alternatives, and draft tests. Hash the LLD/design content **excluding only its append-only Gate A receipt block**; record path + SHA-256 + timestamp. Recording the receipt does not change the design digest, but any design edit does.
+
+## Gate B — implementation (before mutation/commit)
+
+Run after the implementation and tests are ready, but before the first real deploy, org DML, cache-bust/version swap, commit, or final handoff.
+
+Give every reviewer the same immutable snapshot: confirmed ACs, approved design, complete diff, affected callers/callees, validation test/coverage/static-analysis output, and **all operation-bound logs**. Gate B must prove both that the new path works and that existing/sibling/legacy paths remain unchanged.
+
+The evidence set is profile-specific. Every profile binds requirements/ACs, approved design/Gate A receipt, prior findings/dispositions, relevant validation output, dependency/freshness evidence, and one parallel-dispatch receipt. Profile A additionally requires tests/coverage/static analysis, operation-bound logs, and org maintenance-lease evidence. Profile B instead requires canonical↔mirror sync/diff output, links/placeholders/slugs, token/leak scan, expected file placement/counts, and init dry-run output. Salesforce logs/leases are evidence-backed `N/A` for guidance-only artifacts.
+
+### Canonical reproducible snapshot
+
+Use `scripts/adversarial_review_snapshot.py`; do not invent an ad-hoc `git diff`/inventory hash.
+
+```bash
+python3 scripts/adversarial_review_snapshot.py snapshot \
+  --base <target-branch> \
+  --path <explicit-path-1> --path <explicit-path-2> \
+  --evidence tests=<test-result-file> --evidence logs=<log-index-file> \
+  --freshness '<component:last-modified/hash/maintenance-lease>' \
+  --normalize-receipt-path <instantiated-change-doc-only> \
+  --output .adversarial-review/<generation-id>/artifact
+```
+
+The utility records a generation UUID, merge-base SHA (so prior feature commits are included), HEAD SHA, complete changed-path/file hashes independent of staging state, staged/unstaged/untracked review patch, evidence hashes, freshness tokens, and one manifest digest. Give reviewers `artifact.patch` + `manifest.json`, not only the digest. Immediately before deploy/mutation/commit, freshly re-query each lease/org token and run `verify --manifest <manifest.json> --expected-generation <uuid> --expected-digest <sha> --freshness <current-token>...`; any mismatch starts a new generation and reruns all three reviewers.
+
+Keep Gate receipts inside the uniquely marked `BEGIN/END ADVERSARIAL ... RECEIPT` blocks excluded from the implementation digest. After filling them, create a hash-chained receipt ledger:
+
+```bash
+python3 scripts/adversarial_review_snapshot.py receipt \
+  --path <LLD-or-change-doc> --manifest <artifact-manifest.json> \
+  --freshness <same-current-token-used-by-artifact-verify> \
+  --chain-head .adversarial-review/<work-item>/receipt-head.txt \
+  --previous-receipt <prior-receipt.json-if-any> \
+  --output .adversarial-review/<generation-id>/receipt-<sequence>
+```
+
+Run `verify-receipt --receipt <receipt.json> --manifest <artifact-manifest.json> --expected-receipt-digest <sha> --freshness <same-current-token> --chain-head <receipt-head.txt> [--previous-receipt <prior.json>]` immediately before commit/handoff, then include `Adversarial-Artifact-SHA256` plus `Adversarial-Receipt-SHA256` in the handoff/commit message. Each re-review appends a new receipt generation/subdirectory and chains the prior immutable ledger; it never rewrites a predecessor. Receipt edits change the receipt digest; every non-receipt artifact edit changes the artifact digest. Receipt normalization is per-file and allowed only for instantiated `changes/`, `docs/lld/`, or `docs/ut/` artifacts—never source rules, skills, or `_templates`.
+
+For fresh-clone auditability, commit a non-sensitive **public attestation** under `changes/evidence/<slug>/<generation>/` containing generation, reviewer IDs/lenses/verdicts, artifact digest, receipt digest, and secure CI-artifact reference. Never redact `manifest.json` and claim its original digest still verifies; keep the immutable private manifest/patch/log bundle in access-controlled CI storage.
+
+## Launch at least three independent reviewers in parallel
+
+Launch all reviewers in one parallel fan-out. Do not serialize them or share one reviewer's findings with another before they finish; independence prevents groupthink.
+
+## Declare context before choosing critic lenses
+
+Every fan-out starts with a shared context block:
+
+- **Artifact type and purpose** — what this change is actually for.
+- **In scope** — systems/files/behaviors reviewers must attack.
+- **Out of scope** — concerns that do not apply to this artifact.
+- **Review profile** — one of the profiles below (or a task-specific equivalent).
+
+Reviewers MUST stay inside that context. A theoretically valid concern outside the declared purpose is not a finding and cannot block the gate. Do not force Salesforce runtime, concurrency, or production-hardening checks onto documentation/bootstrap work that does not execute Salesforce business logic.
+
+### Profile A — Salesforce implementation (Apex/Flow/OmniStudio/metadata/data)
+
+1. **Runtime and limits:** trigger/flow/validation/OmniStudio/async chains; recursion; 1/200/max/mixed bulk; DML/SOQL/SOSL/callouts in loops; limits; nulls/exceptions/rollback.
+2. **Concurrency and data integrity:** stale reads, async ordering, locks/deadlocks, overlapping jobs, duplicates, retries/idempotency, transaction gaps.
+3. **Requirements, regression, and dependencies:** AC counterexamples, logical/state boundaries, callers/callees/shared metadata, permissions/FLS, RecordTypes, sibling/legacy paths, and new-path-success with old-path regression.
+
+### Profile B — agent-guidance tooling (rules, skills, templates, naming/slugs, bootstrap kit)
+
+1. **Rule/skill consistency critic:** contradictory mandates, wrong ordering, missing activation triggers/descriptions, duplicate ownership, impossible instructions, stale cross-references, and Cursor↔Claude semantic drift.
+2. **Template/workflow critic:** missing fields/checklists, unusable placeholders, numbering/anchors, evidence expectations, template cleanup instructions, naming/slugs, and whether a future agent can follow the workflow without guessing.
+3. **Mirror/portability critic:** canonical source↔generated-template drift, `_sync.py` source coverage, alias/path tokenization, generic-vs-project-specific leakage, generated file placement/counts, and `init.py` successfully prefilling the correct files.
+
+For Profile B, the bootstrapper is only a delivery mechanism. Review whether it copies, tokenizes, updates, and places the intended rules/skills/templates correctly. Do **not** redesign its locking, transaction model, crash durability, threat model, or large-scale performance unless the user explicitly requests that work or a concrete defect prevents correct bootstrap output.
+
+**Profile-selection example:** building or revising these rules/skills/templates/init kit uses Profile B. Later, when those installed rules are used to build an actual Salesforce feature/fix/data change, use Profile A and attack all Salesforce gotchas above—including indirect automation, bulkification/loops/limits, concurrency/locks, shared-logic consumers, backward compatibility, and existing-functionality regressions.
+
+### Other artifact types
+
+Derive exactly three independent lenses from the declared purpose. Preserve one correctness/requirements lens and one regression/dependency lens; make the third domain-specific. Record why each standard Salesforce category is `N/A` rather than attacking irrelevant systems.
+
+Add a fourth specialist only when the **declared in-scope surface** warrants it. A fourth reviewer never replaces one of the three mandatory lenses.
+
+## Reviewer prompt contract
+
+Every prompt must say, in substance:
+
+> Attack and nitpick this artifact. Find concrete reasons it will fail or regress existing behavior. Do not praise it. Do not edit files. Return `BLOCK` for any Critical/High finding, `PASS_WITH_FINDINGS` when only Medium/Low findings remain, otherwise `PASS`.
+
+Append: `Stay within the supplied context/in-scope profile. Do not invent unrelated infrastructure requirements.`
+
+Require each reviewer to return:
+
+- Reviewer/run identity and assigned lens.
+- Shared gate generation UUID plus the one parallel-dispatch batch/timestamp receipt.
+- Exact artifact revision reviewed and assumptions.
+- Overall `PASS`, `PASS_WITH_FINDINGS`, or `BLOCK`.
+- Finding ID and severity (`Critical`, `High`, `Medium`, `Low`).
+- Concrete evidence (path/line, method, transaction chain, dependency, query, or metadata element).
+- Triggering data shape, volume, timing, or interleaving.
+- Failure consequence and affected existing behavior.
+- Recommended fix plus the regression/bulk/concurrency test that proves it.
+
+Vague concerns without a falsifiable failure scenario are not findings. A reviewer that fails, times out, or omits its assigned lens does not count.
+
+Profile mismatch is also not a finding. The orchestrating agent rejects it as `Out of scope — wrong review profile` with the context declaration as evidence.
+
+## Disposition and blocking
+
+The orchestrating agent deduplicates findings, verifies each against the source/evidence, and records one disposition:
+
+- `Fixed` — implementation/design changed; cite the change and test.
+- `Rejected with evidence` — false positive; cite proof.
+- `Accepted risk` — Medium/Low only, with explicit user approval and rationale.
+- `Deferred` — Medium/Low only, with follow-up owner/ticket and containment.
+- `N/A with evidence` — category cannot apply; explain why.
+
+Rules:
+
+- `Critical` or `High` may only be `Fixed` or `Rejected with evidence`; they cannot be accepted or deferred.
+- `Medium` findings require resolution or explicit user risk acceptance.
+- `Low` findings remain recorded even when not fixed.
+- Reviewer disagreement is unresolved risk, not a majority vote.
+- Do not count three reviewers as three approvals; category coverage and evidence matter.
+
+Aggregate gate verdict:
+
+- `PASS` — all mandatory reviewers passed and no finding remains.
+- `PASS_WITH_FINDINGS` — no reviewer is `BLOCK`; only resolved/accepted Medium or recorded Low findings remain.
+- `BLOCK` — any reviewer blocks, any required lens/evidence is missing, or any Critical/High/unresolved Medium remains.
+
+## Re-review triggers
+
+Any plan/artifact/evidence digest change starts a new gate generation and reruns **all three mandatory reviewers in parallel** on the same new digest. Never combine verdicts from different revisions or late results from a superseded generation. Record the new revision and supersede—not erase—the prior verdict.
+
+## Capability failures and anti-patterns
+
+If parallel subagents are unavailable, report the gate as **unfulfilled/blocked**. Do not silently substitute a self-review or a single generic reviewer and claim compliance.
+
+Forbidden:
+
+- Sequential reviewers when parallel launch is available.
+- Coaching reviewers toward approval or giving later reviewers earlier findings.
+- Treating no findings as proof without lens/category coverage.
+- Majority-voting away a blocker.
+- Deploying, mutating org data, cache-busting, committing, or handing off before Gate B passes.
+- Claiming tiny, documentation-only, or planning-only work is exempt.

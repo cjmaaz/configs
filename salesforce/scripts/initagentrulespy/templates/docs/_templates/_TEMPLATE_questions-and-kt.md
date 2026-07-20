@@ -2,7 +2,7 @@
   TEMPLATE: Open questions + reverse-KT
   =====================================
   Copy this file to docs/lld/<work-id>-questions-and-kt.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
 
   Use this when the LLD has design assumptions that need stakeholder / SME
   confirmation before building. OPTIONAL — create it only when there are real
@@ -27,6 +27,16 @@
 ---
 
 ## Part 1 — Open questions
+
+<!-- Route unresolved adversarial-review findings that require business/SME
+     decisions here. Preserve finding ID, severity, evidence, and the risk of
+     each answer; do not copy the full review register from the LLD. -->
+
+| Finding / question | Severity | Evidence / why it matters | Decision / answer | Approver | Date | Status |
+|---|---|---|---|---|---|---|
+| `<AR-A-001 / Q1>` | <severity> | <evidence + design impact> | <answer> | <name/role> | YYYY-MM-DD | Open / Decided |
+
+Any answer that changes an assumption, scope, AC, or design requires updating the LLD, creating a new artifact digest, and rerunning all three Gate A reviewers before implementation.
 
 ### A. <theme — e.g. Definitions>
 

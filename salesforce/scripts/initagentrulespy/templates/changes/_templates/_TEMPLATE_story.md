@@ -2,7 +2,7 @@
   TEMPLATE: Story / feature / requirement changes doc
   ===================================================
   Copy this file to changes/<short-kebab-slug>.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
   Strip any sections that genuinely do not apply.
 
   Naming: short kebab-case describing the feature shipped.
@@ -25,6 +25,11 @@
 **Code commit(s):** [`<short-hash>`](#13-deploy-ids-and-commit-references) (latest; full list in section 13)
 **Manifest:** [`manifest/<feature>.xml`](../manifest/<feature>.xml) (the deploy manifest used; XML inlined in section 13)
 **Status:** Delivered / Delivered to <sandbox-alias>, pending UAT / In progress
+<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized digest -->
+**Adversarial Gate B:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Implementation revision reviewed:** `<base..head / working-diff fingerprint / commit>`
+**Adversarial artifact SHA-256:** `<digest>`
+<!-- END ADVERSARIAL RECEIPT HEADER -->
 
 <!--
   **Code commit(s)** — singular hash for a one-shot story; comma-separated
@@ -334,6 +339,38 @@ sf apex run test --class-names <TestClass> -o <sandbox-alias> \
 |---|---|---|
 | <e.g. user without permission> | <expected error or denial> | yes |
 | <e.g. bulk insert of 200> | <governor-limit safety> | yes |
+
+<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized implementation/doc digest -->
+### Mandatory adversarial Gate B
+
+<!-- At least three independent parallel reviewers; see .cursor/rules/adversarial-review.mdc. -->
+
+**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
+**Review context/profile:** `<purpose; in scope; out of scope; selected profile>`
+**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
+**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+
+| Reviewer / run | Lens | Revision reviewed | Verdict |
+|---|---|---|---|
+| `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 3>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+
+| Mandatory attack category | Result | Evidence / finding IDs |
+|---|---|---|
+| `<selected profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
+| `<selected profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
+| Requirements/correctness + shared-dependency/regression | Pass / findings / N/A | <evidence> |
+| Explicit out-of-scope categories | N/A | <why they do not apply> |
+
+| Finding | Severity | Evidence + failure scenario | Disposition | Fix/test/owner | Re-review |
+|---|---|---|---|---|---|
+| `<AR-B-001>` | Critical/High/Medium/Low | <path/line + triggering shape> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + test/ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+
+**Existing/sibling/legacy behavior proof:** <tests or before/after evidence showing the new path works without regressions>.
+**Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
+<!-- END ADVERSARIAL GATE B RECEIPT -->
 
 ---
 

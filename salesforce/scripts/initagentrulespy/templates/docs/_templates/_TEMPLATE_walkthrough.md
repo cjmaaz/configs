@@ -2,7 +2,7 @@
   TEMPLATE: Session walkthrough & decision capture
   ================================================
   Copy this file to docs/lld/<work-id>-walkthrough.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
 
   Use this for ANY alignment session — stakeholder / SME / business review OR a
   technical / design review — where you need to (a) share how something works
@@ -71,6 +71,10 @@ flowchart TD
 
 ## 6. Decisions we need (with recommended defaults)
 
+<!-- Include unresolved adversarial-review findings only when a live decision
+     is required. Cite finding ID/severity/evidence and record whether the
+     decision fixes, accepts, or defers the risk. -->
+
 > For each, the simplest path is to confirm the recommended default. Only the ones marked **needs input** are likely to need real discussion.
 
 **D1 — <decision question>?** (maps to Q1)
@@ -84,10 +88,10 @@ flowchart TD
 
 ## 7. Decision log (fill during the session)
 
-| # | Decision | Recommended default | Final decision | Owner | Notes |
-|---|---|---|---|---|---|
-| D1 | <short> | <default> | | | |
-| D2 | <short> | <default> | | | |
+| # / finding | Severity | Evidence | Recommended default | Final decision | Approver / owner | Date | Status |
+|---|---|---|---|---|---|---|---|
+| D1 / `<AR-A-001>` | <severity> | <path/query/risk> | <default> | | | YYYY-MM-DD | Open / Decided |
+| D2 | <severity/N/A> | <evidence> | <default> | | | YYYY-MM-DD | Open / Decided |
 
 ---
 
@@ -99,6 +103,7 @@ flowchart TD
 
 ## 9. Next steps after the session
 
-1. Lock the decisions above (most via the recommended defaults).
-2. <reproduce the case / implement / verify.>
-3. <coordinate sequencing with related work, if any.>
+1. Update the LLD with every decision that changes assumptions, scope, ACs, or design.
+2. Create a new plan digest and rerun all three Gate A reviewers; do not build on the pre-session verdict.
+3. After Gate A passes, <reproduce / implement / verify>.
+4. <coordinate sequencing with related work, if any.>

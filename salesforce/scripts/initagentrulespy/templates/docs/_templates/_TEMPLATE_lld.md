@@ -2,7 +2,7 @@
   TEMPLATE: Low-Level Design (LLD)
   ================================
   Copy this file to docs/lld/<work-id>-<short-kebab-slug>.md and fill it in.
-  Delete every <!-- ... --> guidance comment as you go.
+  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
   Strip any section that genuinely does not apply (write "n/a — <reason>").
 
   Naming: <work-id>-<short-kebab-slug>.md
@@ -27,6 +27,11 @@
 **Lead:** <Name> (<role>)
 **Work item / ticket:** [<TRACKER-NNN>](<url>) — <one-line summary>
 **Status:** Draft — design phase (no code yet) / In review / Approved for build / Superseded
+<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from the plan digest -->
+**Adversarial Gate A:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Plan revision reviewed:** `<LLD path + hash/timestamp/revision>`
+**Adversarial artifact SHA-256:** `<digest>`
+<!-- END ADVERSARIAL RECEIPT HEADER -->
 **Related docs:** <links to the questions-and-kt doc, the walkthrough doc, and the changes/<slug>.md doc, when they exist>
 
 > <One-paragraph summary: what this LLD covers, and explicitly call out any
@@ -187,6 +192,42 @@ flowchart TD
 - <effect 1 — intended / accidental, and why.>
 - <effect 2 ...>
 
+<!-- BEGIN ADVERSARIAL GATE A RECEIPT — exclude only this block from the plan digest -->
+### 9.1 Mandatory adversarial Gate A
+
+<!--
+  Launch at least three independent reviewers in one parallel fan-out against
+  the exact plan revision above. Follow .cursor/rules/adversarial-review.mdc.
+  Do not edit source until this gate passes. Preserve superseded review rows
+  when material design changes trigger re-review.
+-->
+
+**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
+**Review context/profile:** `<artifact purpose; in scope; out of scope; Salesforce implementation / agent-guidance tooling / other>`
+**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
+**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+
+| Reviewer / run | Independent lens | Revision reviewed | Verdict |
+|---|---|---|---|
+| `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | `<profile lens 3>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+
+| Attack category | Result | Evidence / finding IDs |
+|---|---|---|
+| `<required categories from selected lens 1>` | Pass / findings / N/A | <evidence> |
+| `<required categories from selected lens 2>` | Pass / findings / N/A | <evidence> |
+| `<required categories from selected lens 3>` | Pass / findings / N/A | <evidence> |
+| Requirements/correctness + shared-dependency/regression coverage | Pass / findings / N/A | <evidence> |
+| Explicit out-of-scope categories | N/A | <why they do not apply to this artifact> |
+
+| Finding | Severity | Failure scenario + evidence | Disposition | Fix/test/owner | Re-review |
+|---|---|---|---|---|---|
+| `<AR-A-001>` | Critical/High/Medium/Low | <concrete failure> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + test or ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+
+**Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
+<!-- END ADVERSARIAL GATE A RECEIPT -->
+
 ---
 
 ## 10. Draft test scenarios
@@ -199,6 +240,9 @@ flowchart TD
 | 1 | <happy path> | <expected> |
 | 2 | <negative / edge case> | <expected> |
 | 3 | <regression: existing behavior unchanged> | <unchanged> |
+| 4 | <profile-specific stress/compatibility case> | <expected> |
+| 5 | <second profile-specific failure mode, or evidence-backed N/A> | <expected> |
+| 6 | <scenario derived from adversarial finding AR-A-...> | <failure prevented> |
 
 Coverage target: <the project's required coverage>.
 
@@ -224,9 +268,11 @@ The design above assumes, pending confirmation:
 
 1. Pull the latest version of the components in §8 and re-validate §4-§5 against the fresh copy.
 2. Reproduce the exact failing condition; capture before / after.
-3. Implement the design in §7; add the tests in §10.
-4. Build / deploy, run the targeted tests, and check logs for hidden failures.
-5. Finalize the changes/<slug>.md doc and follow the two-commit strategy.
+3. Run Gate A against this exact LLD revision; resolve/re-review all blockers and record explicit disposition for every finding.
+4. Confirm Gate A is `PASS` or eligible `PASS_WITH_FINDINGS`; no Critical/High and every Medium resolved or user-accepted.
+5. Implement the design in §7; add every required test derived from §9.1 to §10.
+6. Run implementation Gate B before any deploy/mutation/commit, then deploy, run targeted tests, and inspect logs.
+7. Finalize the changes/<slug>.md doc and follow the two-commit strategy.
 
 ---
 

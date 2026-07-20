@@ -7,6 +7,8 @@ alwaysApply: false
 
 Production-ready Selenium patterns: fail-fast architecture, 3-retry logic per field, comprehensive XPath logging, explicit waits, and zero silent failures.
 
+Every Selenium plan/change also passes the two mandatory parallel gates in [`adversarial-review.mdc`](./adversarial-review.mdc). Gate B must attack stale/virtualized DOM state, retry duplication, browser/session concurrency, shared selectors, masked-input events, cleanup, and regressions in existing journeys before execution/commit.
+
 ## When to apply
 
 Apply if a Python file imports `selenium.webdriver` AND uses `driver.find_element` / `WebDriverWait`, OR lives in `*/automation/*`, `*/selenium/*`, `*/tests/e2e/*` (or matches `*_automation.py`, `*_selenium.py`, `*_e2e.py`), OR contains form-interaction patterns (`send_keys`, `clear`, `click`) with XPath. Override with a top-of-file comment `# selenium-automation: enabled|disabled`.
@@ -29,6 +31,7 @@ for attempt in range(1, max_retries + 1):
     try:
         if attempt > 1:
             print(f"   → {field_name} retry {attempt}/{max_retries}...")
+        print(f"   → {field_name} XPath: {field_xpath}")
         # Re-find on each attempt (avoids StaleElementReferenceException)
         field = WebDriverWait(driver, 10).until(
             EC.presence_of_element_located((By.XPATH, field_xpath))
@@ -99,3 +102,4 @@ driver.switch_to.active_element.send_keys(Keys.SHIFT + Keys.TAB)
 - [ ] JavaScript used for masked inputs; post-fill verification on critical fields.
 - [ ] XPaths centralized in `XPATH_TEMPLATES`; `.replace()` (not `.format()`) for dynamic ones.
 - [ ] Consistent visual indicators (✓ ❌ → ⚠️); data validated before the run starts.
+- [ ] Gate A/Gate B reviewer evidence is recorded; all blocker findings were fixed and re-reviewed.

@@ -30,6 +30,7 @@ sections:
  10. Quick Reference         — RecordType IDs, key field-to-meaning cheat sheet
 
 Cross-reference companion rules:
+  - `.cursor/rules/adversarial-review.mdc`            — mandatory parallel review gates
   - `.cursor/rules/salesforce-schema-validation.mdc` — schema-first read order
   - `.cursor/rules/sf-cli-commands.mdc`              — sf CLI reference
 

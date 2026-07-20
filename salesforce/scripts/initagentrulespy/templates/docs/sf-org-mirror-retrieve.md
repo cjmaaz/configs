@@ -1,10 +1,10 @@
 # Sequential Org-Wide Metadata Retrieve — Runbook
 
-A repeatable, hybrid-shard strategy for pulling **the entire metadata footprint** of a Salesforce org into local source while staying under the Metadata API limits and surviving slow orgs.
+A repeatable, hybrid-shard strategy for pulling a **verified metadata footprint** of a Salesforce org into local source while staying under Metadata API limits and surviving slow orgs.
 
 > **Why this doc exists:** A naive `sf project retrieve start --metadata '*'` (or even a single 127-type manifest) blows past the **10,000-component limit** on any non-trivial org and locks up for hours when the org is slow. The {{ORG_NAME}} sandbox has ~14k+ components in `force-app/`, so we split the retrieve into ~23 sequential calls plus a Phase 3 audit + 2 commits, sized so each call fits under the limit and finishes in a bounded time.
 
-This runbook is **org-agnostic** — every command uses a `$ORG_ALIAS` shell variable so you can copy-paste them as-is in any project. **Set it once at the start of your session** (see the [Setup](#setup-set-your-org-alias-once) section below).
+The workflow is portable, but the shipped type list/counts/shards are only a **seed from the source org**. A new project MUST discover its own supported metadata types, compare them to the seed manifests, generate supplemental/rebalanced shards, and record exclusions before claiming “org-wide.” `$ORG_ALIAS` makes commands reusable; it does not make source-org coverage assumptions universal.
 
 ---
 
@@ -30,9 +30,13 @@ This runbook is **org-agnostic** — every command uses a `$ORG_ALIAS` shell var
 
 2. **An SFDX project rooted at the repo.** `sfdx-project.json` should point at `force-app` (or your equivalent package dir) and use the same API version your org supports (this repo uses `66.0`).
 
-3. **Pre-sharded manifest files at `manifest/fullpackage/`.** This repo ships 11 shards covering all 127 metadata types listed in `manifest/fullpackage.xml`. The runbook below uses 6 of them as bundled shards and treats the other 5 as per-type pulls. If your repo does not have these shards, copy them from this repo first or build your own.
+3. **Seed manifests at `manifest/fullpackage.xml` and `manifest/fullpackage/`.** The kit ships a source-org baseline (127 types / 11 shards). Treat it as input to the mandatory discovery/gap step below, never as proof your target org is fully covered.
 
 4. **A clean spot to capture logs.** The runbook writes the active run's per-phase logs to `.retrieve-logs/current/` and rotates previous runs to `.retrieve-logs/archive/<TS>/`. Both subdirs are covered by the single `.retrieve-logs/` gitignore entry.
+
+### Mandatory target-org coverage discovery
+
+Before Phase 0, run `sf org list metadata-types -o "$ORG_ALIAS" --json`, compare the supported/retrievable type set against every `<name>` in the seed master/shards, and build target-org supplemental/rebalanced manifests. For each unsupported, permission-blocked, folder-scoped, or intentionally excluded type, record the reason in the audit doc. Do not reuse source-org component counts as expectations; collect fresh target counts. The plan and Gate A must include this discovered coverage map.
 
 ---
 
@@ -114,6 +118,7 @@ Minimum required todo entries (one per concrete step — agent may add more, but
 
 ```
 [ ] Phase 0 — pre-flight (org auth + WIP check + HEAD capture + .retrieve-logs/ rotation)
+[ ] Phase 0.A — adversarial Gate A on the retrieve plan (three parallel reviewers)
 [ ] Phase 1.1  → 1.11   (11 bundled / small-type retrieves, sequential)
 [ ] Phase 2.11 → 2.22   (12 single-type heavy retrieves, sequential lightest→heaviest)
 [ ] Phase 3.4.1 — per-type analysis todos (one TodoWrite entry per type that changed; spawned later, after Phase 2 completes)
@@ -128,6 +133,10 @@ Minimum required todo entries (one per concrete step — agent may add more, but
 Mark each as `in_progress` before starting it and `completed` only after it actually finishes successfully (per `Status: Succeeded` in the log for retrieves, per the `git log -1` hash for commits). Do NOT batch-complete todos retroactively — losing the running-todo signal makes a mid-sequence failure ambiguous about what was actually finished.
 
 If the run was interrupted (org timeout, user `Ctrl-C`, agent crash, transient `sf` hang, sandbox restart), the FIRST thing the resuming agent does is read the todo list and identify the most recent `in_progress` entry — that's where work resumes. Don't restart from Phase 1.1 unless the resume-point todo logic is unrecoverably ambiguous.
+
+### 0.A Mandatory adversarial Gate A
+
+Before the first `sf` retrieve, launch all three independent reviewers from `.cursor/rules/adversarial-review.mdc` in one parallel fan-out against this run's exact phase plan, target alias, manifests, WIP strategy, and rollback/resume assumptions. Resolve/re-review every blocker; record reviewer IDs, plan digest, verdicts, and dispositions in working notes. Planning approval from a prior run is stale if alias/manifests/WIP/phase scope changed.
 
 ### 0.1 Org authentication check
 
@@ -510,7 +519,7 @@ The audit doc is THEN filled in three explicit phases — **do not collapse them
 #### Compute magnitude
 
 ```bash
-DIFF_RANGE="$PRE_HEAD..HEAD"
+DIFF_BASE="$PRE_HEAD"  # compare the base commit to current index + working tree
 
 # Total churn per type (modifications only, doesn't count untracked yet):
 for dir in classes triggers lwc aura omniScripts omniIntegrationProcedures \
@@ -518,7 +527,7 @@ for dir in classes triggers lwc aura omniScripts omniIntegrationProcedures \
            profiles permissionsets customMetadata \
            externalCredentials namedCredentials apexEmailNotifications \
            cleanDataServices siteDotComSites; do
-  churn=$(git diff --numstat "$DIFF_RANGE" -- "force-app/main/default/$dir/" \
+  churn=$(git diff --numstat "$DIFF_BASE" -- "force-app/main/default/$dir/" \
             2>/dev/null | awk '{s+=$1+$2} END{print s+0}')
   [ "$churn" -gt 0 ] && printf "  %6d  %s\n" "$churn" "$dir"
 done | sort -rn
@@ -547,7 +556,7 @@ For each per-type todo, in order:
 1. **List the changed files** under that type:
 
    ```bash
-   git diff --name-only "$DIFF_RANGE" -- "force-app/main/default/<dir>/"
+   git diff --name-only "$DIFF_BASE" -- "force-app/main/default/<dir>/"
    git ls-files --others --exclude-standard "force-app/main/default/<dir>/"
    ```
 
@@ -597,7 +606,7 @@ Summarize in §4.X with: which elements were added/removed, which conditional fo
 For modified `.cls` and `.trigger` files, scan the class-declaration line on both sides of the diff. A name change inside the same file (or a filename change vs class declaration mismatch) means a rename — easy to overlook because the file path looks unchanged:
 
 ```bash
-git diff "$DIFF_RANGE" -- 'force-app/main/default/classes/*.cls' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/classes/*.cls' \
   | grep -E '^[+-]\s*(public|private|global)( (with|without|inherited) sharing)? class\s+\w+' \
   | sort
 ```
@@ -643,6 +652,16 @@ If you see paired `-` / `+` lines with different class names, OR if the `+` clas
 
 §4.1 noted yesterday's new `AccountValidationService` and today's new `ContactValidationService` — paired with the renamed `XMLValidationService → XmlValidationService` (also flagged in §6.1 as a casing rename). **Synthesis:** the team is splitting the validation surface into per-sObject variants (Account-side, Contact-side); today's `Contact` completes a symmetry that started 2 days ago with `Account`. Worth a future-state check: are there callers still routing through the renamed `Xml` service that should be migrated to the new per-sObject services?
 
+#### Mandatory adversarial cross-type review
+
+After per-type analysis and synthesis, but before filling §6/finalizing the audit, build the canonical staged+unstaged+untracked snapshot from `.cursor/rules/adversarial-review.mdc` using `$PRE_HEAD` as the base, then launch the minimum three independent reviewers in one parallel fan-out:
+
+1. Salesforce runtime/limits.
+2. Concurrency/data integrity.
+3. Requirements/regression/shared dependencies.
+
+Record reviewer IDs, reviewed revision, verdicts, evidence-backed failure hypotheses, and dispositions in audit-doc §6.5. High/Critical findings block final audit handoff until validated and resolved/re-reviewed; a failed reviewer does not count.
+
 ### 3.4.3 Fill remaining sections
 
 After §3.4.2 finishes, fill the remaining sections (header / §1 TL;DR (now informed by the synthesis) / §2 Per-phase status / §3 Source-count deltas / §5 Diff context / §6 Suspicion analysis / §7 WIP impact / §8 Warnings / §10 Follow-ups). Use the live data per the table below:
@@ -667,42 +686,42 @@ After §3.4.2 finishes, fill the remaining sections (header / §1 TL;DR (now inf
 Run all four in sequence. Each is a read-only diff inspection — none of them blocks the commit.
 
 ```bash
-DIFF_RANGE="$PRE_HEAD..HEAD"
+DIFF_BASE="$PRE_HEAD"  # pre-commit working-tree comparison
 
 # 6.1 Possibly-breaking
-git diff "$DIFF_RANGE" -- 'force-app/main/default/classes/*Test.cls' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/classes/*Test.cls' \
   | grep -E '^-\s+(@isTest|static testMethod void)' || true
-git diff "$DIFF_RANGE" -- 'force-app/main/default/classes/*.cls' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/classes/*.cls' \
   | grep -E '^-(public|private|global) (with|without|inherited) sharing class' || true
-git diff "$DIFF_RANGE" -- 'force-app/main/default/objects/*/fields/*.field-meta.xml' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/objects/*/fields/*.field-meta.xml' \
   | grep -E '^[-+]\s*<type>' || true
 
 # 6.2 Security / access drift
-git diff --stat "$DIFF_RANGE" -- 'force-app/main/default/permissionsets/' \
+git diff --stat "$DIFF_BASE" -- 'force-app/main/default/permissionsets/' \
   'force-app/main/default/profiles/' \
   'force-app/main/default/sharingRules/' \
   'force-app/main/default/roles/' \
   'force-app/main/default/groups/' || true
 
 # 6.3 Active / status flips
-git diff "$DIFF_RANGE" -- 'force-app/main/default/flows/*.flow-meta.xml' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/flows/*.flow-meta.xml' \
   | grep -E '^[-+]\s*<status>' || true
-git diff "$DIFF_RANGE" -- 'force-app/main/default/omniScripts/*.os-meta.xml' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/omniScripts/*.os-meta.xml' \
   'force-app/main/default/omniIntegrationProcedures/*.oip-meta.xml' \
   | grep -E '^[-+]\s*<IsActive>' || true
-git diff "$DIFF_RANGE" -- 'force-app/main/default/objects/*/validationRules/*.validationRule-meta.xml' \
+git diff "$DIFF_BASE" -- 'force-app/main/default/objects/*/validationRules/*.validationRule-meta.xml' \
   | grep -E '^[-+]\s*<active>' || true
 
 # 6.4 Structural overhauls
-git diff --diff-filter=D --name-only "$DIFF_RANGE" -- 'force-app/main/default/classes/*.cls' || true
+git diff --diff-filter=D --name-only "$DIFF_BASE" -- 'force-app/main/default/classes/*.cls' || true
 git status --short -- 'force-app/main/default/objects/' \
   | grep -E '^\?\?\s.*objects/[^/]+/$' || true
-git diff --stat "$DIFF_RANGE" -- 'force-app/main/default/lwc/*/lwc/*.js-meta.xml' || true
+git diff --stat "$DIFF_BASE" -- 'force-app/main/default/lwc/*/lwc/*.js-meta.xml' || true
 # >50% line churn for IPs / OmniScripts — compare diff lines to wc -l:
-for f in $(git diff --name-only "$DIFF_RANGE" -- \
+for f in $(git diff --name-only "$DIFF_BASE" -- \
     'force-app/main/default/omniIntegrationProcedures/*.oip-meta.xml' \
     'force-app/main/default/omniScripts/*.os-meta.xml'); do
-  churn=$(git diff --numstat "$DIFF_RANGE" -- "$f" | awk '{print $1+$2}')
+  churn=$(git diff --numstat "$DIFF_BASE" -- "$f" | awk '{print $1+$2}')
   size=$(wc -l < "$f" 2>/dev/null || echo 0)
   if [ -n "$churn" ] && [ "$size" -gt 0 ]; then
     pct=$((churn * 100 / size))

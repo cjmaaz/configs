@@ -28,7 +28,7 @@ Skipping this step silently overwrites newer org state on your next deploy. The 
 3. Source API version is **66.0**; package directory is `force-app/`.
 4. Manifests live in `manifest/<feature>.xml` — create a NEW one per feature, never overwrite `apex.xml` / `mainpackage.xml`.
 5. `--ignore-conflicts` is used in this repo because source tracking is not the source of truth — trust the manifest.
-6. After ANY Apex execution, fetch logs (`sf apex get log --log-id recent`) and grep for `EXCEPTION|ERROR|FATAL`. See [`apex-development.mdc`](./apex-development.mdc).
+6. After ANY Apex execution, enumerate every operation-bound log ID (`sf apex list log --json`), fetch each specific ID, and inspect errors/automation/limits. Never trust `recent` in a shared org. See [`apex-development.mdc`](./apex-development.mdc).
 
 ---
 
@@ -244,9 +244,9 @@ sf org assign permsetlicense -n MyLicense -b user@x.com -o {{ORG_ALIAS}}
 
 ### Deploy (source → org)
 ```bash
-# Single-class syntax validation (fastest feedback)
-sf project deploy start --metadata ApexClass:MyClass -o {{ORG_ALIAS}} --ignore-conflicts
-sf project deploy start -m ApexClass:MyClass -o {{ORG_ALIAS}} -c                         # Short form
+# Single-class validation-only compile (fastest feedback; does NOT commit)
+sf project deploy start --metadata ApexClass:MyClass -o {{ORG_ALIAS}} --ignore-conflicts --dry-run
+sf project deploy start -m ApexClass:MyClass -o {{ORG_ALIAS}} -c --dry-run               # Short form
 
 # Manifest-driven deploy with targeted tests (PREFERRED for Apex work)
 sf project deploy start \
@@ -499,10 +499,6 @@ sf apex get test -i <id> -o {{ORG_ALIAS}} -c -r json -d ./test-results
 
 # Logs — MANDATORY after any Apex run (see apex-development.mdc)
 sf apex list log -o {{ORG_ALIAS}}                           # Recent log IDs
-sf apex get log --log-id recent -o {{ORG_ALIAS}}            # Most recent
-sf apex get log -i recent -o {{ORG_ALIAS}}                  # Same, short form (-i ≡ --log-id)
-sf apex get log --log-id recent --number 5 -o {{ORG_ALIAS}} # Last 5
-sf apex get log -i recent -n 5 -o {{ORG_ALIAS}}             # Same, short form (-n ≡ --number)
 sf apex get log -i 07L... -o {{ORG_ALIAS}}                  # Specific
 sf apex get log -n 5 -d ./logs -o {{ORG_ALIAS}}             # Save 5 most recent to ./logs
 sf apex tail log -o {{ORG_ALIAS}} --color                   # Live streaming
@@ -515,8 +511,9 @@ sf apex tail log -o {{ORG_ALIAS}} -c -s                     # Skip trace flag se
 
 **Apex log grep pattern:**
 ```bash
-sf apex get log --log-id recent -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL|DUPLICATE_VALUE|VALIDATION_RULE)"
-sf apex get log -i recent -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL|DUPLICATE_VALUE|VALIDATION_RULE)"
+sf apex list log -o {{ORG_ALIAS}} --json
+sf apex get log -i <operation-log-id> -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL|DUPLICATE_VALUE|VALIDATION_RULE|CUMULATIVE_LIMIT_USAGE)"
+# Repeat for every log ID in the operation window, including async descendants.
 ```
 
 ---
@@ -847,8 +844,8 @@ sf package1 version list -i <package-id> -o {{ORG_ALIAS}}                       
 
 ```bash
 sf alias list
-sf alias set {{ORG_ALIAS}} me@company.com.ibxmain
-sf alias set {{ORG_ALIAS}}=me@company.com.ibxmain my-other-org=other@company.com         # Multiple aliases
+sf alias set {{ORG_ALIAS}} me@company.com.sandbox
+sf alias set {{ORG_ALIAS}}=me@company.com.sandbox my-other-org=other@company.com         # Multiple aliases
 sf alias unset {{ORG_ALIAS}}
 sf alias unset --all --no-prompt                                                    # Wipe all aliases
 sf alias unset -a -p                                                                # Same, short form
@@ -1268,8 +1265,8 @@ Each block below shows the long-form invocation followed by its short-form equiv
 
 ```bash
 # 1. Validate Apex syntax
-sf project deploy start --metadata ApexClass:MyClass -o {{ORG_ALIAS}} --ignore-conflicts
-sf project deploy start -m ApexClass:MyClass -o {{ORG_ALIAS}} -c                         # Short form
+sf project deploy start --metadata ApexClass:MyClass -o {{ORG_ALIAS}} --ignore-conflicts --dry-run
+sf project deploy start -m ApexClass:MyClass -o {{ORG_ALIAS}} -c --dry-run               # Short form
 
 # 2. Deploy feature with tests
 sf project deploy start --manifest './manifest/my-feature.xml' -o {{ORG_ALIAS}} \
@@ -1283,8 +1280,8 @@ sf apex run test --class-names MyClassTest -o {{ORG_ALIAS}} \
 sf apex run test -n MyClassTest -o {{ORG_ALIAS}} -y -c -r human -w 10                   # Short form
 
 # 4. Retrieve logs and grep for failures (MANDATORY after any Apex run)
-sf apex get log --log-id recent -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL)"
-sf apex get log -i recent -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL)"          # Short form
+sf apex list log -o {{ORG_ALIAS}} --json
+sf apex get log -i <operation-log-id> -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL|CUMULATIVE_LIMIT_USAGE)"
 
 # 5. Ad-hoc SOQL
 sf data query -q "SELECT Id FROM IndividualApplication WHERE RecordType.DeveloperName='PRM_PDMManualChange' LIMIT 5" -o {{ORG_ALIAS}}
@@ -1308,6 +1305,7 @@ sf project deploy quick -i <deploy-id> -o {{ORG_ALIAS}} -w 10                   
 
 ## Related Rules
 
+- [`adversarial-review.mdc`](./adversarial-review.mdc) — mandatory parallel plan/implementation gates before mutation or commit
 - [`retrieve-before-edit.mdc`](./retrieve-before-edit.mdc) — retrieve before editing any metadata
 - [`apex-development.mdc`](./apex-development.mdc) — deploy/test/log-verify + test authoring + PMD + formatting
 - [`salesforce-schema-validation.mdc`](./salesforce-schema-validation.mdc) — schema-first workflow

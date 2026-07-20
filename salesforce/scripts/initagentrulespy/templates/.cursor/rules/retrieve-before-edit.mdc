@@ -19,7 +19,7 @@ Editing a stale file and then deploying **silently overwrites the org's newer st
 | `triggers/<Name>.trigger` | `ApexTrigger` | `<Name>` |
 | `lwc/<bundle>/...` | `LightningComponentBundle` | `<bundle>` |
 | `aura/<bundle>/...` | `AuraDefinitionBundle` | `<bundle>` |
-| `omniScripts/<Type_SubType_Lang>.os-meta.xml` | `OmniScript` | `<Type_SubType_Lang>` |
+| `omniScripts/<Type_SubType_Lang_Version>.os-meta.xml` | `OmniScript` | `<Type_SubType_Lang_Version>` |
 | `omniIntegrationProcedures/<Name>.oip-meta.xml` | `OmniIntegrationProcedure` | `<Name>` |
 | `omniDataTransforms/<Name>.rpt-meta.xml` | `OmniDataTransform` | `<Name>` |
 | `objects/<SObj>/fields/<F>.field-meta.xml` | `CustomField` | `<SObj>.<F>` |
@@ -27,12 +27,13 @@ Editing a stale file and then deploying **silently overwrites the org's newer st
 | `objects/<SObj>/validationRules/<R>.validationRule-meta.xml` | `ValidationRule` | `<SObj>.<R>` |
 | `objects/<SObj>/recordTypes/<RT>.recordType-meta.xml` | `RecordType` | `<SObj>.<RT>` |
 | `objects/<SObj>/listViews/<L>.listView-meta.xml` | `ListView` | `<SObj>.<L>` |
-| `objects/<SObj>.object-meta.xml` | `CustomObject` | `<SObj>` |
+| `objects/<SObj>/<SObj>.object-meta.xml` | `CustomObject` | `<SObj>` |
 | `flexipages/<Name>.flexipage-meta.xml` | `FlexiPage` | `<Name>` |
 | `layouts/<SObj>-<Layout>.layout-meta.xml` | `Layout` | `<SObj>-<Layout>` |
 | `permissionsets/<Name>.permissionset-meta.xml` | `PermissionSet` | `<Name>` |
 | `flows/<Name>.flow-meta.xml` | `Flow` | `<Name>` |
 | `customMetadata/<Type>.<Record>.md-meta.xml` | `CustomMetadata` | `<Type>.<Record>` |
+| `staticresources/<Name>.resource-meta.xml` | `StaticResource` | `<Name>` |
 
 For multi-file bundles (LWC / Aura / OmniScript), the API name is the **bundle / parent name**, not the inner file. There is no way to retrieve a single `.js` inside an LWC, Aura, or OmniScript — you get the whole bundle.
 
@@ -51,6 +52,10 @@ If the retrieve reports `nothing retrieved`, the component may no longer exist i
 ## Step 3 — Compare, then edit
 
 Re-read the file after the retrieve completes. If git shows the retrieve changed it, your local copy was stale — review the new contents before applying your edit so you don't reintroduce removed code.
+
+## Step 4 — Recheck org freshness before deploy
+
+If analysis/review/implementation took time, compare the org component state again immediately before deployment **without retrieving over the edited working files** (temporary metadata target/archive or LastModifiedDate/hash evidence). Hold a component-scoped maintenance lease/exclusive deployment window from that comparison through deployment; without one, the overwrite race remains and deployment is blocked. If a teammate/admin changed an intended component after Step 2, STOP: merge, revalidate/test, create a new artifact generation, and rerun all three Gate B reviewers. `--ignore-conflicts` never authorizes overwriting newer org work.
 
 ## Scope
 

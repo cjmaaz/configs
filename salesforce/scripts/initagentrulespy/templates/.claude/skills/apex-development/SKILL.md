@@ -1,45 +1,55 @@
 ---
 name: apex-development
-description: The full Apex lifecycle on `{{ORG_ALIAS}}` — deploy/validate, manifest hygiene, targeted tests, MANDATORY Apex-log verification, test-class authoring (factory + schema + coverage), PMD static analysis, and Apex/SOQL formatting. INVOKE when the user asks to deploy, validate, write/run tests, lint, or finalize ANY Apex change (classes, triggers, test classes, anonymous Apex, batch jobs). Mirrors `.cursor/rules/apex-development.mdc` — every step is mandatory; silent trigger/flow/validation failures only show up in the Apex log, not the deploy summary.
+description: Runs the full Apex lifecycle on `{{ORG_ALIAS}}` for creating, modifying, debugging, reviewing, validating, testing, linting, or deploying classes/triggers/batches. Requires retrieve/schema evidence, PMD, validation-only compile/tests, blocking adversarial plan and implementation gates, real deploy, coverage, and Apex-log verification. Mirrors `.cursor/rules/apex-development.mdc`.
 ---
 
 # Apex development: deploy, test, lint, verify, format
 
 Default target org is `{{ORG_ALIAS}}` (sandbox), source API version `66.0`. Every step below is mandatory.
 
+Use the `adversarial-review` skill for Gate A before editing and Gate B before every real deploy/commit.
+
 ## Step 1 — Retrieve before editing
 
 Pull the current state of every component you'll touch (class + its test + factory). See the `retrieve-before-edit` skill. Editing a stale file then deploying overwrites newer org state.
 
-## Step 2 — Validate syntax (single-class deploy)
+## Step 2 — Author the test class (if writing tests)
 
-```bash
-sf project deploy start --metadata ApexClass:<ClassName> -o {{ORG_ALIAS}} --ignore-conflicts
-```
-
-`--ignore-conflicts` is intentional — this repo has no source tracking, so the manifest is the contract. If it fails, fix syntax before continuing.
+- **Find a factory first:** `find force-app -name "*TestDataFactory*" -o -name "*TestFactory*" -o -name "*DataFactory*"`. Use it; never duplicate creation logic.
+- **Schema-validate every field** via the `schema-lookup` skill. Never set formula fields, guess API names, or hardcode RecordType Ids.
+- **Visibility:** test private methods through public callers; static via `ClassName.method()`.
+- **Structure:** `<ClassName>Test`, `@isTest` class-level (never `SeeAllData=true`), `@testSetup` for shared data, 3-6 focused methods (Setup→Execute→Assert) wrapped in `Test.startTest()/stopTest()`. Test classes are PMD-scanned; suppressions require evidence and reviewer approval.
+- **Match production filters:** read every SOQL `WHERE` and set all filter fields + lookups; create positive AND negative data. Zero coverage despite passing = test data misses a filter.
+- **Assertions:** `Assert.areEqual(expected, actual, 'msg')` / `Assert.isNotNull` / `Assert.isTrue` with messages — never `System.assert()`, never assertion-free.
+- **Adversarial coverage:** add tests for accepted findings: 1/200/mixed batches, recursion/idempotency, null/error/partial-failure paths, concurrency where applicable, and unchanged shared/sibling/legacy behavior.
 
 ## Step 3 — Create a NEW manifest
 
 Never overwrite shared manifests (`apex.xml`, `mainpackage.xml`, …). Create `manifest/<feature-or-fix-name>.xml` with only the modified components (`<version>66.0</version>`).
 
-## Step 4 — Author the test class (if writing tests)
+## Step 4 — PMD and validate without committing
 
-- **Find a factory first:** `find force-app -name "*TestDataFactory*" -o -name "*TestFactory*" -o -name "*DataFactory*"`. Use it; never duplicate creation logic.
-- **Schema-validate every field** via the `schema-lookup` skill. Never set formula fields, guess API names, or hardcode RecordType Ids.
-- **Visibility:** test private methods through public callers; static via `ClassName.method()`.
-- **Structure:** `<ClassName>Test`, `@isTest` class-level (never `SeeAllData=true`), `@testSetup` for shared data, 3-6 comprehensive methods (Setup→Execute→Assert) wrapped in `Test.startTest()/stopTest()`. Test classes are exempt from PMD method-length limits.
-- **Match production filters:** read every SOQL `WHERE` and set all filter fields + lookups; create positive AND negative data. Zero coverage despite passing = test data misses a filter.
-- **Assertions:** `Assert.areEqual(expected, actual, 'msg')` / `Assert.isNotNull` / `Assert.isTrue` with messages — never `System.assert()`, never assertion-free.
+```bash
+{{PMD_PATH}} check --dir <changed-class-or-trigger-path> -R config/pmd-ruleset.xml
+sf project deploy start --metadata ApexClass:<ClassName> -o {{ORG_ALIAS}} --dry-run --ignore-conflicts
+sf project deploy validate --manifest './manifest/<feature>.xml' -o {{ORG_ALIAS}} \
+  --test-level RunSpecifiedTests --tests <TestClassName> --wait 10
+sf project deploy report --job-id <validation-job-id> -o {{ORG_ALIAS}} --json
+sf apex list log -o {{ORG_ALIAS}} --json
+```
 
-## Step 5 — Deploy with targeted tests
+Repeat PMD for every changed `.cls`/`.trigger`. Fix all findings first. The Salesforce commands compile/test without mutating the org; capture validation coverage and inspect every operation-bound test/async log before Gate B.
+
+## Step 5 — Pass Gate B, then deploy with targeted tests
+
+Run the `adversarial-review` implementation gate against the exact final diff plus validation/test/coverage/static-analysis and operation-bound log evidence. Resolve/re-review every blocker, recheck org freshness, then deploy:
 
 ```bash
 sf project deploy start --manifest './manifest/<feature>.xml' -o {{ORG_ALIAS}} \
   --test-level RunSpecifiedTests --tests <TestClassName> --ignore-conflicts --wait 10
 ```
 
-Every class ships with a `<ClassName>Test`. Production deploys need ≥75% coverage; target **90%+** for new classes. The deploy summary's coverage lies — verify with a **synchronous** run:
+Every class ships with a `<ClassName>Test`. Production deploys need ≥75% coverage; target **90%+**. Use validation-job coverage before Gate B, then confirm runtime coverage synchronously after deploy. Any mismatch reopens Gate B before commit:
 
 ```bash
 sf apex run test --class-names <TestClassName> -o {{ORG_ALIAS}} \
@@ -48,25 +58,15 @@ sf apex run test --class-names <TestClassName> -o {{ORG_ALIAS}} \
 
 ## Step 6 — MANDATORY: retrieve and grep the Apex log
 
-Deploy "Succeeded" ≠ org success. Triggers, flows, and validation rules fail silently — only the log shows it. Check after ANY test run, anonymous Apex, or batch.
+Deploy "Succeeded" ≠ org success. Establish a TraceFlag first; record time window, user, validation/test/AsyncApexJob IDs, and request context; query/correlate every `ApexLog`; poll async descendants; inspect every bound log. Never trust `recent` in a shared org.
 
 ```bash
-sf apex get log --log-id recent -o {{ORG_ALIAS}} > /tmp/apex_log.txt
-grep -E "(EXCEPTION|ERROR|FATAL|DUPLICATE_VALUE|VALIDATION_RULE)" /tmp/apex_log.txt
-grep "CODE_UNIT_STARTED.*trigger" /tmp/apex_log.txt   # what fired
-grep "FLOW_START" /tmp/apex_log.txt
-grep -B 30 "EXCEPTION_THROWN" /tmp/apex_log.txt        # root cause
+sf apex list log -o {{ORG_ALIAS}} --json
+sf apex get log --log-id <operation-log-id> -o {{ORG_ALIAS}}
+# Repeat for every bound log; inspect errors, triggers/flows, and cumulative limits.
 ```
 
-## Step 7 — PMD static analysis (must be clean)
-
-```bash
-{{PMD_PATH}} check --dir force-app/main/default/classes/<Class>.cls -R config/pmd-ruleset.xml
-```
-
-Fix all violations: extract long methods → helper classes; replace nested ifs with guard clauses; replace long if/else chains with `Map` dispatch; delete unused variables. Targets: method <50 (max 100), complexity <10 (max 15), class <500 (max 1000), public methods <10 (max 20).
-
-## Step 8 — Formatting
+## Step 7 — Formatting
 
 - **Method params/args on ONE line** — never split, even if long.
 - **SOQL on one line if ≤200 chars**; multi-line (split at SELECT/FROM/WHERE/AND/ORDER BY) only when it exceeds 200.
@@ -74,12 +74,16 @@ Fix all violations: extract long methods → helper classes; replace nested ifs 
 ## Final checklist
 
 - [ ] Retrieved all touched components from `{{ORG_ALIAS}}`.
-- [ ] Syntax validated (single-class deploy).
+- [ ] Gate A passed against the approved LLD.
+- [ ] PMD clean before deployment.
+- [ ] Validation-only compile/full manifest tests passed.
+- [ ] Validation coverage and every operation-bound test/async log inspected before Gate B.
 - [ ] NEW manifest (descriptive name, only modified files).
 - [ ] Test data uses a factory where one exists; fields schema-validated.
-- [ ] Tests pass; coverage verified by synchronous run (≥75%, target 90%+).
-- [ ] Apex log grepped — no `EXCEPTION|ERROR|FATAL`; expected triggers/flows fired; limits OK.
-- [ ] PMD clean; params single-line; SOQL formatted per the 200-char rule.
+- [ ] Tests cover adversarial findings plus bulk/null/error/dependency/concurrency risks; coverage verified (≥75%, target 90%+).
+- [ ] Gate B passed against the final diff/evidence.
+- [ ] Every post-deploy/test/async log inspected; no discrepancy that reopens Gate B.
+- [ ] Params single-line; SOQL formatted per the 200-char rule.
 
 ## Common mistakes
 

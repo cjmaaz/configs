@@ -7,7 +7,8 @@
     changes/git/retrieve-<YYYY-MM-DD>-<HHMM>-<sandbox-alias>.md
 
   …then fill in every section with concrete values from the just-completed
-  retrieve. Delete every <!-- ... --> guidance comment as you go. Strip
+  retrieve. Delete guidance comments, but PRESERVE every BEGIN/END
+  ADVERSARIAL receipt marker. Strip
   sections that genuinely don't apply (write `n/a` with a one-line reason
   rather than deleting the heading entirely).
 
@@ -74,6 +75,12 @@
 **Phases run:** <N> of <total> (e.g. "23 of 23" or "22 of 23 — Phase 1.4 skipped, see §7")
 **Wall-clock:** ~XX min
 **Outcome:** Succeeded / Partial (M failures, see §7) / Failed
+**Gate A plan attestation:** `<generation / reviewer IDs / digest / evidence reference>`
+<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized audit digest -->
+**Adversarial audit review:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Mirror revision reviewed:** `<pre-head..mirror-head / diff fingerprint>`
+**Adversarial artifact SHA-256:** `<digest>`
+<!-- END ADVERSARIAL RECEIPT HEADER -->
 **Mirror commit:** [`<short-hash>`](#9-mirror-commit-reference) (this doc references the metadata-snapshot commit; see §9)
 **Doc commit:** (this commit — the audit doc itself)
 
@@ -339,10 +346,10 @@ git show <short-hash> -- force-app/main/default/classes/<ClassName>.cls   # focu
 ## 6. Suspicion analysis
 
 <!--
-  Heuristic-driven flags. Each item below was generated mechanically by
-  the agent from the diff; none of them BLOCKS the commit. They exist so
-  a human can scan and ask "is this intentional?" If everything in a
-  sub-bucket is benign, write "no flags" and move on.
+  Sections 6.1-6.4 are heuristic flags generated mechanically from the diff;
+  they are inputs to mandatory Gate B in §6.5. A validated High/Critical
+  adversarial finding DOES block the mirror commit/handoff until resolved
+  and re-reviewed. If a heuristic sub-bucket is benign, write "no flags".
 -->
 
 ### 6.1 Possibly-breaking changes
@@ -398,6 +405,42 @@ git show <short-hash> -- force-app/main/default/classes/<ClassName>.cls   # focu
 | Component | Type of overhaul | Indicator |
 |---|---|---|
 | [`<path>`](<path>) | Large IP churn | <line count: was N, now M, +N% / -N%> |
+
+<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized audit digest -->
+### 6.5 Adversarial cross-type review
+
+<!--
+  After per-type analysis + cross-type synthesis, run the three independent
+  parallel critics from .cursor/rules/adversarial-review.mdc against the exact
+  mirror diff. This is a review of observed org changes, not approval to deploy.
+-->
+
+**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
+**Review context/profile:** `Salesforce mirror audit; in scope = retrieved metadata diff/cross-type regressions; out of scope = redesigning the retrieve bootstrap itself`
+**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
+**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+
+| Reviewer / run | Lens | Revision reviewed | Verdict |
+|---|---|---|---|
+| `<id>` | Salesforce runtime + limits | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | Concurrency + data integrity | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | Requirements + regression + dependencies | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+
+| Mandatory attack category | Result | Evidence / finding IDs |
+|---|---|---|
+| Apex/trigger/flow/OmniStudio cascade + bulk/limit risk | Pass / findings / N/A | <evidence> |
+| Concurrency/locking/async/idempotency/data-integrity risk | Pass / findings / N/A | <evidence> |
+| Null/exception/partial rollback/retry/failure-handling risk | Pass / findings / N/A | <evidence> |
+| Cross-type callers/config/security/RecordTypes/sibling regression | Pass / findings / N/A | <evidence> |
+| Active/status/type/deletion/structural compatibility risk | Pass / findings / N/A | <evidence> |
+| Requirement/logical/state/boundary counterexamples | Pass / findings / N/A | <evidence> |
+
+| Finding | Severity | Cross-type evidence + failure hypothesis | Disposition / follow-up |
+|---|---|---|---|
+| `<AR-AUDIT-001>` | Critical/High/Medium/Low | <files/types and plausible regression> | Critical/High: fixed or rejected with evidence; Medium/Low may be accepted/deferred with ticket + owner |
+**Residual/accepted risk:** <none, or explicit Medium/Low user-approved risk + rationale>.
+**Re-review:** <new generation/reviewer verdicts after any mirror/evidence change>.
+<!-- END ADVERSARIAL GATE B RECEIPT -->
 
 ---
 

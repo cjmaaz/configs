@@ -24,6 +24,11 @@ build/
 *.swo
 *~
 
+# ...but the initagentrulespy kit ships a bundled .vscode/settings.json template
+# that MUST stay tracked (init.py's release-inventory check fails without it).
+!salesforce/scripts/initagentrulespy/templates/.vscode/
+!salesforce/scripts/initagentrulespy/templates/.vscode/settings.json
+
 # Logs
 logs
 *.log
@@ -72,7 +77,7 @@ scripts/ip-debug/outputs/
 # scripts/initagentrulespy/templates/. Those literals can't be
 # genericized without breaking tokenization, so the script stays local.
 # The committed/shareable kit is just init.py + templates/.
-scripts/initagentrulespy/_sync.py
+salesforce/scripts/initagentrulespy/_sync.py
 
 # Sequential org-mirror retrieve logs (see docs/sf-org-mirror-retrieve.md).
 # These are transient per-run build artefacts; their summaries get committed

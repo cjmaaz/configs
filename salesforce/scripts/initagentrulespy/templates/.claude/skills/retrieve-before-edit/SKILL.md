@@ -17,7 +17,7 @@ Map the file path to the metadata type:
 | `triggers/<Name>.trigger` | `ApexTrigger` | `<Name>` |
 | `lwc/<bundle>/...` | `LightningComponentBundle` | `<bundle>` |
 | `aura/<bundle>/...` | `AuraDefinitionBundle` | `<bundle>` |
-| `omniScripts/<Type_SubType_Lang>.os-meta.xml` | `OmniScript` | `<Type_SubType_Lang>` |
+| `omniScripts/<Type_SubType_Lang_Version>.os-meta.xml` | `OmniScript` | `<Type_SubType_Lang_Version>` |
 | `omniIntegrationProcedures/<Name>.oip-meta.xml` | `OmniIntegrationProcedure` | `<Name>` |
 | `omniDataTransforms/<Name>.rpt-meta.xml` | `OmniDataTransform` | `<Name>` |
 | `objects/<SObj>/fields/<F>.field-meta.xml` | `CustomField` | `<SObj>.<F>` |
@@ -25,12 +25,13 @@ Map the file path to the metadata type:
 | `objects/<SObj>/validationRules/<R>.validationRule-meta.xml` | `ValidationRule` | `<SObj>.<R>` |
 | `objects/<SObj>/recordTypes/<RT>.recordType-meta.xml` | `RecordType` | `<SObj>.<RT>` |
 | `objects/<SObj>/listViews/<L>.listView-meta.xml` | `ListView` | `<SObj>.<L>` |
-| `objects/<SObj>.object-meta.xml` | `CustomObject` | `<SObj>` |
+| `objects/<SObj>/<SObj>.object-meta.xml` | `CustomObject` | `<SObj>` |
 | `flexipages/<Name>.flexipage-meta.xml` | `FlexiPage` | `<Name>` |
 | `layouts/<SObj>-<Layout>.layout-meta.xml` | `Layout` | `<SObj>-<Layout>` |
 | `permissionsets/<Name>.permissionset-meta.xml` | `PermissionSet` | `<Name>` |
 | `flows/<Name>.flow-meta.xml` | `Flow` | `<Name>` |
 | `customMetadata/<Type>.<Record>.md-meta.xml` | `CustomMetadata` | `<Type>.<Record>` |
+| `staticresources/<Name>.resource-meta.xml` | `StaticResource` | `<Name>` |
 
 For multi-file bundles (LWC / Aura / OmniScripts), the API name is the **bundle / parent name**, not the inner file.
 
@@ -53,6 +54,10 @@ If you suspect the file no longer exists in the org, the retrieve will report `n
 ## Step 3 — Compare and proceed
 
 Re-read the file with the `Read` tool after retrieve completes. If git shows the retrieve modified the file, the local copy was stale — review the new contents before applying your edit so you don't reintroduce removed code.
+
+## Step 4 — Recheck freshness before deploy
+
+Immediately before deployment, compare intended components against the org again without retrieving over edited working files (temporary metadata target/archive or LastModifiedDate/hash evidence). Hold a component-scoped maintenance lease/exclusive deployment window through deployment; without one, deployment is blocked. Any drift requires merge, revalidation/tests, a new artifact generation, and all three Gate B reviewers. `--ignore-conflicts` never authorizes overwriting newer org work.
 
 ## Scope
 

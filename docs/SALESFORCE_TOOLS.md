@@ -29,7 +29,7 @@ This repository contains powerful automation tools for Salesforce development:
 
 ### 2. AI-Agent Rules Bootstrap (`initagentrulespy`)
 
-Self-contained Python kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~47 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes them in.
+Self-contained Python kit that materializes a curated AI-agent rule, skill, doc, script, manifest, and config set (~63 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes them in.
 
 ### 3. Git Change Viewer (`git-change-viewer`)
 
@@ -321,7 +321,7 @@ For the complete pipeline reference + per-script CLI flags, see [`salesforce/scr
 
 ### What it does
 
-Self-contained Python kit (no third-party dependencies) that materializes a curated AI-agent rule / skill / doc / manifest / config set into any new Salesforce repo. The script auto-detects the target workspace's `target-org` alias, Java home, and PMD binary path, and substitutes those values into the generated files so they work out of the box on macOS, Linux, and Windows.
+Self-contained Python kit (the `init.py` bootstrapper itself has no third-party dependencies) that materializes a curated AI-agent rule / skill / doc / script / manifest / config set into any new Salesforce repo. The script auto-detects the target workspace's `target-org` alias, Java home, and PMD binary path, and substitutes those values into the generated files so they work out of the box on macOS, Linux, and Windows.
 
 ### TL;DR for end users
 
@@ -331,7 +331,7 @@ Self-contained Python kit (no third-party dependencies) that materializes a cura
 
 # 2. From inside your new Salesforce repo, run:
 python3 /path/to/initagentrulespy/init.py
-# Writes ~47 files into the current directory and prints a summary.
+# Writes ~63 files into the current directory and prints a summary.
 
 # 3. Open .cursor/rules/sf-cli-commands.mdc — the canonical entry point.
 ```
@@ -340,16 +340,19 @@ python3 /path/to/initagentrulespy/init.py
 
 | Path                             | Count                              | What it is                                                                                                                                                                                                              |
 | -------------------------------- | ---------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `.cursor/rules/`                 | 8                                  | Cursor rules (always-applied + on-demand). Consolidated set: `apex-development.mdc` (deploy / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc`, plus omnistudio-deploy-cache-bust, salesforce-schema-validation, sf-cli-commands, python-selenium-automation, and a stub `org-data-model.mdc`. |
+| `.cursor/rules/`                 | 9                                  | Cursor rules (always-applied + on-demand). Consolidated set: `adversarial-review.mdc` (mandatory parallel multi-critic Gate A/Gate B review), `apex-development.mdc` (deploy / test / PMD / log-verify / formatting), `documentation-workflow.mdc` (intake → LLD → wrap-up + UT evidence), `retrieve-before-edit.mdc`, plus omnistudio-deploy-cache-bust, salesforce-schema-validation, sf-cli-commands, python-selenium-automation, and a stub `org-data-model.mdc`. |
 | `.cursor/permissions.json`       | 1                                  | Cursor IDE terminal command allowlist (`terminalAllowlist`) — read-only `sf` / `git` / shell command prefixes that auto-run without approval. Mirrors the Claude-side `.claude/settings.json` allowlist.                |
 | `.cursor/sandbox.json`           | 1                                  | Cursor agent sandbox config — workspace read/write plus the `sf` config dirs (`~/.sf`, `~/.sfdx`, …) and a deny-by-default network policy allowlisting Salesforce domains. Home path auto-filled at init.               |
-| `.claude/skills/`                | 5 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (apex-development, documentation-workflow, retrieve-before-edit, omnistudio-deploy-cache-bust, schema-lookup), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`. |
+| `.claude/skills/`                | 6 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (adversarial-review, apex-development, documentation-workflow, retrieve-before-edit, omnistudio-deploy-cache-bust, schema-lookup), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`. |
 | `docs/`                          | 12                                 | Reference docs (OmniStudio guides, sf-retrieve playbook, schema-quickref) plus `docs/_templates/` design-doc templates (LLD, questions-and-KT, walkthrough). Includes a stub `docs/omnistudio/org-conventions.md`.      |
 | `changes/_templates/`            | 4                                  | Bug-fix / story / refactor / retrieve-audit doc templates referenced by the `documentation-workflow` rule.                                                                                                              |
+| `scripts/`                       | 11                                 | Bundled Python tooling: `schemapy/` (10-file `config/schema/` TOON generation pipeline used by `salesforce-schema-validation`) + `adversarial_review_snapshot.py` (reproducible-snapshot / receipt utility the `adversarial-review` gates require).                                                                                              |
+| `config/schema/`                 | 1                                  | `README.md` documenting the per-object TOON schema-file layout `scripts/schemapy/` generates. The schema TOON files themselves are generated per-org, not shipped.                                                       |
 | `.vscode/`                       | 1                                  | `settings.json` only (with detected Java home). `extensions.json` and `launch.json` intentionally NOT generated — leave those to per-project preference.                                                                |
 | `.mcp.json` + `.cursor/mcp.json` | 2 (same content)                   | MCP server config. Same content written to both paths so Claude Code (reads `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. Filesystem-MCP path is auto-set to your repo's absolute path. |
-| `manifest/fullpackage/`          | 11                                 | Pre-sharded full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                                                   |
+| `manifest/`                      | 12 (1 + 11)                        | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                    |
 | `config/pmd-ruleset.xml`         | 1                                  | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                    |
+| `.initagentrulespy-manifest.json` | 1                                 | Install-tracking marker written into the target (kit protocol version + source-release digest + per-file hashes) so a later `--update` run can tell customized files from stale ones. The `.initagentrulespy-release.json` inventory ships inside `templates/` and is not copied out. |
 
 ### CLI reference
 
@@ -364,10 +367,15 @@ Options:
   --org-name NAME         Human-readable project / org name. Default: 'CURR ORG'.
   --java-home PATH        Override Java JDK home detection.
   --pmd-path PATH         Override PMD binary path detection.
-  --force                 Overwrite existing files (default: skip).
+  --force                 Overwrite all managed files (default: fail on a differing collision).
+  --update                Stage changed/new kit files under .initagentrulespy-updates/<gen>/
+                          instead of overwriting; never clobbers a customized target.
+  --missing-only          Explicitly install only missing files (accepts mixed-version risk).
   --dry-run               Print what would be written; do not touch the filesystem.
   --no-prompt             Never prompt; fall back to sentinel placeholders.
 ```
+
+`--force`, `--update`, and `--missing-only` are mutually exclusive. A re-run installs missing files, leaves identical files alone, and **fails by default if any managed file differs** (customized or stale) — pick `--update` (stage for merge), `--force` (re-baseline), or `--missing-only` (accept mixed versions). Before writing, `init.py` verifies `templates/` against the bundled `.initagentrulespy-release.json` (per-file SHA-256 + size) and refuses an incomplete/tampered kit; writes are atomic and transactional with a target lock and full rollback on failure.
 
 ### Placeholder substitution
 

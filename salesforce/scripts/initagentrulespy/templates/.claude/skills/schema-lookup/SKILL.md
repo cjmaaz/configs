@@ -5,7 +5,7 @@ description: Look up Salesforce object/field/picklist/RecordType definitions in 
 
 # Schema lookup (7-file split per object)
 
-The org's schema lives under `config/schema/objects/<ApiName>/`, split into up to 7 small focused TOON files. The strict reading order is enforced by [`.cursor/rules/salesforce-schema-validation.mdc`](.cursor/rules/salesforce-schema-validation.mdc) (`alwaysApply: true`). This skill is the operational summary.
+The org's schema lives under `config/schema/objects/<ApiName>/`, split into up to 7 small focused TOON files. The strict reading order is enforced by [`.cursor/rules/salesforce-schema-validation.mdc`](../../../.cursor/rules/salesforce-schema-validation.mdc) (`alwaysApply: true`). This skill is the operational summary.
 
 ```
 config/schema/
@@ -68,7 +68,7 @@ States for `picklists:` block:
 Shape `record_types[N]{api_name,label,description,active,record_count}:`. `api_name` is the DeveloperName (the "value" half).
 
 States:
-- `live_counts` — `record_count` column present. `record_count: 0` = deprecated. `record_count > 0` = active.
+- `live_counts` — `record_count` column present. `record_count: 0` = deprecated candidate unless intentionally seeding a new RecordType; `record_count > 0` = active use.
 - `not_collected` — `record_count` column absent. Same reason enum as picklists.
 
 ## fields.toon decoding rules
@@ -116,4 +116,3 @@ python3 scripts/schemapy/collect_usage_stats.py --org {{ORG_ALIAS}} --objects Ac
 ## When NOT to use
 
 - Pure UI/markup work (LWC HTML/CSS) that doesn't touch field API names.
-- Reading existing Apex that already references fields you can `grep` to confirm.

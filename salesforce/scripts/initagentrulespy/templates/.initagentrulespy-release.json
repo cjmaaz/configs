@@ -1,0 +1,253 @@
+{
+  "files": {
+    ".claude/settings.json": {
+      "sha256": "c0316ffcbdacbae3590ae6aff557dc2342c2c37cc423d32b78eabc82094ffc4a",
+      "size": 1095
+    },
+    ".claude/skills/adversarial-review/SKILL.md": {
+      "sha256": "e7bbfc19a44da5ee0c8c436aae46134e01e15432acd8f03201df31c44d5cbd4d",
+      "size": 6844
+    },
+    ".claude/skills/apex-development/SKILL.md": {
+      "sha256": "a24eabb000ebd9f165aabbed2309465ac45328ed6715a7d47b0c3ff27dd64aa9",
+      "size": 6496
+    },
+    ".claude/skills/documentation-workflow/SKILL.md": {
+      "sha256": "211bb065276a79f9d92d22485ba9bb2ea6f8d01ef35b7f8d0cc9dee71b586b37",
+      "size": 12386
+    },
+    ".claude/skills/omnistudio-deploy-cache-bust/SKILL.md": {
+      "sha256": "6a0c62118359d3cd0d4dbd2a1e819b4354843939cf2af493ca9133b178707af8",
+      "size": 7991
+    },
+    ".claude/skills/retrieve-before-edit/SKILL.md": {
+      "sha256": "91182dfec46748658191c4ff0dcee275a3a1349be037e6c4cd4a45a9742dcd5d",
+      "size": 4642
+    },
+    ".claude/skills/schema-lookup/SKILL.md": {
+      "sha256": "d139bf65539896f6b7a79f537d64c4afb9c5373034fe049426802940c708b854",
+      "size": 7638
+    },
+    ".cursor/mcp.json": {
+      "sha256": "ae44b598305a5e8cddcbbc710bd163a89796a66196ad6da7c40e399b67af94e9",
+      "size": 975
+    },
+    ".cursor/permissions.json": {
+      "sha256": "45c265fbd1449218a1d5587257f8dbc5bcf5a73006efdc64cd3526a4400fdc2a",
+      "size": 491
+    },
+    ".cursor/rules/adversarial-review.mdc": {
+      "sha256": "8c7875eae76a3c060ab5b1b20a28a6187ff78624879b6b2ddf8dfc0deb837068",
+      "size": 13831
+    },
+    ".cursor/rules/apex-development.mdc": {
+      "sha256": "8bf4d37b3ed0f32519bb34f2c7b8f207eb35e19233ad52c5182eeca0875cfb6c",
+      "size": 10737
+    },
+    ".cursor/rules/documentation-workflow.mdc": {
+      "sha256": "0ba1cd9f0e418676d302a3975f185dcfb142f99fc9638f1e160f2c54a2823cb0",
+      "size": 17732
+    },
+    ".cursor/rules/omnistudio-deploy-cache-bust.mdc": {
+      "sha256": "dce1d6fa39af683117d4e35d4fc83e04aceaf050b8fa385810bd88f3924708f1",
+      "size": 12095
+    },
+    ".cursor/rules/org-data-model.mdc": {
+      "sha256": "959e452b6b9ffb23e0d5ccaaf60ad2d387f210fe611454b8cf76c20cc7eab16a",
+      "size": 2816
+    },
+    ".cursor/rules/python-selenium-automation.mdc": {
+      "sha256": "833ce954363dfc29579f0837d36b9c06d6c0c1d8992324c46641674f0bc2f7fc",
+      "size": 7022
+    },
+    ".cursor/rules/retrieve-before-edit.mdc": {
+      "sha256": "21481c79485ba427914b47770d912bbf3440d2557823f5eb2f280db7fd09550f",
+      "size": 5270
+    },
+    ".cursor/rules/salesforce-schema-validation.mdc": {
+      "sha256": "07bd051f1f010a6c35744ca02ba90f507736068d9f5578bf92100b4e65a4aaa4",
+      "size": 12988
+    },
+    ".cursor/rules/sf-cli-commands.mdc": {
+      "sha256": "952046749ab418ad3ce327f196471bf53827502edaf4b029629693eb58460c75",
+      "size": 81376
+    },
+    ".cursor/sandbox.json": {
+      "sha256": "68efc6e820174a5d7ead95bdbf3ef0b6e4397497ccac026936a49fb2d4c6c7e9",
+      "size": 436
+    },
+    ".mcp.json": {
+      "sha256": "ae44b598305a5e8cddcbbc710bd163a89796a66196ad6da7c40e399b67af94e9",
+      "size": 975
+    },
+    ".vscode/settings.json": {
+      "sha256": "a5b62d39ef55347c7ed80d23e7c93035666734db3522a292ad09dbd08ec57e6d",
+      "size": 4058
+    },
+    "changes/_templates/_TEMPLATE_bugfix.md": {
+      "sha256": "42e3226c6a38da33a249fb1c0ffea1bd4edb9ae83364ecf5095467efb16d8b6e",
+      "size": 20046
+    },
+    "changes/_templates/_TEMPLATE_refactor.md": {
+      "sha256": "98ca7c866c6d047a8322a590fa8b019629302e3e430ea5addc519996bfc34c27",
+      "size": 18281
+    },
+    "changes/_templates/_TEMPLATE_retrieve.md": {
+      "sha256": "18db3011b87b0b9c548ed88e6b37b9647b8834ee98e0c96ac2ddbcd901ba19d0",
+      "size": 22512
+    },
+    "changes/_templates/_TEMPLATE_story.md": {
+      "sha256": "566e3e4a94137a92f2b08e193d0082bb88b480cfc20fc7b09efc8a43a5787049",
+      "size": 18774
+    },
+    "config/pmd-ruleset.xml": {
+      "sha256": "64b35f73a16f1fdbcc6ef7fc010890f4c9490dbd8fe5eff7c36d5d5b0b9ee701",
+      "size": 3934
+    },
+    "config/schema/README.md": {
+      "sha256": "30f2ac8669cd508d91952a099b67cb041bfcd39cdc76918517c977cfd84594f3",
+      "size": 13808
+    },
+    "docs/_templates/_TEMPLATE_lld.md": {
+      "sha256": "37465dd70082ff4a68b9c15f7be7f57fd821bcd533a3cfd5a6fc2b36f916cab4",
+      "size": 10514
+    },
+    "docs/_templates/_TEMPLATE_questions-and-kt.md": {
+      "sha256": "d0928b40b6609ea66d5293fb6645926f87e0d172aada4786b193ce0158dba2cc",
+      "size": 3106
+    },
+    "docs/_templates/_TEMPLATE_walkthrough.md": {
+      "sha256": "026cc138efc0d926f4b6be02d528c8f95f711bc8899220a5c2e7338ef3dfd48c",
+      "size": 3964
+    },
+    "docs/omnistudio/README.md": {
+      "sha256": "6ea0e3144d9d46a19dd92890235e331e24769ac1b4e73a4424146a786d6ff3f0",
+      "size": 9176
+    },
+    "docs/omnistudio/dataraptors.md": {
+      "sha256": "f326d0ca4c5f3b82e65f22fa0ea2575fb139fa5fc47db9b9817117bcad3c6825",
+      "size": 15299
+    },
+    "docs/omnistudio/formulas.md": {
+      "sha256": "bf081cf37617c15078cb774a7eb391f7b832746bc6ec5246baae984e27117d12",
+      "size": 30411
+    },
+    "docs/omnistudio/integration-procedures.md": {
+      "sha256": "5aace2dba6376218339a28e5be69eab60e3617fe99328e58644fa5650ee0e544",
+      "size": 30076
+    },
+    "docs/omnistudio/omniscripts.md": {
+      "sha256": "11e59b7f492b011928699adf87e017d45eb80d2095647dcb35e3fd0ca87f7f35",
+      "size": 27334
+    },
+    "docs/omnistudio/org-conventions.md": {
+      "sha256": "1f627eacb65f3f8ba0dbf2a18787656e922fa249693169b4a92017d66daf8093",
+      "size": 1825
+    },
+    "docs/omnistudio/patterns.md": {
+      "sha256": "e6c725b92441d4319d07b930e773ec47e75a43b8e5135eb0ec62f8ad67c7bc6f",
+      "size": 29348
+    },
+    "docs/schema-quickref.md": {
+      "sha256": "c1f3cb6205286b340f3d5370a1dc69901f7e2652ab1a8f2736e21e946d410019",
+      "size": 3799
+    },
+    "docs/sf-org-mirror-retrieve.md": {
+      "sha256": "3e9831f50c7d56bc1f2f3c14342a7f68ebae5fa421e0618d2ff75932c06a4199",
+      "size": 58179
+    },
+    "manifest/fullpackage.xml": {
+      "sha256": "ecc1da9d97ea4fae85df6704b1cde9c9b3e020a98f7aa6f35e52134233807d99",
+      "size": 11753
+    },
+    "manifest/fullpackage/fullpackage-automation.xml": {
+      "sha256": "33b22d53a8f697f0222e39f0514d886b874a601f9e72f119a3682986543c82ff",
+      "size": 1506
+    },
+    "manifest/fullpackage/fullpackage-code.xml": {
+      "sha256": "0db4e14ca5e5d99c40324be33f89f569ef93b5e7227c9cc015ed5fbef5124b90",
+      "size": 1060
+    },
+    "manifest/fullpackage/fullpackage-community.xml": {
+      "sha256": "cba32ff1b1bfe34cb2c3ccc7ab4f041fe3f74bebc5353536ba1bee4f18bbc383",
+      "size": 1459
+    },
+    "manifest/fullpackage/fullpackage-content.xml": {
+      "sha256": "6d3c22db33fe0c3848776bef0c526e8b7a00df0c6300178b54fe2eb87b3bb61d",
+      "size": 870
+    },
+    "manifest/fullpackage/fullpackage-integration.xml": {
+      "sha256": "8ba9575e2121a22bb5c7c1c2fc803486c2b701218233b4da59adca2afd3ef642",
+      "size": 1738
+    },
+    "manifest/fullpackage/fullpackage-omnistudio.xml": {
+      "sha256": "fcd7e49d44bf3d17bb8f2258668ee1092c62ded27f4b40b0cce0561a1845fc02",
+      "size": 718
+    },
+    "manifest/fullpackage/fullpackage-reports.xml": {
+      "sha256": "b362bba9e499ff82fc8be953434d86b7c5beef1f194d90513764e53eaad85c2e",
+      "size": 677
+    },
+    "manifest/fullpackage/fullpackage-schema.xml": {
+      "sha256": "9cbefcc9f0386620df050bc968149966985a179f603af12fdd4da04352dbf848",
+      "size": 1861
+    },
+    "manifest/fullpackage/fullpackage-security.xml": {
+      "sha256": "4d05a20bd223774f4478cd9d29738529788bba3d6283910b6ca929ffb0b5b35c",
+      "size": 1467
+    },
+    "manifest/fullpackage/fullpackage-translations.xml": {
+      "sha256": "b053b5b824b385464eb296c596c13cbf7cdcc517ee67c243febc1474e762643e",
+      "size": 340
+    },
+    "manifest/fullpackage/fullpackage-ui.xml": {
+      "sha256": "fb0b31b7f51a88f62e57d4e5f1486c5df542655ae12235722469a1fc42b50949",
+      "size": 1782
+    },
+    "scripts/adversarial_review_snapshot.py": {
+      "sha256": "35466833f968d09f98e26ea0a6b9fb2a55c24fe1f49ba7cce3ca227007daf66c",
+      "size": 23067
+    },
+    "scripts/schemapy/_fields_tabular.py": {
+      "sha256": "9094fdfde931309ce4dfd0afc310549e7e7cdedf6aa8b14f06a5a0746ec87d62",
+      "size": 6669
+    },
+    "scripts/schemapy/_sf_session.py": {
+      "sha256": "062b43ea097bcae3f2cdd3b55e5ff2ed22dd3dfb19d2758c5271da39c17d6c4f",
+      "size": 7631
+    },
+    "scripts/schemapy/_toon_io.py": {
+      "sha256": "a864ae2b7fd942d9c2619ddf26b743d8a82d9402579902f56deff2762ba39701",
+      "size": 3713
+    },
+    "scripts/schemapy/auto_generate_schema.py": {
+      "sha256": "26ba651d0ec62ed7f41f557d970c8eaeb4e97be2cbf85e9fd25f5fd16e46313b",
+      "size": 22605
+    },
+    "scripts/schemapy/collect_usage_stats.py": {
+      "sha256": "8d2c08b825e021d3246572e1d96b8cb3e788376c13ad01c426569597f98887a9",
+      "size": 23986
+    },
+    "scripts/schemapy/detect_junctions.py": {
+      "sha256": "c3517f984d0a4700a3f00fc15d8fa616c6fa7dfdb522de2bf5576ef7973546f3",
+      "size": 23931
+    },
+    "scripts/schemapy/enrich_schema_with_picklists.py": {
+      "sha256": "b1e88cc4969f22da162591b9eac94246e4053b06798b97f7cdd43b912e0f03d9",
+      "size": 29324
+    },
+    "scripts/schemapy/generate_er.py": {
+      "sha256": "2cad0eafb2524a08a24730e04bc17737be701e40bc8033b68e2233245eebcaa3",
+      "size": 9199
+    },
+    "scripts/schemapy/generate_sf_er_schema.py": {
+      "sha256": "2003a0bba7c932c99f7d8576b54d9cb0e739da84b16f2f3314b5b87e1ebb05cf",
+      "size": 24781
+    },
+    "scripts/schemapy/split_schema_by_object.py": {
+      "sha256": "14d0f6fd0fd16dd52331c4ef56684bcb0bfbc68cf1fbdd9e727b4bfffb9b9ce5",
+      "size": 50383
+    }
+  },
+  "kit_protocol_version": "1.0"
+}
