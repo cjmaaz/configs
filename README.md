@@ -3,7 +3,7 @@
 > Personal configuration repository for Code OSS-based editors (Cursor, VSCodium, VS Code OSS) with comprehensive settings, profiles, and Salesforce development tools.
 
 [![Compatible with](https://img.shields.io/badge/Compatible%20with-Cursor%20%7C%20VSCodium%20%7C%20Code%20OSS-blue)](https://github.com)
-[![Last Updated](https://img.shields.io/badge/Last%20Updated-June%202026-green)](https://github.com)
+[![Last Updated](https://img.shields.io/badge/Last%20Updated-July%202026-green)](https://github.com)
 
 ## Overview
 
@@ -27,6 +27,7 @@ configs/
 │   ├── scripts/            # Salesforce dev kits (schema gen, rules bootstrap, git diff viewer)
 │   ├── pmd/                # PMD static code analysis rulesets
 │   └── mcp/                # MCP wrapper for Salesforce CLI
+├── nvim/                   # Modular lazy.nvim configuration
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
 ```
@@ -122,6 +123,7 @@ Automated Salesforce development utilities:
 - [`initagentrulespy` — Rules Bootstrap](salesforce/scripts/initagentrulespy/README.md) - Bootstrap AI-agent rules into a new Salesforce repo
 - [`git-change-viewer` — Diff & package.xml](salesforce/scripts/git-change-viewer/README.md) - Combine git changes and export a Salesforce manifest
 - [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
+- [Neovim Config](nvim/README.md) - Modular lazy.nvim setup with polyglot LSP, completion, formatting, linting, and editor tooling
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
 ## Migration Notes
@@ -232,6 +234,6 @@ This configuration repository is provided as-is for personal and educational use
 
 ---
 
-**Last Updated**: June 2026
+**Last Updated**: July 2026
 **Maintained by**: [Maaz Rahman](https://github.com/cjmaaz)
 **Compatible Editors**: Cursor, VSCodium, VS Code OSS, and other Code OSS-based editors
