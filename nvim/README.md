@@ -9,6 +9,8 @@ Rust, C/C++, and SQL/Postgres.
 
 - Core options, keymaps, autocommands, persistent undo, system clipboard,
   relative line numbers, and automatic trailing-whitespace cleanup for code.
+- Kanagawa Dragon as the default colorscheme: a dark, warm, muted late-night
+  palette that avoids bright backgrounds while retaining WCAG AA text contrast.
 - lazy.nvim plugin management with a committed `lazy-lock.json` after the
   first successful bootstrap.
 - Modern Treesitter `main` branch, Telescope, neo-tree, gitsigns, lualine,
