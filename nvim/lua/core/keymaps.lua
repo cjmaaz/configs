@@ -1,7 +1,15 @@
+-- ============================================================
+-- SECTION 3: CORE KEYMAPS
+-- Navigation, diagnostics, buffers, terminal mode, and netrw
+-- ============================================================
+
 local map = vim.keymap.set
 
 map("n", "<Esc>", "<cmd>nohlsearch<CR>", { desc = "Clear search highlight" })
 map("n", "<leader>q", vim.diagnostic.setloclist, { desc = "Open diagnostic quickfix list" })
+-- Built-in terminals normally require <C-\><C-n>. Double Escape is easier to
+-- discover; remove this mapping if a terminal/tmux already claims that chord.
+map("t", "<Esc><Esc>", "<C-\\><C-n>", { desc = "Exit terminal mode" })
 
 -- Keep the cursor centred while moving through search results and long files.
 map("n", "n", "nzzzv", { desc = "Next search result" })

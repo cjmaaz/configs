@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 12: SEARCH & NAVIGATION
+-- Telescope pickers for files, text, commands, diagnostics, and LSP
+-- ============================================================
+
 return {
   {
     "nvim-telescope/telescope.nvim",
@@ -42,11 +47,24 @@ return {
       vim.keymap.set("n", "<leader>sk", builtin.keymaps, { desc = "Search keymaps" })
       vim.keymap.set("n", "<leader>sf", builtin.find_files, { desc = "Search files" })
       vim.keymap.set("n", "<leader>ss", builtin.builtin, { desc = "Search Telescope pickers" })
-      vim.keymap.set("n", "<leader>sw", builtin.grep_string, { desc = "Search current word" })
+      vim.keymap.set({ "n", "x" }, "<leader>sw", builtin.grep_string, { desc = "Search word/selection" })
       vim.keymap.set("n", "<leader>sg", builtin.live_grep, { desc = "Search by grep" })
       vim.keymap.set("n", "<leader>sd", builtin.diagnostics, { desc = "Search diagnostics" })
       vim.keymap.set("n", "<leader>sr", builtin.resume, { desc = "Resume search" })
+      vim.keymap.set("n", "<leader>sc", builtin.commands, { desc = "Search commands" })
       vim.keymap.set("n", "<leader>s.", builtin.oldfiles, { desc = "Search recent files" })
+      vim.keymap.set("n", "<leader>s/", function()
+        builtin.live_grep({
+          grep_open_files = true,
+          prompt_title = "Live grep in open files",
+        })
+      end, { desc = "Search in open files" })
+      vim.keymap.set("n", "<leader>sn", function()
+        builtin.find_files({
+          cwd = vim.fn.stdpath("config"),
+          follow = true,
+        })
+      end, { desc = "Search Neovim config" })
       vim.keymap.set("n", "<leader><leader>", builtin.buffers, { desc = "Find buffers" })
       vim.keymap.set("n", "<leader>/", function()
         builtin.current_buffer_fuzzy_find(require("telescope.themes").get_dropdown({

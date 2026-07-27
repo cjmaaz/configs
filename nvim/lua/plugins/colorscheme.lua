@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 7: COLORSCHEME
+-- Muted Kanagawa Dragon palette for comfortable long sessions
+-- ============================================================
+
 return {
   {
     "rebelot/kanagawa.nvim",

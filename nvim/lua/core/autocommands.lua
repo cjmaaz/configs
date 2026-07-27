@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 4: AUTOCOMMANDS & FILETYPES
+-- Buffer lifecycle helpers and project-specific file detection
+-- ============================================================
+
 local group = vim.api.nvim_create_augroup("user_config", { clear = true })
 
 vim.api.nvim_create_autocmd("TextYankPost", {
@@ -48,9 +53,15 @@ vim.api.nvim_create_autocmd("BufWritePre", {
 
 vim.filetype.add({
   extension = {
+    apex = "apex",
     cls = "apex",
+    page = "html",
+    sflog = "sflog",
+    sosl = "sosl",
+    -- Use the Salesforce parser instead of generic SQL. This enables SOQL
+    -- syntax and sf.nvim actions; use "sql" for SQLFluff/Postgres behavior.
+    soql = "soql",
     trigger = "apex",
-    soql = "sql",
     -- Cursor rule files contain Markdown (often with YAML frontmatter).
     mdc = "markdown",
   },

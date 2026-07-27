@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 11: GIT INTEGRATION
+-- Gutter signs, hunk navigation/actions, blame, and diff helpers
+-- ============================================================
+
 return {
   {
     "lewis6991/gitsigns.nvim",
@@ -42,11 +47,21 @@ return {
         map("n", "<leader>hS", gitsigns.stage_buffer, "Stage buffer")
         map("n", "<leader>hR", gitsigns.reset_buffer, "Reset buffer")
         map("n", "<leader>hp", gitsigns.preview_hunk, "Preview hunk")
-        map("n", "<leader>hb", gitsigns.blame_line, "Blame line")
+        map("n", "<leader>hi", gitsigns.preview_hunk_inline, "Preview hunk inline")
+        map("n", "<leader>hb", function()
+          gitsigns.blame_line({ full = true })
+        end, "Blame line")
         map("n", "<leader>hd", gitsigns.diffthis, "Diff against index")
         map("n", "<leader>hD", function()
           gitsigns.diffthis("~")
         end, "Diff against previous commit")
+        map("n", "<leader>hQ", function()
+          gitsigns.setqflist("all")
+        end, "Quickfix all repository changes")
+        map("n", "<leader>hq", gitsigns.setqflist, "Quickfix current-file changes")
+        map("n", "<leader>tb", gitsigns.toggle_current_line_blame, "Toggle line blame")
+        map("n", "<leader>tw", gitsigns.toggle_word_diff, "Toggle word diff")
+        map({ "o", "x" }, "ih", gitsigns.select_hunk, "Select git hunk")
       end,
     },
   },

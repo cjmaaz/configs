@@ -17,6 +17,9 @@ Rust, C/C++, and SQL/Postgres.
   lualine, which-key, todo-comments, indent guides, autopairs, and tag
   auto-closing. The complete Neo-tree spec is parked as commented code for
   later.
+- Kickstart-style section banners, automatic indentation detection,
+  mini.ai/mini.surround text objects, LSP progress notifications, expanded
+  Git/search actions, and on-demand Treesitter parser installation.
 - Native Neovim LSP (`vim.lsp.config`) through Mason:
   - Web: vtsls, Vue Language Server, ESLint, HTML, CSS, Emmet, JSON, YAML.
   - Python: basedpyright + Ruff.
@@ -28,6 +31,9 @@ Rust, C/C++, and SQL/Postgres.
   - Rust: rustaceanvim (the only rust-analyzer owner; no duplicate LSP).
 - Completion through blink.cmp + LuaSnip + friendly-snippets.
 - Formatting through conform.nvim and linting through nvim-lint.
+- Salesforce workflows through sf.nvim: org selection, metadata
+  retrieve/diff/listing, Apex tests and coverage, logs, SObject definition
+  refresh, SOQL execution, ctags, and target-org status.
 
 ## Requirements
 
@@ -41,13 +47,16 @@ Required:
 - Python 3.9+ for Mason tooling and the jdtls launcher.
 - JDK 21 (recommended for both jdtls and the Apex language server).
 - rustup + a Rust toolchain for Rust development.
+- Salesforce CLI (`sf`) for Salesforce projects.
+- `fzf` for sf.nvim metadata/ctags pickers; Universal Ctags is optional but
+  recommended for enhanced Apex definition fallback.
 - A clipboard provider: macOS includes one; use `wl-clipboard` on Wayland or
   `xclip`/`xsel` on X11.
 
 ### macOS (Homebrew)
 
 ```bash
-brew install neovim git ripgrep fd make tree-sitter node openjdk@21 rustup-init
+brew install neovim git ripgrep fd fzf universal-ctags make tree-sitter node openjdk@21 rustup-init
 brew install --cask font-jetbrains-mono-nerd-font
 rustup-init
 ```
@@ -62,7 +71,7 @@ export JAVA_HOME="$("/usr/libexec/java_home" -v 21)"
 
 ```bash
 sudo pacman -S --noconfirm --needed \
-  neovim git base-devel curl tar unzip ripgrep fd tree-sitter-cli \
+  neovim git base-devel curl tar unzip ripgrep fd fzf universal-ctags tree-sitter-cli \
   nodejs npm jdk21-openjdk rustup wl-clipboard ttf-jetbrains-mono-nerd
 rustup default stable
 ```
@@ -81,6 +90,15 @@ scoop install JetBrainsMono-NF
 
 Install `tree-sitter-cli` 0.26.1+ from your package manager or its official
 release. Enable Windows Developer Mode if you intend to symlink the config.
+
+Install the Salesforce CLI separately from
+[Salesforce CLI setup](https://developer.salesforce.com/tools/salesforcecli)
+and verify it before using sf.nvim:
+
+```bash
+sf --version
+sf org list --all
+```
 
 ## Install
 
@@ -113,6 +131,7 @@ finish asynchronously; after Mason completes, restart Neovim and run:
 
 ```vim
 :checkhealth
+:check sf
 :Lazy
 :Mason
 ```
@@ -137,6 +156,8 @@ The leader key is `<Space>` and the local leader is `\`.
 | Mapping | Action |
 |---|---|
 | `<leader>sf` / `<leader>sg` | Find files / live grep |
+| `<leader>sc` / `<leader>s/` | Search commands / grep open files |
+| `<leader>sn` | Search this Neovim configuration |
 | `<leader><leader>` | Find open buffers |
 | `<leader>fe` | Toggle netrw sidebar (`:Lexplore`) |
 | `<leader>fE` | Open netrw in the current window (`:Explore`) |
@@ -148,6 +169,9 @@ The leader key is `<Space>` and the local leader is `\`.
 | `[d` / `]d` | Previous / next diagnostic |
 | `]c` / `[c` | Next / previous git hunk |
 | `<leader>hs` / `<leader>hr` | Stage / reset git hunk |
+| `<leader>hi` / `<leader>hq` | Inline hunk preview / file changes quickfix |
+| `<leader>tb` / `<leader>tw` | Toggle line blame / word diff |
+| `ih` | Select the current git hunk in operator/visual mode |
 | `<leader>co` | Java: organize imports |
 | `<leader>cR` | Rust: code action |
 
@@ -183,6 +207,60 @@ The complete Neo-tree configuration remains block-commented in
      from `init.lua`.
 4. Run `:Lazy sync` and restart Neovim.
 
+## Salesforce workflow (sf.nvim)
+
+[sf.nvim](https://github.com/xixiaofinland/sf.nvim) activates for Salesforce
+filetypes or on the first `:SF` command. Its own default hotkeys are disabled;
+all custom actions use uppercase `<leader>S` because lowercase `<leader>s`
+already belongs to Telescope. Press `<leader>S` and pause to discover them
+through which-key.
+
+Org discovery is manual to keep startup fast and side-effect free. Start a
+Salesforce session with `<leader>SF`, then select the target with `<leader>So`.
+Set `fetch_org_list_at_nvim_start = true` in `lua/plugins/salesforce.lua` if
+automatic `sf org list` on plugin startup is preferable.
+
+| Mapping | Salesforce action |
+|---|---|
+| `<leader>SF` | Fetch/refresh authenticated orgs |
+| `<leader>So` / `<leader>SO` | Set project/global target org |
+| `<leader>Sb` / `<leader>SB` | Open target org/current metadata in browser |
+| `<leader>Sr` | Retrieve the current metadata file |
+| `<leader>Sd` | Diff current file against target org |
+| `<leader>Sl` | Pull and open a debug log |
+| `<leader>Se` / `<leader>Sx` | Toggle sf terminal / cancel running command |
+| `<leader>St` / `<leader>ST` | Run test under cursor without/with coverage |
+| `<leader>Sa` / `<leader>SA` | Run current test file without/with coverage |
+| `<leader>SR` | Repeat the last Apex test |
+| `<leader>Sv` | Toggle Apex coverage signs |
+| `[v` / `]v` | Previous/next uncovered Apex line |
+| Visual `<leader>Sq` | Run selected text as SOQL |
+| `<leader>SM` then `<leader>Sm` | Pull metadata inventory, then choose metadata to retrieve |
+| `<leader>SK` then `<leader>Sk` | Pull metadata types, then choose a whole type to retrieve |
+| `<leader>Ss` | Refresh standard/custom SObject definitions and restart apex_ls |
+| `<leader>Sc` | Generate Universal Ctags for Apex fallback navigation |
+
+All plugin operations are also discoverable through `:SF <Tab>`. A direct
+deploy key is intentionally not enabled because `save_and_push` immediately
+deploys the current file; a commented `<leader>Sp` example is available in
+`lua/plugins/salesforce.lua` if that tradeoff is desired.
+
+fzf-lua is installed only for sf.nvim metadata and ctags selection; Telescope
+remains the general file/text/LSP picker. The integrated sf terminal is used
+without an extra dependency. Changing `terminal = "overseer"` provides task
+history and UI after adding `overseer.nvim`.
+
+sf.nvim stores intermediate data under `sf_cache/` in each Salesforce project.
+Add this to that project's `.gitignore`:
+
+```gitignore
+sf_cache/
+```
+
+Run `:check sf` to diagnose the CLI, parser, and optional dependency setup.
+The lualine status automatically shows the selected target org and current
+Apex coverage after sf.nvim has loaded.
+
 ## Language notes
 
 ### Salesforce Apex and LWC
@@ -201,7 +279,9 @@ export APEX_LS_JAR=/absolute/path/to/apex-jorje-lsp.jar
 
 The server starts only inside a project containing `sfdx-project.json`.
 `*.cls` and `*.trigger` are detected as `apex`; Treesitter also installs the
-`apex`, `soql`, and `sosl` parsers. LWC files use the JS/TS/HTML/CSS/Vue stack.
+`apex`, `soql`, `sosl`, and `sflog` parsers. LWC files use the
+JS/TS/HTML/CSS/Vue stack. `<leader>Ss` refreshes faux SObject definitions under
+`.sfdx/tools/sobjects/` and restarts attached apex_ls clients.
 
 ### Java / Spring
 
@@ -221,6 +301,25 @@ rustaceanvim owns rust-analyzer; do not also add `rust_analyzer` to
 SQLFluff is configured with the Postgres dialect in
 `lua/plugins/formatting.lua` and `lua/plugins/linting.lua`. Change both files
 if a project uses a different SQL dialect.
+
+## Decisions and alternatives
+
+- **Plugin manager:** lazy.nvim remains the only manager. Kickstart's
+  `vim.pack` examples are not mixed into the same dependency graph.
+- **Theme:** Kanagawa Dragon remains unchanged; Kickstart's theme settings
+  were intentionally ignored.
+- **Local leader:** `\` keeps local mappings separate. Setting it to `<Space>`
+  is easier to type but merges local/global namespaces.
+- **Diagnostics:** warning/error underlines reduce visual noise; setting
+  `underline = true` also marks info and hints.
+- **UI ownership:** lualine and nvim-web-devicons remain active, so
+  mini.statusline/mini.icons are not enabled. mini.ai and mini.surround are.
+- **Pickers:** Telescope owns general search; fzf-lua is scoped to sf.nvim
+  metadata/ctags flows because sf.nvim does not expose those through Telescope.
+- **Formatting:** configured filetypes format on save with a toggle. Kickstart's
+  opt-in-only model can be restored by returning `nil` from `format_on_save`.
+- **Debugging:** the optional Kickstart Go DAP example is omitted because this
+  setup is Salesforce-focused and no target debug adapter was requested.
 
 ## Maintenance and troubleshooting
 

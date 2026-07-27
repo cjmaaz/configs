@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 19: RUST
+-- rustaceanvim ownership of rust-analyzer and Rust actions
+-- ============================================================
+
 return {
   {
     "mrcjkb/rustaceanvim",

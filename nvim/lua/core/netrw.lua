@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 5: NETRW FILE EXPLORER
+-- Built-in tree/sidebar behavior while Neo-tree remains parked
+-- ============================================================
+
 -- Netrw is Neovim's built-in file explorer. These globals must be set before
 -- lazy.nvim finishes startup and loads netrwPlugin, otherwise netrw may cache
 -- its defaults before this configuration is applied.

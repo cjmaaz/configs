@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 9: EDITOR HELPERS
+-- Parked Neo-tree, automatic pairs, and comment operators
+-- ============================================================
+
 return {
   -- Neo-tree is intentionally parked while netrw is the primary file explorer.
   -- The complete spec stays here so it can be restored without rebuilding it.

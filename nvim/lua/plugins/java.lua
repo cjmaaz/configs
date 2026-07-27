@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 18: JAVA & SPRING
+-- Per-project jdtls workspaces and Java-specific actions
+-- ============================================================
+
 return {
   {
     "mfussenegger/nvim-jdtls",

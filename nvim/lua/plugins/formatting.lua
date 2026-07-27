@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 14: FORMATTING
+-- Filetype formatters, LSP fallback, and format-on-save control
+-- ============================================================
+
 return {
   {
     "stevearc/conform.nvim",

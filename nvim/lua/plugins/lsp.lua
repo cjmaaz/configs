@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 13: LANGUAGE SERVERS
+-- Native Neovim LSP, Mason tools, diagnostics, and attach behavior
+-- ============================================================
+
 return {
   {
     "folke/lazydev.nvim",
@@ -17,6 +22,7 @@ return {
       "WhoIsSethDaniel/mason-tool-installer.nvim",
       "saghen/blink.cmp",
       "b0o/SchemaStore.nvim",
+      { "j-hui/fidget.nvim", opts = {} },
     },
     config = function()
       local capabilities = require("blink.cmp").get_lsp_capabilities()
@@ -24,7 +30,9 @@ return {
 
       vim.diagnostic.config({
         severity_sort = true,
-        underline = true,
+        -- Underline only actionable warnings/errors to reduce visual noise.
+        -- Use `underline = true` to also underline info and hint diagnostics.
+        underline = { severity = { min = vim.diagnostic.severity.WARN } },
         update_in_insert = false,
         virtual_text = {
           spacing = 2,

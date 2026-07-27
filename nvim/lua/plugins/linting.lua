@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 17: LINTING
+-- Event-driven ESLint, Ruff, and SQLFluff diagnostics
+-- ============================================================
+
 return {
   {
     "mfussenegger/nvim-lint",

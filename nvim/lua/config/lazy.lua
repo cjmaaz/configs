@@ -1,3 +1,8 @@
+-- ============================================================
+-- SECTION 6: PLUGIN MANAGER
+-- Bootstrap lazy.nvim and import modular plugin specifications
+-- ============================================================
+
 local lazypath = vim.fn.stdpath("data") .. "/lazy/lazy.nvim"
 
 if not vim.uv.fs_stat(lazypath) then
