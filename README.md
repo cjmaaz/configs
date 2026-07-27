@@ -28,6 +28,7 @@ configs/
 │   ├── pmd/                # PMD static code analysis rulesets
 │   └── mcp/                # MCP wrapper for Salesforce CLI
 ├── nvim/                   # Modular lazy.nvim configuration
+├── nvim-game/              # Gamified browser trainer for the Neovim config
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
 ```
@@ -124,6 +125,7 @@ Automated Salesforce development utilities:
 - [`git-change-viewer` — Diff & package.xml](salesforce/scripts/git-change-viewer/README.md) - Combine git changes and export a Salesforce manifest
 - [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
 - [Neovim Config](nvim/README.md) - Modular lazy.nvim setup with polyglot LSP, completion, formatting, linting, and editor tooling
+- [Nvim Dojo](nvim-game/README.md) - Browser-based game for learning every Neovim keymap and setting in this repo
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
 ## Migration Notes
