@@ -102,21 +102,32 @@ sf org list --all
 
 ## Install
 
-Back up any existing config first:
+### Fresh machine — one command (Bash, Zsh, or Fish)
 
-```bash
-mv ~/.config/nvim ~/.config/nvim.bak
+Copy and paste this entire command into any of the three shells:
+
+```sh
+sh -c 'set -eu; repo="$HOME/.local/share/nvim-config-source"; target="$HOME/.config/nvim"; mkdir -p "$HOME/.local/share" "$HOME/.config"; if [ -d "$repo/.git" ]; then git -C "$repo" sparse-checkout set --no-cone "/nvim/**"; git -C "$repo" pull --ff-only; else git clone --filter=blob:none --no-checkout --depth 1 --branch main https://github.com/cjmaaz/CodeOSS-Configs.git "$repo"; git -C "$repo" sparse-checkout set --no-cone "/nvim/**"; git -C "$repo" checkout; fi; if [ -e "$target" ] && [ ! -L "$target" ]; then mv "$target" "$target.bak.$(date +%Y%m%d-%H%M%S)"; fi; ln -sfn "$repo/nvim" "$target"; exec nvim'
 ```
 
-From this repository's root:
+Git cannot clone a repository subdirectory by itself, so the command creates a
+blob-filtered sparse checkout under `~/.local/share/nvim-config-source`. Only
+the `nvim/` tree is checked out; the hidden `.git` data is retained so the same
+command can pull future updates. It then backs up an existing non-symlink
+Neovim configuration, links the sparse `nvim/` tree to `~/.config/nvim`, and
+starts Neovim.
+
+### Existing checkout
+
+If this repository is already cloned elsewhere, run from its root:
 
 ```bash
-mkdir -p ~/.config
-ln -sfn "$PWD/nvim" ~/.config/nvim
+mkdir -p "$HOME/.config"
+ln -sfn "$PWD/nvim" "$HOME/.config/nvim"
 nvim
 ```
 
-Windows PowerShell:
+### Windows PowerShell
 
 ```powershell
 New-Item -ItemType SymbolicLink `
