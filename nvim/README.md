@@ -13,8 +13,10 @@ Rust, C/C++, and SQL/Postgres.
   palette that avoids bright backgrounds while retaining WCAG AA text contrast.
 - lazy.nvim plugin management with a committed `lazy-lock.json` after the
   first successful bootstrap.
-- Modern Treesitter `main` branch, Telescope, neo-tree, gitsigns, lualine,
-  which-key, todo-comments, indent guides, autopairs, and tag auto-closing.
+- Modern Treesitter `main` branch, Telescope, built-in netrw, gitsigns,
+  lualine, which-key, todo-comments, indent guides, autopairs, and tag
+  auto-closing. The complete Neo-tree spec is parked as commented code for
+  later.
 - Native Neovim LSP (`vim.lsp.config`) through Mason:
   - Web: vtsls, Vue Language Server, ESLint, HTML, CSS, Emmet, JSON, YAML.
   - Python: basedpyright + Ruff.
@@ -123,7 +125,7 @@ Commit the generated `nvim/lazy-lock.json` to keep plugin versions reproducible.
 nvim/
 ├── init.lua
 └── lua/
-    ├── core/       # options, keymaps, autocommands
+    ├── core/       # options, keymaps, autocommands, netrw
     ├── config/     # lazy.nvim bootstrap
     └── plugins/    # one plugin spec per concern/language
 ```
@@ -136,7 +138,8 @@ The leader key is `<Space>` and the local leader is `\`.
 |---|---|
 | `<leader>sf` / `<leader>sg` | Find files / live grep |
 | `<leader><leader>` | Find open buffers |
-| `<leader>fe` | Toggle file explorer |
+| `<leader>fe` | Toggle netrw sidebar (`:Lexplore`) |
+| `<leader>fE` | Open netrw in the current window (`:Explore`) |
 | `<leader>f` | Format buffer |
 | `<leader>tf` | Toggle format-on-save |
 | `<leader>cl` | Lint current buffer |
@@ -149,6 +152,36 @@ The leader key is `<Space>` and the local leader is `\`.
 | `<leader>cR` | Rust: code action |
 
 Press `<Space>` and wait briefly to discover the rest through which-key.
+
+## File explorer: netrw now, Neo-tree later
+
+Netrw is Neovim's built-in file explorer and is currently the active choice.
+Its settings live in `lua/core/netrw.lua` and load before lazy.nvim:
+
+| Setting | Value | Effect |
+|---|---:|---|
+| `netrw_liststyle` | `3` | Displays directories as an expandable tree. |
+| `netrw_browse_split` | `4` | Opens the selected file in the previously active editing window, keeping `:Lexplore` visible. |
+| `netrw_altv` | `1` | Places netrw vertical splits on the right. |
+| `netrw_winsize` | `25` | Sizes netrw-created splits to 25% of the current window. |
+| `netrw_keepdir` | `0` | Updates Neovim's working directory (`:pwd`) while browsing. |
+
+Use `<leader>fe` to toggle the sidebar or `<leader>fE` to browse in the
+current window.
+
+The complete Neo-tree configuration remains block-commented in
+`lua/plugins/editor.lua`, and its lockfile entries remain pinned. To enable it:
+
+1. Remove the `--[[` and `]]` delimiters around the Neo-tree plugin spec.
+2. Remove/comment the two netrw `<leader>f*` mappings in
+   `lua/core/keymaps.lua`, allowing Neo-tree to own `<leader>fe`.
+3. Choose the desired explorer arrangement:
+   - **Both:** leave netrw enabled. The parked Neo-tree spec already sets
+     `hijack_netrw_behavior = "disabled"` so `:Explore` remains netrw.
+   - **Neo-tree only:** uncomment `"netrwPlugin"` in lazy.nvim's
+     `disabled_plugins` list and optionally remove `require("core.netrw")`
+     from `init.lua`.
+4. Run `:Lazy sync` and restart Neovim.
 
 ## Language notes
 

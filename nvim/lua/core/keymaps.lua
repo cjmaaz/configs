@@ -22,6 +22,13 @@ map("n", "<S-h>", "<cmd>bprevious<CR>", { desc = "Previous buffer" })
 map("n", "<S-l>", "<cmd>bnext<CR>", { desc = "Next buffer" })
 map("n", "<leader>bd", "<cmd>bdelete<CR>", { desc = "Delete buffer" })
 
+-- Netrw is the current file explorer. :Lexplore behaves like a toggleable
+-- sidebar; because netrw_browse_split=4, selected files open in the previous
+-- editing window. :Explore replaces the current window when that is preferable.
+-- When Neo-tree is enabled later, its lazy keymap will reuse <leader>fe.
+map("n", "<leader>fe", "<cmd>Lexplore<CR>", { desc = "Toggle netrw explorer" })
+map("n", "<leader>fE", "<cmd>Explore<CR>", { desc = "Open netrw in current window" })
+
 -- Diagnostic navigation works without an LSP-specific plugin.
 map("n", "[d", function()
   vim.diagnostic.jump({ count = -1, float = true })

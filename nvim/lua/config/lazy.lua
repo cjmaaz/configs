@@ -41,7 +41,9 @@ require("lazy").setup({
     rtp = {
       disabled_plugins = {
         "gzip",
-        "netrwPlugin",
+        -- Netrw is the current file explorer, so netrwPlugin stays enabled.
+        -- When switching fully to Neo-tree, uncomment the line below:
+        -- "netrwPlugin",
         "tarPlugin",
         "tohtml",
         "tutor",
