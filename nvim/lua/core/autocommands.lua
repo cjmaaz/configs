@@ -51,5 +51,7 @@ vim.filetype.add({
     cls = "apex",
     trigger = "apex",
     soql = "sql",
+    -- Cursor rule files contain Markdown (often with YAML frontmatter).
+    mdc = "markdown",
   },
 })
