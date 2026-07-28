@@ -29,6 +29,7 @@ configs/
 │   └── mcp/                # MCP wrapper for Salesforce CLI
 ├── nvim/                   # Modular lazy.nvim configuration
 ├── nvim-game/              # Gamified browser trainer for the Neovim config
+├── raycast/                # Raycast script commands for macOS launchers
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
 ```
@@ -126,6 +127,7 @@ Automated Salesforce development utilities:
 - [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
 - [Neovim Config](nvim/README.md) - Modular lazy.nvim setup with polyglot LSP, completion, formatting, linting, and editor tooling
 - [Nvim Dojo](nvim-game/README.md) - Browser-based game for learning every Neovim keymap and setting in this repo
+- [Raycast Scripts](raycast/README.md) - macOS Script Commands for opening notes and work directories
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
 ## Migration Notes
@@ -226,6 +228,7 @@ This is a personal configuration repository, but feel free to:
 - **Settings Files**: 3 variants (JSON, JSONC, Commented)
 - **Profiles**: 13 development profiles
 - **Scripts**: 3 Salesforce dev kits (`schemapy`, `initagentrulespy`, `git-change-viewer`)
+- **Raycast Scripts**: 3 macOS launcher scripts
 - **PMD Rulesets**: 2 Apex static analysis rulesets
 - **Custom Files**: 2 (CSS + JS)
 - **Documentation**: 10 comprehensive guides (including PMD docs)

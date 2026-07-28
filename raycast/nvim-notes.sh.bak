@@ -1,0 +1,30 @@
+#!/bin/bash
+
+# Required parameters:
+# @raycast.schemaVersion 1
+# @raycast.title Neovim Notes
+# @raycast.mode compact
+
+# Optional parameters:
+# @raycast.icon 📝
+
+# Documentation:
+# @raycast.description Open the notes folder in Neovim (iTerm2)
+# @raycast.author cjmaaz
+# @raycast.authorURL https://raycast.com/cjmaaz
+
+# 1. Define a temporary command file
+COMMAND_FILE="/tmp/raycast_nvim_notes.command"
+
+# 2. Write the launch instructions into the file
+# The -l flag ensures it runs as a login shell so your $PATH loads and it can find `nvim`
+echo '#!/bin/zsh -l
+cd /Users/<username>/Documents/Notes/ || exit
+nvim .
+' > "$COMMAND_FILE"
+
+# 3. Make the file executable
+chmod +x "$COMMAND_FILE"
+
+# 4. Open the file specifically in iTerm
+open -a "iTerm" "$COMMAND_FILE"
