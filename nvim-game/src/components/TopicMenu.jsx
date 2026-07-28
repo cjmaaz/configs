@@ -1,4 +1,4 @@
-export default function TopicMenu({ topics, selected, mastery, onToggle, onSelectAll }) {
+export default function TopicMenu({ topics, selected, totals, onToggle, onSelectAll }) {
   const activeTopics = topics.filter((topic) => !topic.inactive);
   const allActiveSelected = activeTopics.every((topic) => selected.includes(topic.id));
 
@@ -15,7 +15,7 @@ export default function TopicMenu({ topics, selected, mastery, onToggle, onSelec
       </div>
       <div className="topic-grid">
         {topics.map((topic) => {
-          const value = mastery[topic.id] || 0;
+          const total = totals[topic.id] || { mastered: 0, total: 0, percent: 0 };
           const isSelected = selected.includes(topic.id);
           return (
             <button
@@ -27,12 +27,18 @@ export default function TopicMenu({ topics, selected, mastery, onToggle, onSelec
             >
               <div className="topic-title-row">
                 <strong>{topic.name}</strong>
-                <span className="pill">{topic.inactive ? 'parked' : `${value}%`}</span>
+                <span className="pill">{topic.inactive ? 'parked' : `${total.percent}%`}</span>
               </div>
               <p className="muted">{topic.description}</p>
-              <div className="mastery-track" aria-label={`${topic.name} mastery ${value}%`}>
-                <div className="mastery-fill" style={{ width: `${value}%` }} />
+              <div
+                className="mastery-track"
+                aria-label={`${topic.name} mastery ${total.percent}%`}
+              >
+                <div className="mastery-fill" style={{ width: `${total.percent}%` }} />
               </div>
+              <p className="muted topic-count">
+                {total.mastered} / {total.total} mastered
+              </p>
             </button>
           );
         })}

@@ -148,4 +148,191 @@ export const editingLessons = [
     siblings: ['<Tab>', '<S-Tab>'],
     sim: 'completion',
   }),
+
+  // Comment.nvim installs its whole mapping family from defaults. The config
+  // only sets padding and sticky, so none of these keys appear in the specs and
+  // they are easy to miss when reading the config alone.
+  keyLesson({
+    id: 'editing.comment_line',
+    topic,
+    keys: 'gcc',
+    label: 'Toggle line comment',
+    prompt: 'Comment or uncomment the current line.',
+    explains:
+      'Comment.nvim binds gcc from its default toggler. The commentstring comes from the filetype, so it works in Lua, Apex and SQL alike.',
+    siblings: ['gbc', 'gc', 'gco'],
+  }),
+  keyLesson({
+    id: 'editing.comment_block',
+    topic,
+    keys: 'gbc',
+    label: 'Toggle block comment',
+    prompt: 'Comment the current line using block-comment syntax.',
+    explains:
+      'gbc is the block counterpart of gcc, producing /* ... */ style comments where the filetype supports them.',
+    siblings: ['gcc', 'gb'],
+  }),
+  keyLesson({
+    id: 'editing.comment_operator',
+    topic,
+    keys: 'gc',
+    mode: 'VISUAL',
+    label: 'Line-comment operator',
+    prompt: 'Comment the current Visual selection line by line.',
+    explains:
+      'gc is an operator, so it also composes in Normal mode: gcip comments a paragraph and gc2j comments two lines down.',
+    siblings: ['gb', 'gcc'],
+  }),
+  keyLesson({
+    id: 'editing.comment_block_operator',
+    topic,
+    keys: 'gb',
+    mode: 'VISUAL',
+    label: 'Block-comment operator',
+    prompt: 'Wrap the Visual selection in a single block comment.',
+    explains:
+      'gb comments the selection as one block rather than line by line, which keeps a multi-line expression intact.',
+    siblings: ['gc', 'gbc'],
+  }),
+  keyLesson({
+    id: 'editing.comment_above',
+    topic,
+    keys: 'gcO',
+    label: 'Comment line above',
+    prompt: 'Open a comment on a new line above the cursor and start typing.',
+    explains:
+      'One of Comment.nvim extra mappings. gcO mirrors O by opening above and leaves you in Insert mode inside the comment.',
+    siblings: ['gco', 'gcA', 'gcc'],
+  }),
+  keyLesson({
+    id: 'editing.comment_below',
+    topic,
+    keys: 'gco',
+    label: 'Comment line below',
+    prompt: 'Open a comment on a new line below the cursor and start typing.',
+    explains:
+      'gco mirrors o. Together with gcO and gcA these are the extra mappings, enabled because the config leaves mappings.extra at its default.',
+    siblings: ['gcO', 'gcA', 'gcc'],
+  }),
+  keyLesson({
+    id: 'editing.comment_eol',
+    topic,
+    keys: 'gcA',
+    label: 'Comment at end of line',
+    prompt: 'Append a comment to the end of the current line.',
+    explains:
+      'gcA jumps to end of line, adds the comment leader and enters Insert mode, which suits a short trailing note.',
+    siblings: ['gcO', 'gco'],
+  }),
+
+  // mini.surround and mini.ai: the config overrides only two mappings each, so
+  // the rest of both families arrive with default keys.
+  keyLesson({
+    id: 'editing.surround_find',
+    topic,
+    keys: 'sf',
+    label: 'Find surrounding right',
+    prompt: 'Jump forward to the next surrounding character around the cursor.',
+    explains:
+      'mini.surround binds sf and sF for find-right and find-left. Enabling mini.surround with defaults means the s family shadows the built-in s substitute operator.',
+    siblings: ['sF', 'sh', 'sn'],
+  }),
+  keyLesson({
+    id: 'editing.surround_find_left',
+    topic,
+    keys: 'sF',
+    label: 'Find surrounding left',
+    prompt: 'Jump backward to the previous surrounding character.',
+    explains:
+      'sF is the mirror of sf. Both accept the same surround identifiers as saiw, so sF) targets a parenthesis.',
+    siblings: ['sf', 'sh'],
+  }),
+  keyLesson({
+    id: 'editing.surround_highlight',
+    topic,
+    keys: 'sh',
+    label: 'Highlight surrounding',
+    prompt: 'Briefly highlight the surrounding pair around the cursor.',
+    explains:
+      'sh flashes both delimiters for highlight_duration, 500ms by default, which is useful for confirming which pair you are about to change.',
+    siblings: ['sf', 'sF', 'sn'],
+  }),
+  keyLesson({
+    id: 'editing.surround_lines',
+    topic,
+    keys: 'sn',
+    label: 'Update surround search range',
+    prompt: 'Change how many lines mini.surround searches for a pair.',
+    explains:
+      'sn updates n_lines, which defaults to 20 for mini.surround. Note mini.ai is configured separately with n_lines = 500.',
+    siblings: ['sf', 'sh'],
+  }),
+  keyLesson({
+    id: 'editing.mini_around_last',
+    topic,
+    keys: 'al',
+    mode: 'VISUAL',
+    label: 'Around last text object',
+    prompt: 'Select around the previous occurrence of a text object.',
+    explains:
+      'mini.ai keeps its default al and il for the previous match. Only around_next and inside_next were remapped to aa and ii, to avoid the Neovim 0.12 an and in defaults.',
+    siblings: ['il', 'aa', 'ii'],
+  }),
+  keyLesson({
+    id: 'editing.mini_inside_last',
+    topic,
+    keys: 'il',
+    mode: 'VISUAL',
+    label: 'Inside last text object',
+    prompt: 'Select inside the previous occurrence of a text object.',
+    explains:
+      'il is the inner counterpart of al, so il) targets the contents of the preceding parentheses.',
+    siblings: ['al', 'ii'],
+  }),
+  keyLesson({
+    id: 'editing.mini_goto_left',
+    topic,
+    keys: 'g[',
+    label: 'Go to text-object start',
+    prompt: 'Move to the left edge of the surrounding text object.',
+    explains:
+      'mini.ai default goto_left. With n_lines raised to 500 it can find an enclosing object far above the cursor.',
+    siblings: ['g]', 'al'],
+  }),
+  keyLesson({
+    id: 'editing.mini_goto_right',
+    topic,
+    keys: 'g]',
+    label: 'Go to text-object end',
+    prompt: 'Move to the right edge of the surrounding text object.',
+    explains:
+      'goto_right, the mirror of g[. Both jump to the delimiter itself rather than selecting anything.',
+    siblings: ['g[', 'il'],
+  }),
+
+  // blink.cmp keeps its default preset alongside the three overridden keys.
+  keyLesson({
+    id: 'editing.complete_accept_canonical',
+    topic,
+    keys: '<C-y>',
+    mode: 'INSERT',
+    label: 'Canonical accept',
+    prompt: 'Accept the completion using blink default accept key.',
+    explains:
+      'The default preset binds <C-y> to accept. This config adds <CR> on top, so both work and <C-y> never stops being available.',
+    siblings: ['<CR>', '<C-e>'],
+    sim: 'completion',
+  }),
+  keyLesson({
+    id: 'editing.complete_hide',
+    topic,
+    keys: '<C-e>',
+    mode: 'INSERT',
+    label: 'Dismiss completion menu',
+    prompt: 'Close the completion popup without accepting anything.',
+    explains:
+      'From blink default preset. Useful because the menu shows automatically, so dismissing is more common than requesting it.',
+    siblings: ['<C-y>', '<CR>'],
+    sim: 'completion',
+  }),
 ];

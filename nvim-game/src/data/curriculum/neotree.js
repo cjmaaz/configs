@@ -110,4 +110,80 @@ export const neoTreeLessons = [
     ],
     sim: 'neotree',
   }),
+  settingLesson({
+    id: 'neotree.space_mapping',
+    topic,
+    setting: 'window.mappings["<space>"]',
+    value: 'none',
+    label: 'Freeing the leader key',
+    prompt: 'Why is <space> mapped to "none" inside the Neo-tree window?',
+    explains:
+      'Neo-tree binds <space> to toggle_node by default, which would swallow the leader key inside the tree. Setting it to none keeps every <leader> chord usable there.',
+    choices: [
+      {
+        value: 'none',
+        label: 'So the leader key still works inside the tree',
+        effect: 'Overrides the default toggle_node binding.',
+      },
+      { value: 'toggle', label: 'It is the default toggle_node', effect: 'That is what is being disabled.' },
+      { value: 'unused', label: '<space> is unused by Neo-tree', effect: 'It is bound by default.' },
+    ],
+    sim: 'neotree',
+  }),
+  settingLesson({
+    id: 'neotree.revival',
+    topic,
+    setting: 'enabling Neo-tree',
+    value: 'keymaps',
+    label: 'Turning Neo-tree back on',
+    prompt: 'Besides uncommenting the spec, what else must change to enable Neo-tree?',
+    explains:
+      'The two netrw <leader>f mappings in core/keymaps.lua must go, or they will keep owning <leader>fe. You then choose whether to keep netrw alongside or disable netrwPlugin entirely.',
+    choices: [
+      {
+        value: 'keymaps',
+        label: 'Remove the netrw mappings that own <leader>fe',
+        effect: 'Otherwise the core keymap wins over the lazy keys entry.',
+      },
+      { value: 'nothing', label: 'Nothing else', effect: 'The keymap conflict would remain.' },
+      { value: 'lockfile', label: 'Delete the lockfile entries', effect: 'They are pinned on purpose.' },
+    ],
+    sim: 'neotree',
+  }),
+  settingLesson({
+    id: 'neotree.sources',
+    topic,
+    setting: 'Neo-tree sources',
+    value: 'two',
+    label: 'Bound and unbound sources',
+    prompt: 'How many Neo-tree sources have keymaps in the parked spec?',
+    explains:
+      'Two: filesystem on <leader>fe and git_status on <leader>ge. The buffers source is available by default but has no binding.',
+    choices: [
+      {
+        value: 'two',
+        label: 'Two, leaving the buffers source unbound',
+        effect: 'buffers is reachable only via :Neotree buffers.',
+      },
+      { value: 'three', label: 'All three', effect: 'buffers has no mapping.' },
+      { value: 'one', label: 'Only filesystem', effect: 'git_status is mapped too.' },
+    ],
+    sim: 'neotree',
+  }),
+  settingLesson({
+    id: 'neotree.deviations',
+    topic,
+    setting: 'Neo-tree defaults',
+    value: 'all',
+    label: 'Every option is a deviation',
+    prompt: 'How many of the parked Neo-tree options match the plugin defaults?',
+    explains:
+      'None. close_if_last_window, follow_current_file, use_libuv_file_watcher, both filtered_items flags and window.width all differ from their defaults, so the spec is entirely intentional.',
+    choices: [
+      { value: 'all', label: 'None of them; every option deviates', effect: 'Nothing there is decorative.' },
+      { value: 'some', label: 'About half', effect: 'All of them differ.' },
+      { value: 'none', label: 'All of them match', effect: 'The opposite is true.' },
+    ],
+    sim: 'neotree',
+  }),
 ];

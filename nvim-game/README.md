@@ -44,12 +44,34 @@ Shows only the task. After answering, the reveal explains:
 Missed challenges are added to the weak-item queue and prioritized in future
 Practice sessions.
 
+## Scheduling and mastery
+
+Both modes draw from the same scheduler, which fills a session in tiers:
+
+1. Lessons you have never seen.
+2. Lessons seen but not yet mastered, least-progressed first.
+3. Mastered lessons, earliest solve first.
+
+The chosen set is then shuffled before it is shown, so repeating a topic does not
+train the order of the questions alongside the answers.
+
+A lesson counts as mastered after **two consecutive correct answers**, and a wrong
+answer resets it to unmastered. Topic percentages are mastered over total, so
+100% is reachable for every topic: pick a session length of 12, 25, 50, or
+**All remaining** on the menu, and the counter tells you how many are left.
+
+Progress is stored under `nvim-game.progress.v2`. A `v1` save is migrated on
+first load, with each previously mastered lesson carried over as one correct
+answer, so percentages start lower against the stricter two-answer bar.
+
 ## Simulator
 
 - Real browser `keydown` capture normalized to Neovim notation.
 - Prefix-aware chord timing: the real config uses `timeoutlen=300`, while the
   trainer keeps valid `<leader>` prefixes active until the chord is completed
   or Escape cancels it, so learning tests recall rather than typing speed.
+  Other partially typed mappings get 4s and unrecognized input 1.2s. Escape
+  only cancels `<leader>` chords, so `<Esc><Esc>` stays typable.
 - Live NORMAL / INSERT / VISUAL / COMMAND / TERMINAL statusline.
 - Blue terminal and gold sidebar focus glows. With the sidebar focused, Enter
   activates **Skip for now** or **Next challenge**; terminal-focused Enter
@@ -74,6 +96,16 @@ The curriculum is split under `src/data/curriculum/` and mirrors the config:
   SOQL, logs, ctags, and SObject refresh.
 - Plugin-setting tradeoffs and an active Neo-tree arena covering every parked
   Neo-tree keymap/setting, so it can be learned before the real plugin is enabled.
+- **Startup**: `init.lua`, every autocommand and `filetype.add` entry, and the
+  lazy.nvim bootstrap and options.
+- **Defaults**: options the config deliberately leaves alone. These values were
+  read from `nvim --clean --headless` rather than recalled, so they are the real
+  built-in defaults. Knowing what you did not change is as useful as knowing what
+  you did.
+
+Coverage is intentionally lopsided toward settings. Nearly every mapping in the
+config already had a lesson, while only a fraction of the roughly 200 explicitly
+set plugin options did.
 
 ## Progress
 
@@ -81,12 +113,11 @@ Correct answers award base XP plus a streak multiplier. The game records:
 
 - XP and level (`200 XP` per level).
 - Current and best streak.
-- Per-topic accuracy/mastery.
-- Miss counts used to prioritize weak mappings.
+- Per-lesson attempts, correct count, consecutive-correct streak, and the
+  timestamps that drive review ordering.
+- Per-topic mastered/total counts.
 
-Progress is saved in browser `localStorage` under
-`nvim-game.progress.v1`. Use **Reset saved progress** on the home screen to
-clear it.
+Use **Reset saved progress** on the home screen to clear it.
 
 ## Add or update a lesson
 
@@ -108,8 +139,15 @@ keyLesson({
 });
 ```
 
-Setting lessons use number keys (`1`–`4`) and explain the behavior of every
-choice after the answer.
+Setting lessons are answered with a number key and explain the behavior of every
+choice after the answer. Two constraints are enforced by `npm test`:
+
+- **At most nine choices.** Answer keys are single digits, so a tenth choice would
+  make `1` a prefix of `10` and force every single-digit answer to wait out the
+  chord timeout instead of resolving on the keypress.
+- **The answer must survive shuffling.** Choice order is randomised per session, so
+  the correct option is not always in the same slot. Without it the answer was `1`
+  for 23 lessons and `2` for 17, and spamming `1` scored well.
 
 ## Structure
 
@@ -129,5 +167,8 @@ nvim-game/
 ## Browser notes
 
 Keystrokes are intercepted only while the simulated terminal has focus.
-Meta/Command combinations are left to the browser. The app avoids browser
-reserved shortcuts in its curriculum.
+Meta/Command combinations are left to the browser.
+
+`<C-w>`, `<C-t>`, `<C-n>` and `<C-q>` cannot be intercepted by a web page, so they
+are never used as an expected answer even where the real config binds them. A
+smoke assertion enforces this.

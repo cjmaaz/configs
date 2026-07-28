@@ -99,4 +99,63 @@ export const netrwLessons = [
     ],
     sim: 'netrw-tree',
   }),
+  settingLesson({
+    id: 'netrw.load_timing',
+    topic,
+    setting: 'netrw globals timing',
+    value: 'before',
+    label: 'Why the globals are set early',
+    prompt: 'When must the netrw globals be assigned?',
+    explains:
+      'Before lazy.nvim finishes startup and loads netrwPlugin. netrw caches its own defaults on load, so assigning them afterwards has no effect. That is why core.netrw is the first require in init.lua.',
+    choices: [
+      {
+        value: 'before',
+        label: 'Before netrwPlugin loads',
+        effect: 'netrw caches defaults, so late assignment is ignored.',
+      },
+      { value: 'after', label: 'After plugins load', effect: 'Too late; the settings would be ignored.' },
+      { value: 'any', label: 'Order does not matter', effect: 'It matters because of the caching.' },
+    ],
+    sim: 'netrw-tree',
+  }),
+  settingLesson({
+    id: 'netrw.plugin_enabled',
+    topic,
+    setting: 'netrwPlugin in rtp',
+    value: 'enabled',
+    label: 'netrwPlugin stays enabled',
+    prompt: 'Is netrwPlugin among the runtime plugins lazy.nvim disables?',
+    explains:
+      'No. It is commented out of disabled_plugins precisely because netrw is the active explorer. The comment shows where to uncomment it if you move fully to Neo-tree.',
+    choices: [
+      {
+        value: 'enabled',
+        label: 'No, it is deliberately left enabled',
+        effect: 'Commented out with instructions for the Neo-tree switch.',
+      },
+      { value: 'disabled', label: 'Yes, it is disabled', effect: 'Then :Lexplore would not exist.' },
+    ],
+    sim: 'netrw-tree',
+  }),
+  settingLesson({
+    id: 'netrw.altv_vs_splitright',
+    topic,
+    setting: 'netrw_altv scope',
+    value: 'netrw',
+    label: 'netrw_altv against splitright',
+    prompt: 'Which option decides the side of a netrw vertical split?',
+    explains:
+      'netrw_altv, independently of the global splitright. netrw manages its own split placement, so setting only splitright would not move the sidebar.',
+    choices: [
+      {
+        value: 'netrw',
+        label: 'netrw_altv, independently of splitright',
+        effect: 'netrw owns its own split placement.',
+      },
+      { value: 'global', label: 'The global splitright', effect: 'It does not govern netrw windows.' },
+      { value: 'both', label: 'Both must agree', effect: 'Only netrw_altv applies here.' },
+    ],
+    sim: 'netrw-tree',
+  }),
 ];

@@ -164,4 +164,61 @@ export const coreLessons = [
       siblings: ['<Left>', '<Right>', '<Up>', '<Down>'].filter((item) => item !== keys),
     }),
   ),
+
+  // Treesitter sets foldmethod=expr, foldexpr and foldlevel=99 on every buffer
+  // it attaches to, which makes these built-in fold keys live everywhere even
+  // though no plugin maps them.
+  k({
+    id: 'core.fold_close',
+    keys: 'zc',
+    label: 'Close fold',
+    prompt: 'Collapse the fold under the cursor.',
+    explains:
+      'Folds come from the Treesitter foldexpr, so they follow the syntax tree: zc on a function collapses exactly that function.',
+    siblings: ['zo', 'za', 'zM'],
+  }),
+  k({
+    id: 'core.fold_open',
+    keys: 'zo',
+    label: 'Open fold',
+    prompt: 'Expand the closed fold under the cursor.',
+    explains: 'The inverse of zc. Nested folds open one level per press.',
+    siblings: ['zc', 'za', 'zR'],
+  }),
+  k({
+    id: 'core.fold_toggle',
+    keys: 'za',
+    label: 'Toggle fold',
+    prompt: 'Toggle the fold under the cursor open or closed.',
+    explains:
+      'za is usually the only fold key worth memorising, since it replaces both zo and zc.',
+    siblings: ['zc', 'zo'],
+  }),
+  k({
+    id: 'core.fold_open_all',
+    keys: 'zR',
+    label: 'Open every fold',
+    prompt: 'Expand all folds in the buffer.',
+    explains:
+      'Because foldlevel is set to 99 on attach, buffers already start fully unfolded; zR restores that state after manual folding.',
+    siblings: ['zM', 'zo'],
+  }),
+  k({
+    id: 'core.fold_close_all',
+    keys: 'zM',
+    label: 'Close every fold',
+    prompt: 'Collapse all folds in the buffer.',
+    explains:
+      'zM sets foldlevel to 0. Handy for surveying a large Apex class as a list of method signatures.',
+    siblings: ['zR', 'zc'],
+  }),
+  k({
+    id: 'core.fold_view',
+    keys: 'zv',
+    label: 'Reveal cursor line',
+    prompt: 'Open just enough folds to expose the current line.',
+    explains:
+      'This is the zv in the n → nzzzv mapping: after jumping to a search match inside a closed fold, zv reveals it.',
+    siblings: ['zo', 'za', 'n'],
+  }),
 ];

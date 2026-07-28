@@ -14,6 +14,12 @@ export default function AnswerReveal({ lesson, result, pressedLesson, alternativ
       )}
       <div className="answer-row">
         Correct answer: <kbd>{lesson.keys}</kbd> — <strong>{lesson.label}</strong>.
+        {lesson.kind === 'setting' && (
+          <>
+            {' '}
+            This config uses <kbd>{String(lesson.value)}</kbd>.
+          </>
+        )}
         <div className="muted">{lesson.explains}</div>
       </div>
       {alternatives.length > 0 && (

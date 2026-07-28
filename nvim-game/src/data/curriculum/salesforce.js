@@ -2,6 +2,7 @@ import { keyLesson, settingLesson } from './helpers.js';
 
 const topic = 'salesforce';
 const lesson = (config) => keyLesson({ topic, sim: 'sf-terminal', ...config });
+const setting = (config) => settingLesson({ topic, sim: 'settings', ...config });
 
 export const salesforceLessons = [
   lesson({
@@ -261,6 +262,133 @@ export const salesforceLessons = [
     choices: [
       { value: true, label: 'Automatic', effect: 'Shows signs immediately after a coverage run.' },
       { value: false, label: 'Manual', effect: 'Requires <leader>Sv before signs appear.' },
+    ],
+  }),
+
+  setting({
+    id: 'sf.log_narrowing',
+    setting: 'log filetype override',
+    value: 'paths',
+    label: 'Narrowing the sflog filetype',
+    prompt: 'Which .log files are treated as Salesforce debug logs?',
+    explains:
+      'Only those under /sf_cache/ or /.sfdx/. Left alone, sf.nvim claims every .log file, so an unrelated application log would open with Salesforce highlighting.',
+    choices: [
+      {
+        value: 'paths',
+        label: 'Only logs under sf_cache or .sfdx',
+        effect: 'Other .log files stay a plain log filetype.',
+      },
+      { value: 'all', label: 'Every .log file', effect: 'The upstream sf.nvim default.' },
+      { value: 'none', label: 'None', effect: 'Debug logs would lose their highlighting.' },
+    ],
+  }),
+  setting({
+    id: 'sf.no_deploy_key',
+    setting: 'save_and_push',
+    value: 'unbound',
+    label: 'The deliberately missing deploy key',
+    prompt: 'Why is there no keymap for sf.nvim save_and_push?',
+    explains:
+      'It deploys the current file to the org immediately, with no confirmation. Leaving it unbound prevents a mistyped chord from pushing to a shared org; the suggested binding is commented out in the spec.',
+    choices: [
+      {
+        value: 'unbound',
+        label: 'It deploys instantly, so it is left unbound on purpose',
+        effect: 'A safety decision, documented in a comment.',
+      },
+      { value: 'missing', label: 'An oversight', effect: 'The commented suggestion shows it is deliberate.' },
+      { value: 'unsupported', label: 'sf.nvim does not support it', effect: 'The function exists and works.' },
+    ],
+  }),
+  setting({
+    id: 'sf.types_to_retrieve',
+    setting: 'types_to_retrieve',
+    value: 'twelve',
+    label: 'Retrievable metadata types',
+    prompt: 'What limits which metadata types <leader>SM and <leader>Sm can list?',
+    explains:
+      'A twelve-entry list including ApexClass, ApexTrigger, LightningComponentBundle, Flow, PermissionSet and three Omni types. A type absent from the list will not appear in the picker.',
+    choices: [
+      {
+        value: 'twelve',
+        label: 'An explicit twelve-type list',
+        effect: 'Includes OmniScript and related OmniStudio types.',
+      },
+      { value: 'all', label: 'Every type in the org', effect: 'The list is deliberately curated.' },
+      { value: 'apex', label: 'Only Apex types', effect: 'Components and Flows are included too.' },
+    ],
+  }),
+  setting({
+    id: 'sf.fzf_split',
+    setting: 'picker framework',
+    value: 'fzf-lua',
+    label: 'Two picker frameworks',
+    prompt: 'Which picker do the sf.nvim menus use?',
+    explains:
+      'fzf-lua, pulled in solely as an sf.nvim dependency, while everything else in this config uses Telescope. sf.nvim integrates with fzf-lua directly, so the alternative would be no pickers at all.',
+    choices: [
+      {
+        value: 'fzf-lua',
+        label: 'fzf-lua, only for sf.nvim',
+        effect: 'Telescope remains the general-purpose picker.',
+      },
+      { value: 'telescope', label: 'Telescope', effect: 'sf.nvim does not integrate with it.' },
+      { value: 'both', label: 'Either, interchangeably', effect: 'sf.nvim supports only fzf-lua.' },
+    ],
+  }),
+  setting({
+    id: 'sf.hotkeys_filetypes',
+    setting: 'hotkeys_in_filetypes',
+    value: 'nine',
+    label: 'Where sf hotkeys would apply',
+    prompt: 'What is the point of hotkeys_in_filetypes when enable_hotkeys is false?',
+    explains:
+      'It scopes the built-in hotkeys to nine Salesforce-related filetypes if you ever enable them. With enable_hotkeys=false the list is inert, kept so switching it on stays safe.',
+    choices: [
+      {
+        value: 'nine',
+        label: 'It limits them to Salesforce filetypes if enabled',
+        effect: 'Currently inert because hotkeys are off.',
+      },
+      { value: 'active', label: 'It enables them now', effect: 'enable_hotkeys is false.' },
+      { value: 'nothing', label: 'It does nothing ever', effect: 'It matters the moment hotkeys are enabled.' },
+    ],
+  }),
+  setting({
+    id: 'sf.lazy_trigger',
+    setting: 'sf.nvim lazy trigger',
+    value: 'ft',
+    label: 'When sf.nvim loads',
+    prompt: 'What causes sf.nvim to load?',
+    explains:
+      'Opening one of nine Salesforce filetypes, or running :SF. Combined with fetch_org_list_at_nvim_start=false, a non-Salesforce session never pays for it.',
+    choices: [
+      {
+        value: 'ft',
+        label: 'A Salesforce filetype or the :SF command',
+        effect: 'No cost in unrelated projects.',
+      },
+      { value: 'start', label: 'On startup', effect: 'Would slow every launch with a CLI call.' },
+      { value: 'keys', label: 'On the first <leader>S chord', effect: 'The trigger is filetype and command based.' },
+    ],
+  }),
+  setting({
+    id: 'sf.action_indirection',
+    setting: 'sf_action helper',
+    value: 'lazy',
+    label: 'Deferring the sf require',
+    prompt: 'Why do the keymaps call a local sf_action helper instead of require("sf") directly?',
+    explains:
+      'The helper requires sf.nvim only when the key is pressed. Calling require at spec level would load the plugin while lazy.nvim is still reading the specs, defeating the filetype trigger.',
+    choices: [
+      {
+        value: 'lazy',
+        label: 'To keep require out of the spec definition',
+        effect: 'The plugin stays lazy until a key is actually pressed.',
+      },
+      { value: 'error', label: 'Because require would error', effect: 'It would work, but load eagerly.' },
+      { value: 'style', label: 'Purely stylistic', effect: 'It has a real effect on load timing.' },
     ],
   }),
 ];

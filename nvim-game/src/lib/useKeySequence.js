@@ -61,9 +61,10 @@ export function useKeySequence({
       event.preventDefault();
       event.stopPropagation();
 
-      // Escape cancels an unfinished chord. With an empty buffer it remains a
-      // normal answer, so lessons that teach <Esc> still work.
-      if (notation === '<Esc>' && sequenceRef.current) {
+      // Escape abandons a sticky leader chord, which never times out on its
+      // own. Other buffers expire normally, so Escape stays a real key there
+      // and sequences such as <Esc><Esc> remain typable.
+      if (notation === '<Esc>' && sequenceRef.current.startsWith('<leader>')) {
         reset();
         return;
       }

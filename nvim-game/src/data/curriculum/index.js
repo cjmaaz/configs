@@ -1,4 +1,5 @@
 import { coreLessons } from './core.js';
+import { defaultLessons } from './defaults.js';
 import { editingLessons } from './editing.js';
 import { gitLessons } from './git.js';
 import { languageLessons } from './languages.js';
@@ -8,6 +9,7 @@ import { neoTreeLessons } from './neotree.js';
 import { netrwLessons } from './netrw.js';
 import { optionLessons } from './options.js';
 import { pluginLessons } from './plugins.js';
+import { runtimeLessons } from './runtime.js';
 import { salesforceLessons } from './salesforce.js';
 import { telescopeLessons } from './telescope.js';
 
@@ -24,6 +26,8 @@ export const topics = [
   { id: 'salesforce', name: 'Salesforce', icon: 'SF', description: 'Orgs, metadata, Apex tests, SOQL, and coverage' },
   { id: 'plugins', name: 'Plugin settings', icon: 'plug', description: 'Why each plugin option was chosen' },
   { id: 'neotree', name: 'Neo-tree', icon: 'tree+', description: 'Learn the parked explorer before enabling it' },
+  { id: 'runtime', name: 'Startup', icon: 'init', description: 'init.lua, autocommands, and lazy.nvim' },
+  { id: 'defaults', name: 'Defaults', icon: 'std', description: 'What this config leaves untouched' },
 ];
 
 export const allLessons = [
@@ -39,6 +43,8 @@ export const allLessons = [
   ...salesforceLessons,
   ...pluginLessons,
   ...neoTreeLessons,
+  ...runtimeLessons,
+  ...defaultLessons,
 ];
 
 export const activeLessons = allLessons.filter((lesson) => !lesson.inactive);

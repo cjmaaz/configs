@@ -10,18 +10,20 @@ import {
   topics,
 } from './data/curriculum/index.js';
 import {
-  buildSession,
   evaluateSequence,
+  isKnownPrefix,
   nextSimulatedMode,
   resolvePressedLesson,
+  withShuffledChoices,
 } from './lib/gameEngine.js';
 import {
   loadProgress,
-  masteryByTopic,
-  prioritizedPractice,
   recordAnswer,
+  remainingCount,
   resetProgress,
+  topicTotals,
 } from './lib/progress.js';
+import { SESSION_LENGTHS, selectSession, sessionSizeFor } from './lib/scheduler.js';
 import { useKeySequence } from './lib/useKeySequence.js';
 
 const activeTopicIds = topics.filter((topic) => !topic.inactive).map((topic) => topic.id);
@@ -38,6 +40,9 @@ function trainingTimeout(sequence) {
   // leader prefixes indefinitely so learners can read which-key. Escape
   // explicitly cancels an unfinished chord.
   if (sequence.startsWith('<leader>')) return null;
+  // Any partially typed real mapping (for example the first <Esc> of
+  // <Esc><Esc>) gets a relaxed window so recall is tested, not typing speed.
+  if (isKnownPrefix(sequence, activeLessons)) return 4000;
   return 1200;
 }
 
@@ -53,16 +58,16 @@ export default function App() {
   const [simulatedMode, setSimulatedMode] = useState('NORMAL');
   const [focusZone, setFocusZone] = useState('terminal');
   const [progress, setProgress] = useState(loadProgress);
+  const [sessionLength, setSessionLength] = useState('25');
   const [sessionStats, setSessionStats] = useState({ correct: 0, answered: 0, xpStart: 0 });
   const terminalRef = useRef(null);
   const lessonPanelRef = useRef(null);
   const requeuedRef = useRef(new Set());
 
   const lesson = session[index];
-  const mastery = useMemo(
-    () => masteryByTopic(progress, topics, activeLessons),
-    [progress],
-  );
+  const totals = useMemo(() => topicTotals(progress, topics, activeLessons), [progress]);
+  const selectedPool = useMemo(() => lessonsForTopics(selectedTopics), [selectedTopics]);
+  const remaining = useMemo(() => remainingCount(selectedPool, progress), [selectedPool, progress]);
   const alternatives = useMemo(() => (lesson ? alternativesFor(lesson) : []), [lesson]);
 
   const finishAnswer = useCallback(
@@ -152,10 +157,10 @@ export default function App() {
 
   const startGame = (mode) => {
     const pool = lessonsForTopics(selectedTopics);
-    const nextSession =
-      mode === 'practice'
-        ? prioritizedPractice(pool, progress, 12)
-        : buildSession(pool, mode, 12);
+    const size = sessionSizeFor(sessionLength, pool, progress);
+    const nextSession = selectSession(pool, progress, size).map((item) =>
+      withShuffledChoices(item),
+    );
     if (!nextSession.length) return;
 
     setGameMode(mode);
@@ -261,10 +266,34 @@ export default function App() {
               </button>
             </div>
 
+            <section className="session-length" aria-label="Session length">
+              <div>
+                <p className="eyebrow">Session length</p>
+                <p className="muted">
+                  {remaining > 0
+                    ? `${remaining} of ${selectedPool.length} selected challenges still need mastering.`
+                    : `All ${selectedPool.length} selected challenges are mastered. Sessions now revisit the ones you solved longest ago.`}
+                </p>
+              </div>
+              <div className="length-options">
+                {SESSION_LENGTHS.map((option) => (
+                  <button
+                    aria-pressed={sessionLength === option.id}
+                    className={`button ghost ${sessionLength === option.id ? 'is-active' : ''}`}
+                    key={option.id}
+                    onClick={() => setSessionLength(option.id)}
+                    type="button"
+                  >
+                    {option.label}
+                  </button>
+                ))}
+              </div>
+            </section>
+
             <TopicMenu
               topics={topics}
               selected={selectedTopics}
-              mastery={mastery}
+              totals={totals}
               onToggle={toggleTopic}
               onSelectAll={() =>
                 setSelectedTopics((current) =>
@@ -337,7 +366,16 @@ export default function App() {
                 <span className="stat-value">{progress.xp - sessionStats.xpStart}</span>
                 XP gained
               </div>
+              <div className="stat">
+                <span className="stat-value">{remaining}</span>
+                still to master
+              </div>
             </div>
+            <p className="muted">
+              {remaining > 0
+                ? 'The next session starts with challenges you have not mastered yet.'
+                : 'Everything selected is mastered. Further sessions revisit the oldest solves.'}
+            </p>
             <button className="button primary" type="button" onClick={returnToMenu}>
               Return to dojo
             </button>

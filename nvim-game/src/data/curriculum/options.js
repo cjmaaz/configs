@@ -275,4 +275,152 @@ export const optionLessons = [
     explains: 'Enabled on supported Neovim versions.',
     choices: booleanChoices('Scrolls by screen lines through wrapped text.', 'Uses classic logical-line scrolling.'),
   }),
+
+  // Several options were only ever taught inside a combined question, which left
+  // the individual behavior untested. These separate them out.
+  lesson({
+    id: 'options.tabstop',
+    setting: 'tabstop',
+    value: 2,
+    label: 'Width of a literal tab',
+    prompt: 'How many columns wide does an existing tab character render?',
+    explains:
+      'tabstop governs how a tab already in the file is displayed, while shiftwidth governs how much indent the >> operator adds. Both are 2 here.',
+    choices: [
+      { value: 2, label: '2', effect: 'A tab renders as two columns.' },
+      { value: 4, label: '4', effect: 'A common alternative, not used here.' },
+      { value: 8, label: '8', effect: 'The Neovim default this config overrides.' },
+    ],
+  }),
+  lesson({
+    id: 'options.softtabstop',
+    setting: 'softtabstop',
+    value: 2,
+    label: 'Tab key feel in Insert mode',
+    prompt: 'How many columns does pressing <Tab> move in Insert mode?',
+    explains:
+      'softtabstop makes the tab key feel like a two-space indent, and because expandtab is on the result is written as spaces. Its default is 0, meaning defer to tabstop.',
+    choices: [
+      { value: 2, label: '2', effect: 'Tab inserts two columns worth of spaces.' },
+      { value: 0, label: '0', effect: 'The default, which defers entirely to tabstop.' },
+      { value: 4, label: '4', effect: 'Not used here.' },
+    ],
+  }),
+  lesson({
+    id: 'options.smartindent',
+    setting: 'smartindent',
+    value: true,
+    label: 'Syntax-aware auto indent',
+    prompt: 'Does this config add smartindent on top of the default autoindent?',
+    explains:
+      'smartindent reacts to syntax such as an opening brace, adding a level where plain autoindent would only copy the previous line. Note guess-indent may override the related indent options per buffer.',
+    choices: booleanChoices(
+      'Indent increases after an opening brace or keyword.',
+      'Indentation only copies the previous line.',
+    ),
+  }),
+  lesson({
+    id: 'options.linebreak',
+    setting: 'linebreak',
+    value: true,
+    label: 'Break wrapped lines at words',
+    prompt: 'Is linebreak enabled, and does it currently do anything?',
+    explains:
+      'It is set to true, but has no visible effect while wrap is false: linebreak only controls where a wrapped line is broken. It becomes useful the moment you enable wrap for prose.',
+    choices: booleanChoices(
+      'Set true, taking effect only if wrap is turned on.',
+      'Would break wrapped lines mid-word.',
+    ),
+  }),
+  lesson({
+    id: 'options.ignorecase',
+    setting: 'ignorecase',
+    value: true,
+    label: 'Case-insensitive search',
+    prompt: 'Which of the two search-case options makes a lowercase pattern match any case?',
+    explains:
+      'ignorecase alone would make every search case-insensitive. It is the permissive half of the pair; smartcase adds the exception.',
+    choices: booleanChoices(
+      'A lowercase pattern matches uppercase text too.',
+      'Every search would be strictly case-sensitive.',
+    ),
+  }),
+  lesson({
+    id: 'options.smartcase',
+    setting: 'smartcase',
+    value: true,
+    label: 'Capital letters force case sensitivity',
+    prompt: 'Which option makes a pattern containing a capital letter case-sensitive again?',
+    explains:
+      'smartcase overrides ignorecase whenever the pattern has an uppercase character, so /todo finds everything while /TODO finds only the shout.',
+    choices: booleanChoices(
+      'An uppercase character in the pattern restores case sensitivity.',
+      'ignorecase would apply unconditionally.',
+    ),
+  }),
+  lesson({
+    id: 'options.splitright',
+    setting: 'splitright',
+    value: true,
+    label: 'Vertical split placement',
+    prompt: 'Where does a new vertical split open?',
+    explains:
+      'splitright puts it to the right of the current window. The netrw sidebar is the exception, because netrw_altv controls its side independently.',
+    choices: booleanChoices(
+      'New vertical splits open on the right.',
+      'New vertical splits would open on the left.',
+    ),
+  }),
+  lesson({
+    id: 'options.splitbelow',
+    setting: 'splitbelow',
+    value: true,
+    label: 'Horizontal split placement',
+    prompt: 'Where does a new horizontal split open?',
+    explains:
+      'splitbelow puts it underneath the current window, which matches the reading order of a terminal opened below your code.',
+    choices: booleanChoices(
+      'New horizontal splits open below.',
+      'New horizontal splits would open above.',
+    ),
+  }),
+  lesson({
+    id: 'options.list',
+    setting: 'list',
+    value: true,
+    label: 'The whitespace master switch',
+    prompt: 'Which option must be on for listchars to render anything?',
+    explains:
+      'list is the switch and listchars is the glyph table. With list off, the configured tab, trail and nbsp characters would be defined but invisible.',
+    choices: booleanChoices(
+      'Whitespace glyphs from listchars are drawn.',
+      'listchars would be configured but never shown.',
+    ),
+  }),
+  lesson({
+    id: 'options.clipboard_schedule',
+    setting: 'clipboard timing',
+    value: 'schedule',
+    label: 'Why clipboard is set late',
+    prompt: 'Why is vim.opt.clipboard assigned inside vim.schedule?',
+    explains:
+      'Detecting a clipboard provider is slow, so deferring it until after the UI is up keeps startup fast. The option still lands before you can realistically yank anything.',
+    choices: [
+      {
+        value: 'schedule',
+        label: 'To avoid blocking startup on provider detection',
+        effect: 'The UI appears before the clipboard tool is probed.',
+      },
+      {
+        value: 'order',
+        label: 'Because it must load after plugins',
+        effect: 'Clipboard has no dependency on plugin load order.',
+      },
+      {
+        value: 'error',
+        label: 'Because it errors when set early',
+        effect: 'It does not error; the concern is purely startup time.',
+      },
+    ],
+  }),
 ];

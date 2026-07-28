@@ -1,6 +1,8 @@
 export default function SettingsPane({ lesson }) {
   if (!lesson?.choices) return null;
 
+  // TerminalFrame renders this pane only after an answer, so showing the
+  // configured value here reveals nothing early.
   return (
     <div className="overlay-pane lsp-popover" aria-label="Setting alternatives">
       <div className="overlay-header">
