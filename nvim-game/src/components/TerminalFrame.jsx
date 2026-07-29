@@ -1,5 +1,7 @@
 import { forwardRef } from 'react';
 import BufferPane from './BufferPane.jsx';
+import CompletionPane from './CompletionPane.jsx';
+import FormatPane from './FormatPane.jsx';
 import GitSignsPane from './GitSignsPane.jsx';
 import LspHoverPane from './LspHoverPane.jsx';
 import NeoTreePane from './NeoTreePane.jsx';
@@ -13,7 +15,10 @@ import WhichKeyPopup from './WhichKeyPopup.jsx';
 const TerminalFrame = forwardRef(function TerminalFrame(
   {
     lesson,
-    mode,
+    editorState,
+    effectPhase,
+    effectIteration,
+    effectReplayCount,
     sequence,
     result,
     lessons,
@@ -24,8 +29,22 @@ const TerminalFrame = forwardRef(function TerminalFrame(
   },
   ref,
 ) {
-  const active = result?.status === 'correct' || result?.status === 'wrong';
-  const sim = lesson?.sim;
+  const pane = editorState.activePane;
+  const effectVisible =
+    effectPhase === 'preview' || effectPhase === 'playing' || effectPhase === 'settled';
+  const counter = effectIteration ? `${effectIteration}/${effectReplayCount}` : '';
+  let phaseLabel = null;
+  if (effectPhase === 'preview') phaseLabel = `Learn preview ${counter}`;
+  if (effectPhase === 'preview-gap') {
+    phaseLabel = `1s gap · next ${Math.min(effectIteration + 1, effectReplayCount)}/${effectReplayCount}`;
+  }
+  if (effectPhase === 'playing') phaseLabel = `Replay ${counter}`;
+  if (effectPhase === 'playing-gap') {
+    phaseLabel = `1s gap · next ${Math.min(effectIteration + 1, effectReplayCount)}/${effectReplayCount}`;
+  }
+  if (effectPhase === 'settled') {
+    phaseLabel = `${result?.status === 'wrong' ? 'Correct action' : 'Action applied'} ${counter}`;
+  }
 
   return (
     <div
@@ -44,19 +63,32 @@ const TerminalFrame = forwardRef(function TerminalFrame(
         <span className="terminal-title">nvim · keymap-dojo</span>
       </div>
       <div className="editor-workspace">
-        {active && sim === 'netrw-tree' && <NetrwPane />}
-        {active && sim === 'neotree' && <NeoTreePane lesson={lesson} />}
-        <BufferPane lesson={lesson} mode={mode} result={result} />
-        {active && sim === 'telescope-picker' && <TelescopePane lesson={lesson} />}
-        {active && sim === 'gitsigns' && <GitSignsPane lesson={lesson} />}
-        {active && (sim === 'lsp-hover' || sim === 'completion' || sim === 'format') && (
-          <LspHoverPane lesson={lesson} />
+        {pane === 'netrw-tree' && <NetrwPane />}
+        {pane === 'neotree' && <NeoTreePane lesson={lesson} />}
+        <BufferPane state={editorState} />
+        {pane === 'telescope-picker' && <TelescopePane lesson={lesson} />}
+        {pane === 'gitsigns' && <GitSignsPane lesson={lesson} />}
+        {pane === 'lsp-hover' && <LspHoverPane lesson={lesson} />}
+        {pane === 'completion' && <CompletionPane lesson={lesson} />}
+        {pane === 'format' && <FormatPane lesson={lesson} />}
+        {pane === 'sf-terminal' && <SfTerminalPane lesson={lesson} />}
+        {lesson?.kind === 'setting' && effectVisible && (
+          <SettingsPane
+            lesson={lesson}
+            result={result}
+            editorState={editorState}
+            effectPhase={effectPhase}
+          />
         )}
-        {active && sim === 'sf-terminal' && <SfTerminalPane lesson={lesson} />}
-        {active && sim === 'settings' && <SettingsPane lesson={lesson} />}
         <WhichKeyPopup sequence={sequence} lessons={lessons} />
+        {phaseLabel && (
+          <div className={`effect-phase effect-phase-${effectPhase}`}>
+            <span>{phaseLabel}</span>
+            <strong>{editorState.effectLabel || lesson?.label}</strong>
+          </div>
+        )}
       </div>
-      <Statusline mode={mode} sequence={sequence} lesson={lesson} />
+      <Statusline state={editorState} sequence={sequence} lesson={lesson} />
     </div>
   );
 });

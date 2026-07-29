@@ -30,12 +30,17 @@ npm run preview
 
 ### Learn
 
-Shows the goal, expected Neovim mode, and exact chord. Replay it to trigger the
-simulated pane. Wrong input gives a nudge and leaves the same challenge active.
+Shows the goal, expected Neovim mode, and exact chord. Each challenge first plays
+the **before → after** effect three times, returning to the before-state for one
+second between repetitions, then rewinds to the exact state you will act on. Use
+**Replay effect** whenever you want to watch the three-run loop again. Wrong input
+gives a nudge and leaves the same challenge active.
 
 ### Practice
 
-Shows only the task. After answering, the reveal explains:
+Shows only the task and keeps the simulator still until you commit to an answer.
+It then plays the correct action three times and holds the third result—even
+after a wrong answer—before the reveal explains:
 
 - What the pressed chord means (when it matches another mapping).
 - The correct chord and its behavior.
@@ -73,12 +78,22 @@ answer, so percentages start lower against the stricter two-answer bar.
   Other partially typed mappings get 4s and unrecognized input 1.2s. Escape
   only cancels `<leader>` chords, so `<Esc><Esc>` stays typable.
 - Live NORMAL / INSERT / VISUAL / COMMAND / TERMINAL statusline.
+- A plain-data 45-line editor model: cursor position, scrolling, Visual
+  selections, folds, search matches, comments, surrounds, line moves, tabs,
+  split focus, messages, command line, signs, filetype, and statusline position
+  all change from the lesson effect rather than from hardcoded JSX.
+- Declarative effect coverage for all 379 lessons. All 48 buffer keymaps have a
+  bespoke transformation; Telescope, gitsigns, LSP, completion, formatting,
+  netrw, Neo-tree, and sf.nvim use reactive pane effects.
+- Side-by-side visual comparisons for 81 editor-visible settings. Conceptual
+  settings keep their text explanation instead of pretending to have a visual
+  effect.
 - Blue terminal and gold sidebar focus glows. With the sidebar focused, Enter
   activates **Skip for now** or **Next challenge**; terminal-focused Enter
   remains the Neovim `<CR>` key.
 - Relative line numbers, sign column, current-line highlight, and Kanagawa
   Dragon colors.
-- Reactive Telescope, netrw, gitsigns, LSP, completion/settings, which-key,
+- Reactive Telescope, netrw, Neo-tree, gitsigns, LSP, completion/settings, which-key,
   and sf.nvim terminal panes.
 - sf.nvim target-org and Apex coverage statusline segments.
 

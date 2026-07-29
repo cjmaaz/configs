@@ -16,6 +16,7 @@ import {
   resolvePressedLesson,
   withShuffledChoices,
 } from './lib/gameEngine.js';
+import { initialModeForLesson } from './lib/editorState.js';
 import {
   loadProgress,
   recordAnswer,
@@ -24,16 +25,10 @@ import {
   topicTotals,
 } from './lib/progress.js';
 import { SESSION_LENGTHS, selectSession, sessionSizeFor } from './lib/scheduler.js';
+import { useEffectPlayback } from './lib/useEffectPlayback.js';
 import { useKeySequence } from './lib/useKeySequence.js';
 
 const activeTopicIds = topics.filter((topic) => !topic.inactive).map((topic) => topic.id);
-
-function modeForLesson(lesson) {
-  if (lesson?.mode === 'INSERT') return 'INSERT';
-  if (lesson?.mode === 'VISUAL') return 'VISUAL';
-  if (lesson?.mode === 'TERMINAL') return 'TERMINAL';
-  return 'NORMAL';
-}
 
 function trainingTimeout(sequence) {
   // Real Neovim uses timeoutlen=300. The trainer deliberately extends valid
@@ -69,6 +64,7 @@ export default function App() {
   const selectedPool = useMemo(() => lessonsForTopics(selectedTopics), [selectedTopics]);
   const remaining = useMemo(() => remainingCount(selectedPool, progress), [selectedPool, progress]);
   const alternatives = useMemo(() => (lesson ? alternativesFor(lesson) : []), [lesson]);
+  const effectPlayback = useEffectPlayback({ lesson, gameMode, result });
 
   const finishAnswer = useCallback(
     (evaluation, rawInput) => {
@@ -169,7 +165,7 @@ export default function App() {
     setResult(null);
     setPressedLesson(null);
     setHint('');
-    setSimulatedMode(modeForLesson(nextSession[0]));
+    setSimulatedMode(initialModeForLesson(nextSession[0]));
     setSessionStats({ correct: 0, answered: 0, xpStart: progress.xp });
     requeuedRef.current = new Set();
     resetKeys();
@@ -186,7 +182,7 @@ export default function App() {
     setResult(null);
     setPressedLesson(null);
     setHint('');
-    setSimulatedMode(modeForLesson(next));
+    setSimulatedMode(initialModeForLesson(next));
     resetKeys();
   };
 
@@ -216,6 +212,14 @@ export default function App() {
 
   const clearProgress = () => {
     setProgress(resetProgress());
+  };
+
+  const replayEffect = () => {
+    effectPlayback.replay();
+    window.requestAnimationFrame(() => {
+      terminalRef.current?.focus();
+      setFocusZone('terminal');
+    });
   };
 
   return (
@@ -319,7 +323,10 @@ export default function App() {
               <TerminalFrame
                 ref={terminalRef}
                 lesson={lesson}
-                mode={simulatedMode}
+                editorState={effectPlayback.state}
+                effectPhase={effectPlayback.phase}
+                effectIteration={effectPlayback.iteration}
+                effectReplayCount={effectPlayback.replayCount}
                 sequence={sequence}
                 result={result}
                 lessons={activeLessons}
@@ -342,6 +349,10 @@ export default function App() {
                 onNext={nextLesson}
                 onSkip={skipLesson}
                 onEnter={result ? nextLesson : skipLesson}
+                onReplay={replayEffect}
+                effectPhase={effectPlayback.phase}
+                effectIteration={effectPlayback.iteration}
+                effectReplayCount={effectPlayback.replayCount}
                 isFocused={focusZone === 'sidebar'}
                 onFocus={() => setFocusZone('sidebar')}
               />

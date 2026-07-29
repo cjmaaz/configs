@@ -18,13 +18,12 @@ function CoverageIcon() {
   );
 }
 
-export default function Statusline({ mode, sequence, lesson }) {
+export default function Statusline({ state, sequence, lesson }) {
+  const mode = state.mode;
   return (
     <div className="statusline" aria-label={`Neovim mode: ${mode}`}>
       <span className={`status-mode ${mode.toLowerCase()}`}>{mode}</span>
-      <span className="status-file">
-        {lesson?.topic === 'salesforce' ? 'force-app/main/default/classes/AccountService.cls' : 'src/training.lua'}
-      </span>
+      <span className="status-file">{state.file.path}</span>
       {lesson?.topic === 'salesforce' && (
         <>
           <span className="status-segment status-icon-label" aria-label="Salesforce target org DevOrg">
@@ -44,9 +43,11 @@ export default function Statusline({ mode, sequence, lesson }) {
             .join(' ')}
         </span>
       )}
-      <span className="status-segment">utf-8</span>
-      <span className="status-segment">lua</span>
-      <span className="status-segment">12:7</span>
+      <span className="status-segment">{state.file.encoding}</span>
+      <span className="status-segment">{state.file.filetype}</span>
+      <span className="status-segment">
+        {state.cursor.line + 1}:{state.cursor.col + 1}
+      </span>
     </div>
   );
 }

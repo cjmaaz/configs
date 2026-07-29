@@ -16,6 +16,10 @@ const LessonCard = forwardRef(function LessonCard(
     onNext,
     onSkip,
     onEnter,
+    onReplay,
+    effectPhase,
+    effectIteration,
+    effectReplayCount,
     onFocus,
     isFocused,
   },
@@ -80,7 +84,9 @@ const LessonCard = forwardRef(function LessonCard(
           result?.status === 'correct' ? 'success' : result?.status === 'wrong' ? 'error' : ''
         }`}
       >
-        {answered
+        {effectPhase.startsWith('preview')
+          ? `Previewing ${effectIteration || 1}/${effectReplayCount}: ${lesson.label}. The simulator rewinds for one second between runs.`
+          : answered
           ? result.status === 'correct'
             ? 'Command accepted. Watch the simulator respond.'
             : 'Answer captured. Review the mapping and nearby alternatives.'
@@ -97,6 +103,11 @@ const LessonCard = forwardRef(function LessonCard(
       />
 
       <div className="lesson-actions">
+        {(gameMode === 'learn' || answered) && (
+          <button className="button ghost replay-effect" type="button" onClick={onReplay}>
+            Replay effect
+          </button>
+        )}
         {answered ? (
           <button className="button primary keyboard-default" type="button" onClick={onNext}>
             Next challenge

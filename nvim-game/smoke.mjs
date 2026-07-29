@@ -12,9 +12,19 @@ import {
   isKnownPrefix,
   withShuffledChoices,
 } from './src/lib/gameEngine.js';
+import {
+  createEditorState,
+  validateEditorState,
+} from './src/lib/editorState.js';
+import {
+  applyLessonEffect,
+  explicitEffectIds,
+  resolveLessonEffect,
+} from './src/lib/effects.js';
 import { canonicalizeNotation, tokenizeNotation } from './src/lib/keyNotation.js';
 import { emptyProgress, recordAnswer, remainingCount, topicTotals } from './src/lib/progress.js';
 import { selectSession, sessionSizeFor, unmasteredLessons } from './src/lib/scheduler.js';
+import { VISUAL_SETTINGS } from './src/lib/visualSettings.js';
 
 const ids = new Set(allLessons.map((lesson) => lesson.id));
 assert.equal(ids.size, allLessons.length, 'lesson IDs must be unique');
@@ -128,6 +138,79 @@ for (const lesson of activeLessons.filter((item) => item.kind === 'setting')) {
     );
     assert.equal(shuffled.choices.length, lesson.choices.length);
   }
+}
+
+function deepFreeze(value) {
+  if (!value || typeof value !== 'object' || Object.isFrozen(value)) return value;
+  Object.values(value).forEach(deepFreeze);
+  return Object.freeze(value);
+}
+
+// Every current lesson has a deliberate lesson-, setting-, or sim-level effect;
+// fallback exists only so a future lesson degrades safely while its visual is
+// being authored.
+const bufferLessons = activeLessons.filter(
+  (lesson) => lesson.kind === 'keymap' && lesson.sim === 'buffer',
+);
+assert.equal(bufferLessons.length, 48, 'the buffer-effect coverage baseline changed');
+const explicitIds = new Set(explicitEffectIds);
+
+for (const lesson of activeLessons) {
+  const resolved = resolveLessonEffect(lesson);
+  assert.notEqual(resolved.source, 'fallback', `${lesson.id} has no intentional visual effect`);
+
+  const before = deepFreeze(createEditorState(lesson));
+  const first = resolved.effect(before);
+  const second = applyLessonEffect(before, lesson);
+  assert.deepEqual(first, second, `${lesson.id} effect is not deterministic`);
+  assert.deepEqual(
+    validateEditorState(first),
+    [],
+    `${lesson.id} produced an invalid editor state`,
+  );
+
+  if (lesson.kind === 'keymap' && lesson.sim === 'buffer') {
+    assert.ok(explicitIds.has(lesson.id), `${lesson.id} lacks an explicit buffer effect`);
+    assert.notDeepEqual(first, before, `${lesson.id} visual effect changes nothing`);
+  }
+}
+
+// Regression guards for four simulator defects found while adding playback.
+const backdropSettings = activeLessons.filter(
+  (lesson) => lesson.kind === 'setting' && lesson.sim !== 'settings',
+);
+assert.equal(backdropSettings.length, 19, 'setting-backdrop coverage changed');
+for (const lesson of backdropSettings) {
+  const after = applyLessonEffect(createEditorState(lesson), lesson);
+  assert.equal(after.activePane, lesson.sim, `${lesson.id} lost its backdrop pane`);
+}
+
+const commandLesson = activeLessons.find((lesson) => lesson.id === 'modes.command');
+const commandState = applyLessonEffect(createEditorState(commandLesson), commandLesson);
+assert.equal(commandState.mode, 'COMMAND');
+assert.equal(commandState.commandLine, ':');
+
+const deleteBuffer = activeLessons.find((lesson) => lesson.id === 'core.delete_buffer');
+const nextBuffer = activeLessons.find((lesson) => lesson.id === 'core.next_buffer');
+const deleteBefore = createEditorState(deleteBuffer);
+const deleteAfter = applyLessonEffect(deleteBefore, deleteBuffer);
+const nextAfter = applyLessonEffect(createEditorState(nextBuffer), nextBuffer);
+assert.equal(deleteAfter.tabs.length, deleteBefore.tabs.length - 1, 'delete buffer only switched tabs');
+assert.equal(nextAfter.tabs.length, deleteBefore.tabs.length, 'next buffer unexpectedly closed a tab');
+assert.notEqual(deleteAfter.file.path, deleteBefore.file.path, 'statusline file did not follow active tab');
+assert.ok(
+  Number.isInteger(deleteAfter.cursor.line) && Number.isInteger(deleteAfter.cursor.col),
+  'statusline cursor position has no editor-state source',
+);
+
+// Visual setting descriptors must refer to real curriculum values, otherwise a
+// rename silently turns a comparison back into a text-only explanation.
+const curriculumSettingNames = new Set(
+  activeLessons.filter((lesson) => lesson.kind === 'setting').map((lesson) => lesson.setting),
+);
+assert.ok(Object.keys(VISUAL_SETTINGS).length >= 60, 'visual setting coverage regressed');
+for (const setting of Object.keys(VISUAL_SETTINGS)) {
+  assert.ok(curriculumSettingNames.has(setting), `visual setting "${setting}" is not in the curriculum`);
 }
 
 // Scheduling: every lesson must be reachable, which is what made topic mastery
