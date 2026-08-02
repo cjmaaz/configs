@@ -88,9 +88,10 @@ answer, so percentages start lower against the stricter two-answer bar.
 - Side-by-side visual comparisons for 81 editor-visible settings. Conceptual
   settings keep their text explanation instead of pretending to have a visual
   effect.
-- Blue terminal and gold sidebar focus glows. With the sidebar focused, Enter
-  activates **Skip for now** or **Next challenge**; terminal-focused Enter
-  remains the Neovim `<CR>` key.
+- Blue terminal and gold sidebar focus glows. While unanswered, chords are
+  captured globally so Enter/Tab still count even if the sidebar has focus
+  (critical for `<CR>` / `<Tab>` completion lessons). After an answer, sidebar
+  Enter activates **Next challenge**; **Skip for now** is click-only.
 - Relative line numbers, sign column, current-line highlight, and Kanagawa
   Dragon colors.
 - Reactive Telescope, netrw, Neo-tree, gitsigns, LSP, completion/settings, which-key,
@@ -181,7 +182,9 @@ nvim-game/
 
 ## Browser notes
 
-Keystrokes are intercepted only while the simulated terminal has focus.
+Keystrokes are intercepted while a challenge is unanswered (window-level), so
+chords still register if the sidebar has focus. After an answer, focus moves to
+the sidebar and Enter advances.
 Meta/Command combinations are left to the browser.
 
 `<C-w>`, `<C-t>`, `<C-n>` and `<C-q>` cannot be intercepted by a web page, so they

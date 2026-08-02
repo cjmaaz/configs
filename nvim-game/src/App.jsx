@@ -133,6 +133,23 @@ export default function App() {
     onTimeout: handleTimeout,
   });
 
+  // Capture chords at the window while the challenge is open so Enter/Tab and
+  // other keys still count when the sidebar (or Replay) stole focus. Without
+  // this, lessons whose answer is <CR> look broken because sidebar Enter skips.
+  useEffect(() => {
+    if (screen !== 'game' || result) return undefined;
+
+    const onKeyDown = (event) => {
+      if (event.target.closest?.('input, textarea, select, [contenteditable="true"]')) {
+        return;
+      }
+      handleKeyDown(event);
+    };
+
+    window.addEventListener('keydown', onKeyDown, true);
+    return () => window.removeEventListener('keydown', onKeyDown, true);
+  }, [handleKeyDown, result, screen]);
+
   useEffect(() => {
     if (screen === 'game') {
       window.requestAnimationFrame(() => {
@@ -348,7 +365,7 @@ export default function App() {
                 total={session.length}
                 onNext={nextLesson}
                 onSkip={skipLesson}
-                onEnter={result ? nextLesson : skipLesson}
+                onEnter={result ? nextLesson : null}
                 onReplay={replayEffect}
                 effectPhase={effectPlayback.phase}
                 effectIteration={effectPlayback.iteration}

@@ -40,12 +40,18 @@ const LessonCard = forwardRef(function LessonCard(
         }
       }}
       onKeyDown={(event) => {
-        if (event.key === 'Enter' && event.target === event.currentTarget) {
+        // Enter advances after an answer. While unanswered it must stay free for
+        // Neovim <CR> (and other chords captured at the window).
+        if (event.key === 'Enter' && event.target === event.currentTarget && onEnter) {
           event.preventDefault();
           onEnter();
         }
       }}
-      aria-label="Challenge actions; press Enter for the highlighted action"
+      aria-label={
+        answered
+          ? 'Challenge actions; press Enter for Next challenge'
+          : 'Challenge actions; type the answer anywhere, or click Skip for now'
+      }
     >
       <ProgressHud
         xp={progress.xp}
@@ -90,9 +96,9 @@ const LessonCard = forwardRef(function LessonCard(
           ? result.status === 'correct'
             ? 'Command accepted. Watch the simulator respond.'
             : 'Answer captured. Review the mapping and nearby alternatives.'
-          : sequence
+            : sequence
             ? `Keys: ${sequence}`
-            : 'Focus the terminal pane and type your answer.'}
+            : 'Type your answer. Keys register even if the sidebar is focused.'}
       </div>
 
       <AnswerReveal
@@ -113,11 +119,11 @@ const LessonCard = forwardRef(function LessonCard(
             Next challenge
           </button>
         ) : (
-          <button className="button ghost keyboard-default" type="button" onClick={onSkip}>
+          <button className="button ghost" type="button" onClick={onSkip}>
             Skip for now
           </button>
         )}
-        <span className="enter-hint">↵ Enter</span>
+        {answered && <span className="enter-hint">↵ Enter</span>}
       </div>
     </aside>
   );
