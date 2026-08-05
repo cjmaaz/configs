@@ -1,5 +1,9 @@
 # Code OSS Configuration Repository
 
+> **You are on the `deprecated` branch.** It freezes the old `nvim/` tree.
+> Active Neovim config: [cjmaaz/nvim-config](https://github.com/cjmaaz/nvim-config).
+> Prefer [`main`](https://github.com/cjmaaz/CodeOSS-Configs) for everything else (including `nvim-game/`).
+
 > Personal configuration repository for Code OSS-based editors (Cursor, VSCodium, VS Code OSS) with comprehensive settings, profiles, and Salesforce development tools.
 
 [![Compatible with](https://img.shields.io/badge/Compatible%20with-Cursor%20%7C%20VSCodium%20%7C%20Code%20OSS-blue)](https://github.com)

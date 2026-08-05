@@ -1,5 +1,11 @@
 # Neovim configuration
 
+> **Archived on this branch.** Active development moved to
+> [cjmaaz/nvim-config](https://github.com/cjmaaz/nvim-config)
+> (`/Users/maaz.rahman/Documents/Miscs/nvim-config` locally).
+> `main` no longer contains `nvim/`. This `deprecated` branch freezes the last
+> snapshot. See [AGENTS.md on main](https://github.com/cjmaaz/CodeOSS-Configs/blob/main/AGENTS.md).
+
 A modular, polyglot Neovim configuration built on
 [lazy.nvim](https://github.com/folke/lazy.nvim). It targets Neovim 0.12+
 and covers web development, Python, Salesforce Apex/LWC, Java/Spring, Lua,
