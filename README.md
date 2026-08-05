@@ -27,12 +27,17 @@ configs/
 │   ├── scripts/            # Salesforce dev kits (schema gen, rules bootstrap, git diff viewer)
 │   ├── pmd/                # PMD static code analysis rulesets
 │   └── mcp/                # MCP wrapper for Salesforce CLI
-├── nvim/                   # Modular lazy.nvim configuration
-├── nvim-game/              # Gamified browser trainer for the Neovim config
+├── nvim-game/              # Gamified browser trainer (Neovim keymaps/settings)
 ├── raycast/                # Raycast script commands for macOS launchers
 ├── docs/                   # Comprehensive documentation
 └── workspace-examples/     # Example workspace settings
 ```
+
+> **Neovim config moved.** The live config is no longer in this repo’s `main` branch.
+> Develop it in [cjmaaz/nvim-config](https://github.com/cjmaaz/nvim-config).
+> A frozen copy of the old `nvim/` tree is on the [`deprecated`](https://github.com/cjmaaz/CodeOSS-Configs/tree/deprecated/nvim) branch.
+> See [docs/NVIM_MIGRATION.md](docs/NVIM_MIGRATION.md) and [AGENTS.md](AGENTS.md).
+
 
 ## Quick Start
 
@@ -125,12 +130,19 @@ Automated Salesforce development utilities:
 - [`initagentrulespy` — Rules Bootstrap](salesforce/scripts/initagentrulespy/README.md) - Bootstrap AI-agent rules into a new Salesforce repo
 - [`git-change-viewer` — Diff & package.xml](salesforce/scripts/git-change-viewer/README.md) - Combine git changes and export a Salesforce manifest
 - [Salesforce PMD Rulesets](salesforce/pmd/README.md) - Static code analysis rulesets
-- [Neovim Config](nvim/README.md) - Modular lazy.nvim setup with polyglot LSP, completion, formatting, linting, and editor tooling
-- [Nvim Dojo](nvim-game/README.md) - Browser-based game for learning every Neovim keymap and setting in this repo
-- [Raycast Scripts](raycast/README.md) - macOS Script Commands for opening notes and work directories
+- [Neovim Config](https://github.com/cjmaaz/nvim-config) - Active LazyVim-based config (moved out of this repo; see [migration notes](docs/NVIM_MIGRATION.md))
+- [Nvim Dojo](nvim-game/README.md) - Browser-based game for learning Neovim keymaps and settings
+- [Raycast Scripts](raycast/README.md) - macOS Script Commands for opening notes and workspaces
 - [Workspace Examples](workspace-examples/README.md) - Workspace vs user settings
 
 ## Migration Notes
+
+### August 2026 — Neovim config relocated
+
+- Removed `nvim/` from `main`. Canonical home: [cjmaaz/nvim-config](https://github.com/cjmaaz/nvim-config).
+- Frozen snapshot retained on branch [`deprecated`](https://github.com/cjmaaz/CodeOSS-Configs/tree/deprecated).
+- `nvim-game/` stays in this repository.
+- Details: [docs/NVIM_MIGRATION.md](docs/NVIM_MIGRATION.md), [AGENTS.md](AGENTS.md).
 
 ### December 2025 Reorganization
 

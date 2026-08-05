@@ -1,0 +1,15 @@
+---
+description: Neovim config no longer lives on main; point agents to nvim-config
+alwaysApply: true
+---
+
+# Neovim config location
+
+The modular `nvim/` tree was **removed from `main`**. Active Neovim development is in:
+
+- **Local:** `/Users/maaz.rahman/Documents/Miscs/nvim-config`
+- **Remote:** https://github.com/cjmaaz/nvim-config
+
+A frozen copy of the old `nvim/` remains on this repo’s **`deprecated`** branch only.
+
+`nvim-game/` stays in this repository and should continue to be maintained here. Do not recreate `nvim/` on `main`. For Neovim Lua/plugin changes, work in `nvim-config` (or check out `deprecated` only if the user asks about the archived snapshot).

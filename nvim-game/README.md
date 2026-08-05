@@ -1,11 +1,16 @@
 # Nvim Dojo
 
-A gamified browser simulator for the exact Neovim configuration under
-[`../nvim/`](../nvim/). It teaches real keymaps and settings with a terminal-like
-UI, live mode/statusline feedback, scripted plugin panes, and persistent mastery.
+A gamified browser simulator for Neovim keymaps and settings that originated
+from the modular config formerly at `nvim/` in this monorepo.
 
-The game is self-contained. It does not import, generate, or modify any file
-inside the real `nvim/` directory.
+**Config source of truth:** active editing lives in
+[cjmaaz/nvim-config](https://github.com/cjmaaz/nvim-config) (local path for the
+author: `/Users/maaz.rahman/Documents/Miscs/nvim-config`). A frozen copy of the
+old tree is on this repo’s [`deprecated`](https://github.com/cjmaaz/CodeOSS-Configs/tree/deprecated/nvim)
+branch. See [../docs/NVIM_MIGRATION.md](../docs/NVIM_MIGRATION.md).
+
+The game is self-contained. It does not import, generate, or modify any file in
+the live Neovim config repositories.
 
 ## Run locally
 

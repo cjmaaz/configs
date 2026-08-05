@@ -98,5 +98,6 @@ terminal is sufficient.
 
 ## See also
 
-- [Neovim configuration](../nvim/README.md) — the configuration launched by
-  the Neovim Notes command.
+- [Neovim configuration](https://github.com/cjmaaz/nvim-config) — active config
+  launched by the Neovim Notes command (formerly `nvim/` in this repo; see
+  [migration notes](../docs/NVIM_MIGRATION.md)).
