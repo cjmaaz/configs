@@ -6,7 +6,7 @@ detailed README — start there once you know which one you want.
 | Kit | Purpose | README |
 |---|---|---|
 | [`schemapy/`](schemapy/) | **(Python)** 12-step pipeline that retrieves Salesforce metadata, generates a TOON-encoded ER schema (`config/salesforce-er-schema.toon`), splits it into per-object folders under `config/schema/`, enriches every field with picklist values / formulas / lookups, then layers in live record-count usage stats, junction detection, and an `ER.md` diagram. | [`schemapy/README.md`](schemapy/README.md) |
-| [`initagentrulespy/`](initagentrulespy/) | **(Python)** Bootstrap kit that materializes a curated AI-agent rule, skill, doc, script, manifest, and config set (~63 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes those into the generated files so the rules work out of the box on macOS, Linux, and Windows. | [`initagentrulespy/README.md`](initagentrulespy/README.md) |
+| [`initagentrulespy/`](initagentrulespy/) | **(Python)** Bootstrap kit that materializes a curated AI-agent rule, skill, doc, manifest, and config set (~52 files) into any new Salesforce repo. Auto-detects `target-org`, Java home, and PMD binary path and substitutes those into the generated files so the rules work out of the box on macOS, Linux, and Windows. | [`initagentrulespy/README.md`](initagentrulespy/README.md) |
 | [`git-change-viewer/`](git-change-viewer/) | **(Node + Vite)** Local-only web app that combines git changes from two sources — ticked `changes/*.md` docs (auto-extracting their referenced commit hashes) and hand-picked commits from history — into one GitHub-style diff view, then exports the changed files to a Salesforce `package.xml` (with optional `destructiveChanges.xml`). | [`git-change-viewer/README.md`](git-change-viewer/README.md) |
 
 ## Quick Start
@@ -30,10 +30,11 @@ python3 /path/to/initagentrulespy/init.py
 ```
 
 Drops `.cursor/rules/`, `.cursor/permissions.json`, `.cursor/sandbox.json`,
-`.claude/skills/`, `docs/`, `changes/_templates/`, `scripts/` (the `schemapy`
-schema pipeline + `adversarial_review_snapshot.py`), `.vscode/settings.json`,
-`.mcp.json`, `.cursor/mcp.json`, `manifest/` (master + sharded), and
-`config/` (`pmd-ruleset.xml` + `schema/README.md`) into the current directory.
+`.claude/skills/`, `docs/`, `changes/_templates/`, `.vscode/settings.json`,
+`.mcp.json`, `.cursor/mcp.json`, `manifest/` (master + sharded), and `config/`
+(`pmd-ruleset.xml` + `schema/README.md`) into the current directory. It never
+touches the target project's `scripts/` directory; install the standalone
+`schemapy/` and other script tooling separately.
 
 ### Combine git changes and export a package.xml
 

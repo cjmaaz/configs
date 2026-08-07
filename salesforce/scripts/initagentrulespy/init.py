@@ -18,8 +18,7 @@ maintainer; end users never see the original literal values, so nothing
 personal or org-specific leaks through the kit.
 
 Detection strategy:
-  - Alias mirrors `scripts/schemapy/auto_generate_schema.py` — read
-    `<target>/.sf/config.json` first, fall back to
+  - Alias reads `<target>/.sf/config.json` first, falls back to
     `<target>/.sfdx/sfdx-config.json`, then `--alias`, then prompt.
   - Org name has no auto-detection; either supplied via `--org-name` or
     defaults to "CURR ORG" (an obviously-placeholder value users can grep
@@ -39,7 +38,8 @@ Options:
     --pmd-path  PATH     Skip PMD detection; use PATH as the absolute pmd binary.
     --force              Overwrite all managed files (default: fail on differing collision).
     --update             Stage safe merge candidates for an existing customized kit.
-    --missing-only       Explicitly install only missing files (mixed-version risk).
+    --ignore-conflicts   Install missing files and leave conflicting files unchanged.
+    --missing-only       Backward-compatible alias for --ignore-conflicts.
     --dry-run            Print what would be written; do not touch the filesystem.
     --no-prompt          Never prompt interactively; fall back to sentinels instead.
 
@@ -57,6 +57,7 @@ import subprocess
 import sys
 import time
 import uuid
+from dataclasses import dataclass
 from pathlib import Path
 
 # ────────────────────────────────────────────────────────────────────────────
@@ -300,6 +301,319 @@ def is_text_file(rel: Path) -> bool:
     }
 
 
+def is_managed_target_path(rel: Path) -> bool:
+    """The bootstrapper never installs, updates, or removes target scripts."""
+    return bool(rel.parts) and rel.parts[0] != "scripts"
+
+
+@dataclass(frozen=True)
+class JsoncProperty:
+    key: str
+    block_start: int
+    key_start: int
+    value_start: int
+    value_end: int
+    comma_index: int | None
+    block_end: int
+
+
+def skip_jsonc_string(content: str, start: int) -> int:
+    index = start + 1
+    while index < len(content):
+        if content[index] == "\\":
+            index += 2
+        elif content[index] == '"':
+            return index + 1
+        else:
+            index += 1
+    raise ValueError("Unterminated string in .vscode/settings.json")
+
+
+def skip_jsonc_comment(content: str, start: int) -> int:
+    if content.startswith("//", start):
+        newline = content.find("\n", start + 2)
+        return len(content) if newline == -1 else newline + 1
+    if content.startswith("/*", start):
+        end = content.find("*/", start + 2)
+        if end == -1:
+            raise ValueError("Unterminated comment in .vscode/settings.json")
+        return end + 2
+    return start
+
+
+def skip_jsonc_trivia(content: str, start: int) -> int:
+    index = start
+    while index < len(content):
+        if content[index].isspace():
+            index += 1
+            continue
+        comment_end = skip_jsonc_comment(content, index)
+        if comment_end != index:
+            index = comment_end
+            continue
+        break
+    return index
+
+
+def jsonc_property_tail_end(content: str, start: int) -> int:
+    """Include an inline comment/newline without consuming the next property."""
+    index = start
+    while index < len(content) and content[index] in " \t\r":
+        index += 1
+    comment_end = skip_jsonc_comment(content, index)
+    if comment_end != index:
+        index = comment_end
+    if index < len(content) and content[index] == "\n":
+        index += 1
+    return index
+
+
+def parse_jsonc_properties(
+    content: str,
+) -> tuple[int, int, list[JsoncProperty]]:
+    index = 1 if content.startswith("\ufeff") else 0
+    index = skip_jsonc_trivia(content, index)
+    if index >= len(content) or content[index] != "{":
+        raise ValueError(".vscode/settings.json must contain a top-level object")
+    object_start = index
+    index += 1
+    properties: list[JsoncProperty] = []
+
+    while True:
+        index = skip_jsonc_trivia(content, index)
+        if index >= len(content):
+            raise ValueError("Unterminated object in .vscode/settings.json")
+        if content[index] == "}":
+            return object_start, index, properties
+        if content[index] != '"':
+            raise ValueError(
+                f"Expected a quoted setting name near character {index}"
+            )
+
+        key_start = index
+        key_end = skip_jsonc_string(content, key_start)
+        key = json.loads(content[key_start:key_end])
+        colon = skip_jsonc_trivia(content, key_end)
+        if colon >= len(content) or content[colon] != ":":
+            raise ValueError(f"Expected ':' after setting {key!r}")
+        value_start = skip_jsonc_trivia(content, colon + 1)
+
+        cursor = value_start
+        nested_depth = 0
+        value_end = value_start
+        comma_index: int | None = None
+        while cursor < len(content):
+            char = content[cursor]
+            if char == '"':
+                cursor = skip_jsonc_string(content, cursor)
+                value_end = cursor
+                continue
+            comment_end = skip_jsonc_comment(content, cursor)
+            if comment_end != cursor:
+                cursor = comment_end
+                continue
+            if char in "[{":
+                nested_depth += 1
+                value_end = cursor + 1
+            elif char in "]}":
+                if char == "}" and nested_depth == 0:
+                    break
+                nested_depth -= 1
+                if nested_depth < 0:
+                    raise ValueError(
+                        f"Unbalanced value for setting {key!r}"
+                    )
+                value_end = cursor + 1
+            elif char == "," and nested_depth == 0:
+                comma_index = cursor
+                break
+            elif not char.isspace():
+                value_end = cursor + 1
+            cursor += 1
+        else:
+            raise ValueError(f"Unterminated value for setting {key!r}")
+
+        line_start = content.rfind("\n", 0, key_start) + 1
+        block_start = (
+            line_start
+            if not content[line_start:key_start].strip()
+            else key_start
+        )
+        tail_start = (
+            comma_index + 1 if comma_index is not None else value_end
+        )
+        block_end = jsonc_property_tail_end(content, tail_start)
+        properties.append(
+            JsoncProperty(
+                key=key,
+                block_start=block_start,
+                key_start=key_start,
+                value_start=value_start,
+                value_end=value_end,
+                comma_index=comma_index,
+                block_end=block_end,
+            )
+        )
+        index = comma_index + 1 if comma_index is not None else cursor
+
+
+def compact_jsonc(content: str) -> str:
+    """Remove JSONC whitespace/comments while preserving string contents."""
+    output: list[str] = []
+    index = 0
+    while index < len(content):
+        if content[index] == '"':
+            end = skip_jsonc_string(content, index)
+            output.append(content[index:end])
+            index = end
+            continue
+        comment_end = skip_jsonc_comment(content, index)
+        if comment_end != index:
+            index = comment_end
+            continue
+        if not content[index].isspace():
+            output.append(content[index])
+        index += 1
+    return "".join(output)
+
+
+def jsonc_property_block(
+    content: str, prop: JsoncProperty, *, comma: bool
+) -> str:
+    prefix = content[prop.block_start:prop.value_end]
+    if prop.comma_index is None:
+        suffix = content[prop.value_end:prop.block_end]
+    else:
+        suffix = (
+            content[prop.value_end:prop.comma_index]
+            + content[prop.comma_index + 1:prop.block_end]
+        )
+    return prefix + ("," if comma else "") + suffix
+
+
+def reindent_jsonc_block(
+    block: str, source_indent: str, target_indent: str
+) -> str:
+    output: list[str] = []
+    for line in block.splitlines(keepends=True):
+        if line.startswith(source_indent):
+            output.append(target_indent + line[len(source_indent):])
+        elif line.strip():
+            output.append(target_indent + line.lstrip())
+        else:
+            output.append(line)
+    return "".join(output)
+
+
+def comment_jsonc_block(block: str, indent: str) -> str:
+    output: list[str] = []
+    for line in block.rstrip("\n").splitlines():
+        relative = line[len(indent):] if line.startswith(indent) else line.lstrip()
+        output.append(f"{indent}// {relative.rstrip()}\n")
+    return "".join(output)
+
+
+def merge_vscode_settings(existing: str, template: str) -> str:
+    """Merge top-level JSONC settings, preserving previous values as comments."""
+    _, _, template_properties = parse_jsonc_properties(template)
+    _, _, existing_properties = parse_jsonc_properties(existing)
+    existing_by_key = {prop.key: prop for prop in existing_properties}
+    replacements: list[tuple[int, int, str]] = []
+    missing: list[JsoncProperty] = []
+
+    for template_prop in template_properties:
+        existing_prop = existing_by_key.get(template_prop.key)
+        if existing_prop is None:
+            missing.append(template_prop)
+            continue
+        old_value = compact_jsonc(
+            existing[existing_prop.value_start:existing_prop.value_end]
+        )
+        new_value = compact_jsonc(
+            template[template_prop.value_start:template_prop.value_end]
+        )
+        if old_value == new_value:
+            continue
+
+        target_indent = existing[
+            existing_prop.block_start:existing_prop.key_start
+        ]
+        source_indent = template[
+            template_prop.block_start:template_prop.key_start
+        ]
+        new_block = jsonc_property_block(
+            template,
+            template_prop,
+            comma=existing_prop.comma_index is not None,
+        )
+        new_block = reindent_jsonc_block(
+            new_block, source_indent, target_indent
+        )
+        old_block = existing[
+            existing_prop.block_start:existing_prop.block_end
+        ]
+        replacement = (
+            f"{target_indent}// Previous value before initagentrulespy:\n"
+            + comment_jsonc_block(old_block, target_indent)
+            + new_block
+        )
+        replacements.append(
+            (existing_prop.block_start, existing_prop.block_end, replacement)
+        )
+
+    merged = existing
+    for start, end, replacement in sorted(replacements, reverse=True):
+        merged = merged[:start] + replacement + merged[end:]
+
+    if not missing:
+        return merged
+
+    _, object_end, merged_properties = parse_jsonc_properties(merged)
+    if merged_properties:
+        last = merged_properties[-1]
+        last_block = jsonc_property_block(merged, last, comma=True)
+        merged = (
+            merged[:last.block_start]
+            + last_block
+            + merged[last.block_end:]
+        )
+        _, object_end, merged_properties = parse_jsonc_properties(merged)
+
+    if merged_properties:
+        first = merged_properties[0]
+        target_indent = merged[first.block_start:first.key_start]
+    else:
+        target_indent = "  "
+
+    additions = [
+        f"{target_indent}// Added by initagentrulespy\n"
+    ]
+    for index, template_prop in enumerate(missing):
+        source_indent = template[
+            template_prop.block_start:template_prop.key_start
+        ]
+        block = jsonc_property_block(
+            template,
+            template_prop,
+            comma=index < len(missing) - 1,
+        )
+        block = reindent_jsonc_block(
+            block, source_indent, target_indent
+        )
+        if not block.endswith("\n"):
+            block += "\n"
+        additions.append(block)
+
+    prefix = merged[:object_end].rstrip()
+    separator = "\n" if prefix.endswith("{") else "\n\n"
+    return (
+        prefix
+        + separator
+        + "".join(additions)
+        + merged[object_end:]
+    )
+
+
 def fsync_directory(path: Path) -> None:
     if os.name == "nt":
         return
@@ -363,6 +677,23 @@ def target_state(path: Path) -> str:
 
 def file_matches(path: Path, expected: bytes) -> bool:
     return target_state(path) == "file" and path.read_bytes() == expected
+
+
+def target_shape_conflict(target: Path, rel: Path) -> Path | None:
+    """Return the existing path that blocks a generated file, if any."""
+    current = target
+    for index, part in enumerate(rel.parts):
+        current = current / part
+        if not current.exists():
+            return None
+        if current.is_symlink():
+            raise ValueError(f"Symlinked managed path is prohibited: {current}")
+        is_leaf = index == len(rel.parts) - 1
+        if not is_leaf and not current.is_dir():
+            return Path(*rel.parts[: index + 1])
+        if is_leaf and not current.is_file():
+            return rel
+    return None
 
 
 def atomic_write(path: Path, content: bytes) -> None:
@@ -484,17 +815,21 @@ def main() -> int:
                         help="Safely stage changed/new kit files under "
                              ".initagentrulespy-updates/<generation>/ when existing files differ; "
                              "never overwrite customized targets.")
-    parser.add_argument("--missing-only", action="store_true",
-                        help="Explicitly allow installing only missing files into an "
-                             "outdated/customized target (can create mixed kit versions).")
+    parser.add_argument("--ignore-conflicts", "--missing-only",
+                        dest="ignore_conflicts", action="store_true",
+                        help="Install missing files directly in the target, leave "
+                             "conflicting existing files unchanged, and list those "
+                             "conflicts at the end.")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print what would be written; do not touch the filesystem.")
     parser.add_argument("--no-prompt", action="store_true",
                         help="Never prompt interactively.")
     args = parser.parse_args()
 
-    if sum(bool(flag) for flag in (args.force, args.update, args.missing_only)) > 1:
-        parser.error("--force, --update, and --missing-only are mutually exclusive")
+    if sum(bool(flag) for flag in (args.force, args.update, args.ignore_conflicts)) > 1:
+        parser.error(
+            "--force, --update, and --ignore-conflicts are mutually exclusive"
+        )
 
     script_dir = Path(__file__).resolve().parent
     templates_dir = script_dir / "templates"
@@ -510,11 +845,15 @@ def main() -> int:
 
     # Read every bundled template directly. Older kits may still carry the
     # retired release-inventory file; it is metadata, not a target template.
-    template_sources = [
-        (path.relative_to(templates_dir), path.read_bytes())
-        for path in sorted(p for p in templates_dir.rglob("*") if p.is_file())
-        if path.name != ".initagentrulespy-release.json"
-    ]
+    template_sources = []
+    for path in sorted(p for p in templates_dir.rglob("*") if p.is_file()):
+        rel = path.relative_to(templates_dir)
+        if (
+            path.name == ".initagentrulespy-release.json"
+            or not is_managed_target_path(rel)
+        ):
+            continue
+        template_sources.append((rel, path.read_bytes()))
 
     # Validate target dir.
     if not target.exists():
@@ -549,6 +888,8 @@ def main() -> int:
     # read failures up front and gives update mode a complete comparison set.
     rendered: list[tuple[Path, bytes]] = []
     written = skipped = errors = update_conflicts = 0
+    ignored_conflicts: list[Path] = []
+    mergeable_existing: set[Path] = set()
 
     for rel, source_bytes in template_sources:
         try:
@@ -571,6 +912,26 @@ def main() -> int:
             print(f"  ✗ FAILED to render {rel.as_posix()}: {e}")
             errors += 1
 
+    settings_rel = Path(".vscode/settings.json")
+    settings_dst = target / settings_rel
+    if not errors and settings_dst.is_file():
+        for index, (rel, new_bytes) in enumerate(rendered):
+            if rel != settings_rel:
+                continue
+            try:
+                merged = merge_vscode_settings(
+                    settings_dst.read_text(encoding="utf-8"),
+                    new_bytes.decode("utf-8"),
+                )
+                rendered[index] = (rel, merged.encode("utf-8"))
+                mergeable_existing.add(rel)
+            except Exception as error:
+                print(
+                    f"  ✗ FAILED to merge {settings_rel.as_posix()}: {error}"
+                )
+                errors += 1
+            break
+
     if errors:
         print("\nRendering failed; target was not modified.")
     elif args.dry_run:
@@ -583,9 +944,20 @@ def main() -> int:
             for rel, new_bytes in rendered
             if not file_matches(target / rel, new_bytes)
         ]
+        dry_mergeable = {
+            rel for rel, _ in dry_differing if rel in mergeable_existing
+        }
         dry_conflicts = [
-            rel for rel, _ in dry_differing if (target / rel).exists()
+            rel
+            for rel, _ in dry_differing
+            if (target / rel).exists() and rel not in dry_mergeable
         ]
+        dry_shape_conflicts = {
+            rel: blocker
+            for rel, _ in dry_differing
+            if (blocker := target_shape_conflict(target, rel)) is not None
+        }
+        dry_conflicts.extend(dry_shape_conflicts.values())
         dry_obsolete: list[Path] = []
         dry_marker = target / ".initagentrulespy-manifest.json"
         if dry_marker.exists():
@@ -597,6 +969,11 @@ def main() -> int:
                     or {}
                 ).keys()
             ) | set(prior.get("orphaned_managed_files", {}).keys())
+            prior_files = {
+                path
+                for path in prior_files
+                if is_managed_target_path(Path(path))
+            }
             current_files = {rel.as_posix() for rel, _ in rendered}
             dry_obsolete = sorted(
                 Path(path)
@@ -604,13 +981,16 @@ def main() -> int:
                 if (target / path).exists()
             )
             dry_conflicts.extend(dry_obsolete)
+        dry_conflicts = sorted(
+            set(dry_conflicts), key=lambda path: path.as_posix()
+        )
         if (
             dry_conflicts
-            and not (args.force or args.update or args.missing_only)
+            and not (args.force or args.update or args.ignore_conflicts)
         ):
             print(
                 "  ✗ would block: existing kit files differ; choose --update, "
-                "--force, or explicit --missing-only"
+                "--force, or --ignore-conflicts"
             )
             errors += 1
             skipped = len(rendered)
@@ -622,13 +1002,33 @@ def main() -> int:
             update_conflicts = len(dry_conflicts)
             skipped = len(rendered) - len(dry_differing)
         else:
+            if args.ignore_conflicts:
+                ignored_conflicts = dry_conflicts
             for rel, new_bytes in rendered:
                 dst = target / rel
-                if dst.exists() and not args.force:
-                    print(f"  · skip (exists): {rel.as_posix()}")
+                if (
+                    not args.force
+                    and (
+                        dst.exists()
+                        or (
+                            args.ignore_conflicts
+                            and rel in dry_shape_conflicts
+                        )
+                    )
+                    and rel not in dry_mergeable
+                ):
+                    reason = (
+                        "conflict"
+                        if rel in dry_shape_conflicts
+                        else "exists"
+                    )
+                    print(f"  · skip ({reason}): {rel.as_posix()}")
                     skipped += 1
                 else:
-                    verb = "would overwrite" if dst.exists() else "would write"
+                    if rel in dry_mergeable:
+                        verb = "would merge"
+                    else:
+                        verb = "would overwrite" if dst.exists() else "would write"
                     print(f"  · {verb}:        {rel.as_posix()}")
                     written += 1
             if args.force:
@@ -658,20 +1058,25 @@ def main() -> int:
                 for rel, new_bytes in rendered
                 if not file_matches(target / rel, new_bytes)
             ]
+            mergeable_differing = {
+                rel for rel, _ in differing if rel in mergeable_existing
+            }
             existing_conflicts = [
-                rel for rel, new_bytes in differing if (target / rel).exists()
-            ]
-            shape_conflicts = [
                 rel
                 for rel, _ in differing
-                if (target / rel).exists() and not (target / rel).is_file()
+                if (target / rel).exists()
+                and rel not in mergeable_differing
             ]
-            if args.missing_only and shape_conflicts:
-                raise ValueError(
-                    "--missing-only cannot resolve file/directory path-shape "
-                    "changes; use --update or --force: "
-                    + ", ".join(rel.as_posix() for rel in shape_conflicts)
-                )
+            shape_conflicts_by_candidate = {
+                rel: blocker
+                for rel, _ in differing
+                if (blocker := target_shape_conflict(target, rel)) is not None
+            }
+            shape_conflicts = sorted(
+                set(shape_conflicts_by_candidate.values()),
+                key=lambda path: path.as_posix(),
+            )
+            existing_conflicts.extend(shape_conflicts)
             marker_path = target / ".initagentrulespy-manifest.json"
             previous_files: set[str] = set()
             if marker_path.exists():
@@ -686,6 +1091,11 @@ def main() -> int:
                 previous_files.update(
                     previous_marker.get("orphaned_managed_files", {}).keys()
                 )
+                previous_files = {
+                    path
+                    for path in previous_files
+                    if is_managed_target_path(Path(path))
+                }
             current_files = {rel.as_posix() for rel, _ in rendered}
             obsolete = sorted(
                 Path(path)
@@ -701,21 +1111,25 @@ def main() -> int:
                     for obsolete_path in obsolete
                 )
             ]
-            if unsafe_shape_conflicts:
+            if unsafe_shape_conflicts and not args.ignore_conflicts:
                 raise ValueError(
                     "Generated file path collides with an unmanaged directory: "
                     + ", ".join(rel.as_posix() for rel in unsafe_shape_conflicts)
                 )
             existing_conflicts.extend(obsolete)
+            existing_conflicts = sorted(
+                set(existing_conflicts), key=lambda path: path.as_posix()
+            )
+            if args.ignore_conflicts:
+                ignored_conflicts = existing_conflicts
             if (
                 existing_conflicts
-                and not (args.force or args.update or args.missing_only)
+                and not (args.force or args.update or args.ignore_conflicts)
             ):
                 raise ValueError(
-                    "Existing kit files differ from this release. Refusing a "
-                    "mixed-protocol missing-only install; use --update to stage "
-                    "safe merge candidates, --force to replace everything, or "
-                    "--missing-only to accept the mixed-version risk explicitly."
+                    "Existing kit files differ from the bundled templates. Use --update "
+                    "to stage merge candidates, --force to replace everything, "
+                    "or --ignore-conflicts to install only missing files."
                 )
             if args.update and existing_conflicts:
                 assert_safe_target_paths(
@@ -772,7 +1186,19 @@ def main() -> int:
                 planned = [
                     (rel, new_bytes)
                     for rel, new_bytes in rendered
-                    if args.force or not (target / rel).exists()
+                    if (
+                        args.force
+                        or (
+                            (
+                                not (target / rel).exists()
+                                or rel in mergeable_differing
+                            )
+                            and not (
+                                args.ignore_conflicts
+                                and rel in shape_conflicts_by_candidate
+                            )
+                        )
+                    )
                 ]
                 planned_deletions = obsolete if args.force else []
                 skipped = len(rendered) - len(planned)
@@ -780,7 +1206,12 @@ def main() -> int:
                     planned_paths = {rel for rel, _ in planned}
                     for rel, _ in rendered:
                         if rel not in planned_paths:
-                            print(f"  · skip (exists): {rel.as_posix()}")
+                            reason = (
+                                "conflict"
+                                if rel in shape_conflicts_by_candidate
+                                else "exists"
+                            )
+                            print(f"  · skip ({reason}): {rel.as_posix()}")
                 marker_rel = Path(".initagentrulespy-manifest.json")
                 installed_files = {
                     rel.as_posix(): None for rel, _ in rendered
@@ -791,7 +1222,7 @@ def main() -> int:
                             "kit_protocol_version": "1.0",
                             "status": (
                                 "mixed-explicit"
-                                if args.missing_only and existing_conflicts
+                                if args.ignore_conflicts and existing_conflicts
                                 else "complete"
                             ),
                             "installed_files": installed_files,
@@ -800,7 +1231,7 @@ def main() -> int:
                                     rel.as_posix(): None
                                     for rel in obsolete
                                 }
-                                if args.missing_only
+                                if args.ignore_conflicts
                                 else {}
                             ),
                         },
@@ -911,9 +1342,13 @@ def main() -> int:
                                 f"Target changed after backup: {rel.as_posix()}"
                             )
                         atomic_write(dst, new_bytes)
+                        verb = (
+                            "merged"
+                            if existed and rel in mergeable_differing
+                            else "overwrote" if existed else "wrote"
+                        )
                         print(
-                            f"  ✓ {'overwrote' if existed else 'wrote'}:           "
-                            f"{rel.as_posix()}"
+                            f"  ✓ {verb}:           {rel.as_posix()}"
                         )
                         written += 1
                     for item in transaction_files:
@@ -956,6 +1391,14 @@ def main() -> int:
     if args.dry_run:
         summary = "DRY RUN: " + summary
     print(summary)
+    if ignored_conflicts:
+        print()
+        print(
+            f"  Ignored {len(ignored_conflicts)} conflicting path(s); "
+            "existing content was left unchanged:"
+        )
+        for rel in ignored_conflicts:
+            print(f"    - {rel.as_posix()}")
 
     sentinels_used = []
     if alias == ALIAS_SENTINEL:

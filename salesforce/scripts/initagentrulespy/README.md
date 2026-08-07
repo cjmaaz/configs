@@ -15,7 +15,7 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
    python3 /path/to/initagentrulespy/init.py
    ```
 
-   That's it. The script writes ~63 files (the 62-file kit plus an `.initagentrulespy-manifest.json` install-tracking marker) into the current directory and reports a summary.
+   That's it. The script writes ~52 files (the 51-file kit plus an `.initagentrulespy-manifest.json` install-tracking marker) into the current directory and reports a summary.
 
 3. Open `.cursor/rules/sf-cli-commands.mdc` in your editor — that's the canonical entry point for the rules.
 
@@ -29,13 +29,17 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
 | `.claude/skills/`                | 6 skills + `.claude/settings.json` | Claude Code skills mirroring the rules (`adversarial-review`, `apex-development`, `documentation-workflow`, `retrieve-before-edit`, `omnistudio-deploy-cache-bust`, `schema-lookup`), plus the Claude Code allowlist (`permissions.allow`) in `settings.json`. Excludes machine-local `settings.local.json`.                                                                                   |
 | `docs/`                          |                                 12 | Reference docs (OmniStudio guides, sf retrieve playbook, schema-quickref) plus `docs/_templates/` design-doc templates (LLD, open-questions-and-KT, session walkthrough) used by the `documentation-workflow` LLD step. Includes a stub `docs/omnistudio/org-conventions.md`.                                                                                                                 |
 | `changes/_templates/`            |                                  4 | Bug-fix / story / refactor / retrieve-audit doc templates referenced by the `documentation-workflow` rule.                                                                                                                                       |
-| `scripts/`                       |                                 11 | Bundled Python tooling: `schemapy/` (10-file `config/schema/` TOON generation pipeline invoked by `salesforce-schema-validation`) + `adversarial_review_snapshot.py` (the canonical reproducible-snapshot / receipt utility the `adversarial-review` gates require).                                                                                                    |
-| `config/schema/`                 |                                  1 | `README.md` documenting the per-object TOON schema-file layout that `scripts/schemapy/` generates and `salesforce-schema-validation` reads. The schema TOON files themselves are generated per-org, not shipped.                                 |
-| `.vscode/`                       |                                  1 | `settings.json` only (with detected Java home). `extensions.json` and `launch.json` are intentionally NOT generated — leave those to per-project preference.                                                                                     |
+| `config/schema/`                 |                                  1 | `README.md` documenting the per-object TOON schema-file layout that a separately provisioned `scripts/schemapy/` pipeline generates and `salesforce-schema-validation` reads. The schema TOON files themselves are generated per-org, not shipped. |
+| `.vscode/`                       |                                  1 | `settings.json` only (with detected Java home). Existing top-level properties are merged: missing properties are appended, while matching properties are replaced and their previous values retained as comments. `extensions.json` and `launch.json` are not generated. |
 | `.mcp.json` + `.cursor/mcp.json` |                   2 (same content) | MCP server config. Same file content is written to BOTH paths so Claude Code (reads project-root `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. The filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/`                      |                     12 (1 + 11) | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                            |
 | `config/pmd-ruleset.xml`         |                                  1 | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                                             |
 | `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker written into the target: records the kit protocol version, status, and managed file paths so later runs can identify files that became obsolete.                                                                                                                                        |
+
+The bootstrapper never installs, updates, inventories, or removes anything under
+the target's `scripts/` directory. Provision `schemapy` and
+`adversarial_review_snapshot.py` separately when the generated guidance requires
+them; existing project scripts remain untouched.
 
 ### CLI reference
 
@@ -53,12 +57,14 @@ Options:
   --force                 Overwrite all managed files (default: fail on a differing collision).
   --update                Stage changed/new kit files under .initagentrulespy-updates/<gen>/
                           instead of overwriting; never clobbers a customized target.
-  --missing-only          Explicitly install only missing files (accepts mixed-version risk).
+  --ignore-conflicts      Install missing files in the target, leave conflicting files
+                          unchanged, and list every conflict at the end.
+  --missing-only          Backward-compatible alias for --ignore-conflicts.
   --dry-run               Print what would be written; do not touch the filesystem.
   --no-prompt             Never prompt; fall back to sentinel placeholders.
 ```
 
-`--force`, `--update`, and `--missing-only` are mutually exclusive.
+`--force`, `--update`, and `--ignore-conflicts` are mutually exclusive.
 
 ### What gets substituted
 
@@ -83,10 +89,14 @@ A fresh run into an empty (or kit-free) directory just writes every file. On a *
 
 - **Missing files** are always installed.
 - **Identical files** are left alone (counted as skipped).
+- **`.vscode/settings.json` is merged property-by-property** instead of treated
+  as a normal conflict. Missing template properties are appended. A property
+  with a different existing value is replaced, with the previous property
+  commented immediately above it.
 - If any managed file **differs** from this release (you customized it, or you're on an older kit), the default run **fails** rather than silently clobbering or half-upgrading. Pick one:
   - `--update` — stages the changed/new/obsolete candidates under `.initagentrulespy-updates/<generation>/` with a merge manifest, leaving your live files untouched so you can diff and merge deliberately.
   - `--force` — overwrites all managed files and deletes now-obsolete ones (clean re-baseline; discards local edits).
-  - `--missing-only` — installs only the missing files and explicitly accepts the resulting mixed-kit-version risk.
+  - `--ignore-conflicts` — writes missing files directly into the target, leaves every conflicting existing path unchanged, and prints a consolidated conflict list at the end. `--missing-only` remains as an alias.
 
 Use `--dry-run` first to preview any of these.
 
