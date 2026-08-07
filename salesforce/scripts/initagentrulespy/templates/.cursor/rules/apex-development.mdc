@@ -36,7 +36,8 @@ sf project deploy report --job-id <validation-job-id> -o {{ORG_ALIAS}} --json
 sf apex list log -o {{ORG_ALIAS}} --json
 
 # 5. Run adversarial Gate B on the exact diff + bound validation/test/log evidence.
-#    Fix/re-review every blocker before continuing.
+#    Verify every finding before acting on it; rebut rather than silently drop one.
+#    Anything unresolved after three rounds goes to the user, not past this step.
 
 # 6. Recheck org freshness, then real deploy only after Gate B passes
 sf project deploy start --manifest './manifest/<feature>.xml' -o {{ORG_ALIAS}} \
@@ -60,7 +61,7 @@ Create `manifest/<feature-or-fix-name>.xml` per feature; never touch shared mani
         <members>YourModifiedClassTest</members>
         <name>ApexClass</name>
     </types>
-    <version>66.0</version>
+    <version>{{API_VERSION}}</version>
 </Package>
 ```
 
@@ -174,6 +175,6 @@ List<Account> accts = [
 - [ ] NEW manifest created (descriptive name, only modified files).
 - [ ] Test data uses a factory where one exists; all fields schema-validated.
 - [ ] Tests cover adversarial findings plus bulk, null/error, dependency/regression, and concurrency risks; coverage verified (≥75%, target 90%+).
-- [ ] Gate B passed against the final diff/test evidence; no unresolved blocker.
+- [ ] Gate B passed against the final diff/test evidence; every finding verified, rebutted, or escalated — no unresolved blocker and nothing still in the challenge loop.
 - [ ] Every post-deploy/test/async log inspected — no `EXCEPTION|ERROR|FATAL`; expected triggers/flows fired; governor limits OK; no discrepancy that reopens Gate B.
 - [ ] Params single-line; SOQL formatted per the 200-char rule.

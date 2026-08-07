@@ -1,9 +1,20 @@
 ---
-description: OmniStudio runs from compiled artifacts cached in OmniProcessCompilation rows, NOT the metadata you just deployed — a plain `sf project deploy start` often does not invalidate that cache. Apply BEFORE deploying any active OmniScript / Integration Procedure / FlexCard, or whenever a deploy "didn't take effect" (probes don't fire, conditionals don't gate, swapped DR not invoked). Skip for DataRaptors (interpreted, not compiled).
+description: Standard OmniStudio runs from compiled artifacts cached in OmniProcessCompilation rows, NOT the metadata you just deployed — a plain `sf project deploy start` often does not invalidate that cache. Apply BEFORE deploying any active OmniScript / Integration Procedure / FlexCard, or whenever a deploy "didn't take effect" (probes don't fire, conditionals don't gate, swapped DR not invoked). Check the flavour gate first: this rule does NOT apply to Vlocity CMT orgs. Skip for DataRaptors (interpreted, not compiled).
 alwaysApply: true
 ---
 
 # OmniStudio deploys = mandatory cache-bust dance
+
+## ⛔ Flavour gate — run this FIRST, every time
+
+This rule describes **standard OmniStudio**. On a **Vlocity CMT** org none of it applies: the `OmniProcess` family is empty by design, so every command below succeeds while deleting nothing, and the self-check at the bottom ("0 compilation rows") passes vacuously. You would conclude the cache was busted when nothing was touched.
+
+```bash
+sf data query -o {{ORG_ALIAS}} -q "SELECT COUNT() FROM OmniProcess" --json | jq '.result.totalSize'
+```
+
+- **Greater than 0** → standard OmniStudio. Continue with this rule.
+- **0** → **STOP.** Confirm with `sf package installed list -o {{ORG_ALIAS}} --json | jq -r '.result[].SubscriberPackageNamespace' | grep -qx vlocity_cmt`. This org stores OmniStudio in `vlocity_cmt__OmniScript__c` / `vlocity_cmt__Element__c` / `vlocity_cmt__DRBundle__c`. Invalidate via `vlocity packDeploy` plus re-activation in OmniStudio Designer — not via anything below.
 
 **OmniStudio runs from compiled artifacts cached in `OmniProcessCompilation` rows, not from the metadata you just deployed.** A vanilla `sf project deploy start` doesn't reliably invalidate that cache. **Either delete the compilation row OR run the full 5-step deactivate/reactivate dance** before assuming your deploy took effect. Apply this for **every deploy of an active OmniProcess version** — not "when symptoms appear" (by the time probes don't fire you've already burned an hour debugging working code).
 
@@ -31,9 +42,9 @@ alwaysApply: true
 
 1. Apply every functional edit **and** the one-character top-level `<description>` byte-flip before snapshot/review.
 2. Dry-run the final manifest and survey the exact Type/SubType/Language family plus caller-chain process IDs.
-3. Before Gate B, create exact executable invalidation/reactivation scripts and compensating metadata rollback under `.adversarial-review/<generation>/operations/`; include these ignored files explicitly in the artifact snapshot.
+3. Before Gate B, create exact executable invalidation/reactivation scripts and compensating metadata rollback under `.sf-ops/<timestamp>/` (gitignored). Paste each script into the change doc's diff-highlights so Gate B reviews the exact bytes you will run.
 4. Run Gate B against final bytes, caller-chain IDs, dry-run/runtime evidence, operation scripts, and rollback artifact.
-5. Hold an exclusive component maintenance window from final freshness check through deploy/invalidation. Any byte, caller-chain, operation-script, or org-state change reruns Gate B.
+5. Re-check component freshness immediately before deploying, then run deploy and invalidation as one uninterrupted sequence — the shorter that window, the smaller the race. If anyone else deploys into the family mid-sequence, abort and rerun Gate B. Any byte, caller-chain, operation-script, or org-state change also reruns Gate B.
 
 Never edit `<description>` or any metadata after Gate B.
 
@@ -46,10 +57,10 @@ Use for a low-risk edit when same-version reactivation is unnecessary.
 sf project deploy start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}} --ignore-conflicts --wait 5
 
 # 2. AFTER deploy, delete exact Vcurrent + reviewed caller-chain compilations atomically.
-cat > .adversarial-review/<generation>/operations/invalidate-reviewed-chain.apex <<'EOF'
+cat > .sf-ops/<timestamp>/invalidate-reviewed-chain.apex <<'EOF'
 delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId IN ('<current>','<caller-1>','<caller-2>')];
 EOF
-sf apex run -o {{ORG_ALIAS}} --file .adversarial-review/<generation>/operations/invalidate-reviewed-chain.apex
+sf apex run -o {{ORG_ALIAS}} --file .sf-ops/<timestamp>/invalidate-reviewed-chain.apex
 sf apex list log -o {{ORG_ALIAS}} --json
 ```
 
@@ -64,7 +75,7 @@ Use one Apex transaction after deploying reviewed bytes. If any statement fails,
 sf project deploy start --manifest manifest/<feature>.xml -o {{ORG_ALIAS}} --ignore-conflicts --wait 5
 
 # 2. Prepare one atomic reactivation transaction with exact reviewed IDs.
-cat > .adversarial-review/<generation>/operations/reactivate-current.apex <<'EOF'
+cat > .sf-ops/<timestamp>/reactivate-current.apex <<'EOF'
 Set<Id> reviewedProcessIds = new Set<Id>{'<Vcurrent.Id>','<caller-1>','<caller-2>'};
 List<OmniProcess> lockedProcesses = [SELECT Id, IsActive FROM OmniProcess WHERE Id IN :reviewedProcessIds ORDER BY Id FOR UPDATE];
 if (lockedProcesses.size() != reviewedProcessIds.size()) throw new IllegalArgumentException('Reviewed process set changed');
@@ -75,12 +86,12 @@ update new OmniProcess(Id = current.Id, IsActive = false);
 delete [SELECT Id FROM OmniProcessCompilation WHERE OmniProcessId IN :reviewedProcessIds];
 update new OmniProcess(Id = current.Id, IsActive = true);
 EOF
-sf apex run -o {{ORG_ALIAS}} --file .adversarial-review/<generation>/operations/reactivate-current.apex
+sf apex run -o {{ORG_ALIAS}} --file .sf-ops/<timestamp>/reactivate-current.apex
 sf apex list log -o {{ORG_ALIAS}} --json
 # Fetch/inspect every log ID created by this anonymous-Apex operation.
 ```
 
-Do NOT delete `OmniIntegrationProcConfig`, any `OmniProcess`, or local metadata files. A concurrent operator either waits on `FOR UPDATE` or fails/rolls back; it cannot commit a half-active family. If post-deploy verification fails, execute the exact Gate-B-reviewed compensating metadata deploy, verify prior runtime behavior/compilation, and start a new generation before any forward retry.
+Do NOT delete `OmniIntegrationProcConfig`, any `OmniProcess`, or local metadata files. A concurrent operator either waits on `FOR UPDATE` or fails/rolls back; it cannot commit a half-active family. If post-deploy verification fails, execute the exact Gate-B-reviewed compensating metadata deploy, verify prior runtime behavior/compilation, then rerun Gate B against the new revision before any forward retry.
 
 ## Caller chain — the #1 reason "the dance worked but probes still don't fire"
 
@@ -102,11 +113,12 @@ Diagnostic: if the parent IP's `OmniProcessCompilation.LastModifiedDate` predate
 
 ## Edge cases
 
-- **Dry-run/deploy reports `Unchanged`:** the pre-Gate-B description flip didn't persist. Stop before mutation, fix it, create a new artifact generation, and rerun all reviewers.
+- **Dry-run/deploy reports `Unchanged`:** the pre-Gate-B description flip didn't persist. Stop before mutation, fix it, then rerun all three critics against the new revision.
 - **OmniScripts add a browser cache layer:** after the server-side bust, hard-refresh (Cmd/Ctrl+Shift+R) the host Lightning page, or sign out/in.
 
 ## Self-check (before declaring success)
 
+- [ ] Flavour gate ran and returned a non-zero `OmniProcess` count — otherwise every check below is vacuous.
 - [ ] `OmniProcess`: Vcurrent `IsActive=true`, `LastModifiedDate` within the last minute.
 - [ ] `OmniProcessElement`: your changed elements have NEW `Id`s.
 - [ ] Before first invocation: 0 compilation rows; OR after a concurrent/intentional invocation: compilation `LastModifiedDate` is post-deploy and runtime behavior/probes prove it compiled the reviewed elements.
@@ -119,7 +131,7 @@ Diagnostic: if the parent IP's `OmniProcessCompilation.LastModifiedDate` predate
 | Error / symptom | Cause | Fix |
 |---|---|---|
 | `FIELD_INTEGRITY_EXCEPTION: You can't update or delete an active Omniscript record...` | Attempted process/config deletion or unsupported active-state mutation | Use reviewed Path A or atomic Path B; never delete process/config rows |
-| `UNABLE_TO_LOCK_ROW` | Another operator owns the family/current row | Abort; recheck state and maintenance window, then create a new gate generation |
+| `UNABLE_TO_LOCK_ROW` | Another operator owns the family/current row | Abort; recheck org state, then rerun Gate B against the new revision |
 | `DEPENDENCY_EXISTS: ... Omni Integration Procedure Configuration` | Someone attempted unnecessary config/process deletion | Keep config/process rows; delete only the compilation |
 | `Status: Succeeded` + `State: Unchanged` | File matches org byte-for-byte | Description tweak didn't persist — re-edit |
 | `No source-backed components present...` | Manifest member used slash syntax | Use `<Type>_<SubType>_Procedure_<N>` underscores |

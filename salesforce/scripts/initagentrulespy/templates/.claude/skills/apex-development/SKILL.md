@@ -5,9 +5,9 @@ description: Runs the full Apex lifecycle on `{{ORG_ALIAS}}` for creating, modif
 
 # Apex development: deploy, test, lint, verify, format
 
-Default target org is `{{ORG_ALIAS}}` (sandbox), source API version `66.0`. Every step below is mandatory.
+Default target org is `{{ORG_ALIAS}}` (sandbox), source API version `{{API_VERSION}}`. Every step below is mandatory.
 
-Use the `adversarial-review` skill for Gate A before editing and Gate B before every real deploy/commit.
+Use the `adversarial-review` skill for Gate A before editing and Gate B before every real deploy/commit. Verify each finding before acting on it, rebut rather than silently dropping one, and escalate to the user after three unresolved rounds.
 
 ## Step 1 — Retrieve before editing
 
@@ -25,7 +25,7 @@ Pull the current state of every component you'll touch (class + its test + facto
 
 ## Step 3 — Create a NEW manifest
 
-Never overwrite shared manifests (`apex.xml`, `mainpackage.xml`, …). Create `manifest/<feature-or-fix-name>.xml` with only the modified components (`<version>66.0</version>`).
+Never overwrite shared manifests (`apex.xml`, `mainpackage.xml`, …). Create `manifest/<feature-or-fix-name>.xml` with only the modified components (`<version>{{API_VERSION}}</version>`).
 
 ## Step 4 — PMD and validate without committing
 
@@ -81,7 +81,7 @@ sf apex get log --log-id <operation-log-id> -o {{ORG_ALIAS}}
 - [ ] NEW manifest (descriptive name, only modified files).
 - [ ] Test data uses a factory where one exists; fields schema-validated.
 - [ ] Tests cover adversarial findings plus bulk/null/error/dependency/concurrency risks; coverage verified (≥75%, target 90%+).
-- [ ] Gate B passed against the final diff/evidence.
+- [ ] Gate B passed against the final diff/evidence; every finding verified, rebutted, or escalated — nothing still in the challenge loop.
 - [ ] Every post-deploy/test/async log inspected; no discrepancy that reopens Gate B.
 - [ ] Params single-line; SOQL formatted per the 200-char rule.
 

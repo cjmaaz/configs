@@ -55,7 +55,16 @@ Re-read the file after the retrieve completes. If git shows the retrieve changed
 
 ## Step 4 — Recheck org freshness before deploy
 
-If analysis/review/implementation took time, compare the org component state again immediately before deployment **without retrieving over the edited working files** (temporary metadata target/archive or LastModifiedDate/hash evidence). Hold a component-scoped maintenance lease/exclusive deployment window from that comparison through deployment; without one, the overwrite race remains and deployment is blocked. If a teammate/admin changed an intended component after Step 2, STOP: merge, revalidate/test, create a new artifact generation, and rerun all three Gate B reviewers. `--ignore-conflicts` never authorizes overwriting newer org work.
+If analysis/review/implementation took time, compare the org component state again immediately before deployment **without retrieving over the edited working files** — query each component's `LastModifiedDate` and `LastModifiedById`, or retrieve into a throwaway `--target-metadata-dir`:
+
+```bash
+sf data query -o {{ORG_ALIAS}} --use-tooling-api \
+  --query "SELECT Name, LastModifiedDate, LastModifiedBy.Name FROM ApexClass WHERE Name IN ('<Class1>','<Class2>')"
+```
+
+That Tooling-API form works for ApexClass, ApexTrigger, CustomField, CustomObject, Layout, FlexiPage, Flow, PermissionSet, ValidationRule, RecordType, WebLink, and the LWC/Aura bundles. It does **not** work for the Omni types — `OmniProcess` and `OmniDataTransform` are not Tooling objects and return `sObject type ... is not supported`. Query those on the standard data API instead, and on a Vlocity CMT org use `vlocity_cmt__OmniScript__c` / `vlocity_cmt__DRBundle__c`, since the standard objects are empty there.
+
+Compare against the timestamps captured at Step 2. If nothing moved, deploy promptly — the shorter the gap between this check and the deploy, the smaller the overwrite race. If a teammate or admin changed an intended component after Step 2, STOP: merge their change, revalidate and re-test, then rerun all three Gate B critics against the new revision. `--ignore-conflicts` never authorizes overwriting newer org work.
 
 ## Scope
 

@@ -162,7 +162,7 @@ OmniStudio runs inside the standard Apex transaction. The same governor limits a
 
 When `includeAllActionsInResponse: true` on the IP header, the response includes per-element execution metadata. This is debug-only, but useful for finding which element is consuming the most resources.
 
-In {{ORG_NAME}}, the [`scripts/ip-debug/`](../../scripts/ip-debug/README.md) toolchain captures the full debug log alongside the response, so per-element CPU time and SOQL counts are observable without changing the IP itself.
+An IP debug runner (see below) captures the full debug log alongside the response, so per-element CPU time and SOQL counts are observable without changing the IP itself.
 
 ### Chainable IPs
 
@@ -239,7 +239,7 @@ Most OmniStudio debugging starts with an Apex debug log. To capture one:
 The log's `USER_DEBUG` markers from OmniStudio look like:
 
 ```
-USER_DEBUG|[1]|DEBUG|=== START IP: PRM_PractitionerCreationContainer ===
+USER_DEBUG|[1]|DEBUG|=== START IP: OrderIntakeContainer ===
 USER_DEBUG|[1]|DEBUG|=== Element: SV_BuildPayload (Set Values) ===
 USER_DEBUG|[1]|DEBUG|elementValueMap: { ... }
 USER_DEBUG|[1]|DEBUG|=== End Element ===
@@ -250,12 +250,14 @@ A 5 MB log limit truncates very chatty IPs. Mitigations:
 - Split the IP into smaller scenarios.
 - Use the IP debug runner (next section), which captures logs per invocation.
 
-### The {{ORG_NAME}} `scripts/ip-debug/` toolchain
+### An IP debug runner (`scripts/ip-debug/`)
+
+> **This is a pattern, not something the bootstrap kit installs.** The kit never writes under `scripts/`. Build the runner once per project — it is a few dozen lines — and the rest of this section describes the shape that works well.
 
 For any IP-driven debugging, the fastest workflow is:
 
-1. Curate an input JSON in [`scripts/ip-debug/inputs/`](../../scripts/ip-debug/inputs/).
-2. Run [`scripts/ip-debug/run_ip.sh`](../../scripts/ip-debug/README.md) with `--ip <Type_SubType> --input <path>`.
+1. Curate an input JSON in `scripts/ip-debug/inputs/`.
+2. Run `scripts/ip-debug/run_ip.sh` with `--ip <Type_SubType> --input <path>`.
 3. Inspect the response JSON and debug log written to `scripts/ip-debug/outputs/`.
 
 The runner generates an anonymous Apex script that calls `Omnistudio.IntegrationProcedureService.runIntegrationService(...)`, captures the result, and emits markers in the debug log so the response/error can be cleanly extracted. No metadata deploys, no UI, no Salesforce session.
@@ -263,10 +265,10 @@ The runner generates an anonymous Apex script that calls `Omnistudio.Integration
 This is the right tool for:
 - Reproducing a production failure with a known input.
 - Comparing IP behavior across orgs.
-- Characterizing list-formula edge cases (see [`PRM_FormulaProbe`](formulas.md#probing-formula-behavior)).
+- Characterizing list-formula edge cases (see [`FormulaProbe`](formulas.md#probing-formula-behavior)).
 - Smoke-testing IP changes before deploying to a UI.
 
-See [`scripts/ip-debug/README.md`](../../scripts/ip-debug/README.md) for full usage.
+Document your project's runner in `scripts/ip-debug/README.md` so the rest of these docs have something concrete to point at.
 
 ### The `responseJSONNode` pruning pitfall
 
@@ -447,7 +449,7 @@ Symptom: deploy "succeeds", but launching the OmniScript shows a loading spinner
 
 1. Document every component's dependencies in a deployment checklist.
 2. Deploy platform metadata (custom fields, custom objects, permission sets) **first** via SFDX, then OmniStudio components via VBT or `sf project deploy`. The reverse order is the most common cause of broken deploys.
-3. Smoke-test every deployed OmniScript and IP in the target org — automated with [`scripts/ip-debug/`](../../scripts/ip-debug/README.md) for IPs, manual for OmniScripts.
+3. Smoke-test every deployed OmniScript and IP in the target org — automated with `scripts/ip-debug/` for IPs, manual for OmniScripts.
 4. Don't trust a green validation as a guarantee.
 
 ### `packDeploy` overwrites the active version
@@ -491,4 +493,4 @@ OmniScripts can reference IPs that reference DataRaptors that reference Apex tha
 - [`dataraptors.md`](dataraptors.md) — DataRaptor fundamentals
 - [`formulas.md`](formulas.md) — formula reference and the OS↔IP exclusivity matrix
 - [`org-conventions.md`](org-conventions.md) — {{ORG_NAME}}-specific deploy and naming rules
-- [`scripts/ip-debug/README.md`](../../scripts/ip-debug/README.md) — IP debugging toolchain
+- `scripts/ip-debug/README.md` — IP debugging toolchain

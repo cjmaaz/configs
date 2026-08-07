@@ -57,7 +57,7 @@ Re-read the file with the `Read` tool after retrieve completes. If git shows the
 
 ## Step 4 — Recheck freshness before deploy
 
-Immediately before deployment, compare intended components against the org again without retrieving over edited working files (temporary metadata target/archive or LastModifiedDate/hash evidence). Hold a component-scoped maintenance lease/exclusive deployment window through deployment; without one, deployment is blocked. Any drift requires merge, revalidation/tests, a new artifact generation, and all three Gate B reviewers. `--ignore-conflicts` never authorizes overwriting newer org work.
+Immediately before deployment, compare intended components against the org again without retrieving over edited working files — query `LastModifiedDate` / `LastModifiedById` (Tooling API) or retrieve into a throwaway `--target-metadata-dir`, and diff against the timestamps captured at Step 2. Tooling covers Apex, fields, objects, layouts, FlexiPages, Flows, perm sets, LWC/Aura; the Omni types are **not** Tooling objects — use the standard data API, or `vlocity_cmt__*` on a Vlocity CMT org. Deploy promptly after a clean check; the shorter that gap, the smaller the overwrite race. Any drift requires merge, revalidation/tests, and rerunning all three Gate B critics on the new revision. `--ignore-conflicts` never authorizes overwriting newer org work.
 
 ## Scope
 

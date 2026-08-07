@@ -158,7 +158,7 @@ picklists:
     values[2]{label,value,count}:
       Open,Open,3421
       Closed,Closed,1892
-  PRM_PractitionerRole__c:
+  OrderLineItem__c:
     values[3]{label,value,count}:
       Primary Care Physician,PCP,897
       Specialist,Specialist,514
@@ -323,8 +323,8 @@ pip install -r scripts/schemapy/requirements.txt
 
 ## Metadata
 
-- **Generated:** 2026-06-29T15:40:44.917766
-- **Total Objects:** 683
+- **Generated:** 2026-08-07T12:50:58.320151
+- **Total Objects:** 1016
 - **Source:** {{WORKSPACE_PATH}}/config/salesforce-er-schema.toon
 - **Format:** TOON (Token-Oriented Object Notation, v3.0)
 - **Layout version:** 2 (7-file split with tabular `fields.toon`)

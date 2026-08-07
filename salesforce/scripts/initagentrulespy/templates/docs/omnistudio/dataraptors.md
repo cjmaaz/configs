@@ -70,7 +70,7 @@ Output Mappings:
   Account.Id          -> Account.Id
   Account.Name        -> Account.Name
   Account.Owner.Name  -> Account.OwnerName
-  Account.PRM_Stage__c -> Account.Stage
+  Account.LegacyStage__c -> Account.Stage
 ```
 
 The mapping table is the entire definition. There's no transform layer, which is exactly why it's fast.

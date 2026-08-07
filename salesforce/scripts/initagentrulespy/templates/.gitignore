@@ -1,0 +1,70 @@
+# This file is used for Git repositories to specify intentionally untracked files that Git should ignore.
+# If you are not using git, you can delete this file. For more information see: https://git-scm.com/docs/gitignore
+# For useful gitignore templates see: https://github.com/github/gitignore
+
+# Salesforce cache
+.sf/
+.sfdx/
+.localdevserver/
+deploy-options.json
+
+# LWC VSCode autocomplete
+**/lwc/jsconfig.json
+
+# LWC Jest coverage reports
+coverage/
+
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Dependency directories
+node_modules/
+
+# ApexPMD cache
+.pmdCache
+
+# Eslint cache
+.eslintcache
+
+# MacOS system files
+.DS_Store
+
+# Windows system files
+Thumbs.db
+ehthumbs.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Local environment variables
+.env
+
+# Python Salesforce Functions
+**/__pycache__/
+**/.venv/
+**/venv/
+
+# Per-run retrieve logs (current/ plus rotated archive/<TS>/ runs)
+.retrieve-logs/
+
+# Ad-hoc org operation scripts (OmniStudio cache-bust, invalidation, rollback).
+# Their content is reviewed via the change doc's diff-highlights, not by tracking.
+.sf-ops/
+
+# initagentrulespy install state. Per-machine by nature — it records the JDK and
+# PMD paths this install detected, so committing it would push one developer's
+# filesystem onto everyone else's clone.
+.initagentrulespy-manifest.json
+.initagentrulespy-transactions/
+.initagentrulespy-updates/
+.initagentrulespy.lock
+
+# Vlocity Build temp
+.vlocity/
+vlocity-temp/
+VlocityBuildLog.yaml
+VlocityBuildErrors.log
+vlocity-inactive/

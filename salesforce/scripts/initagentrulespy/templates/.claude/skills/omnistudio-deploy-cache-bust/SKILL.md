@@ -10,6 +10,12 @@ description: OmniStudio runs from compiled artifacts cached in OmniProcessCompil
 > Retrieve before editing (`retrieve-before-edit` skill) — OmniStudio drifts especially fast (admins edit IPs/DRs in the UI). Pass implementation Gate B through the `adversarial-review` skill before deleting compilations, swapping versions, or deploying. Companion rule: `.cursor/rules/omnistudio-deploy-cache-bust.mdc` — keep both in sync.
 > Bind every anonymous-Apex log using the TraceFlag/time-window/user/job correlation and async polling from `apex-development`; listing logs alone is insufficient.
 
+## ⛔ Flavour gate — run FIRST
+
+`sf data query -o {{ORG_ALIAS}} -q "SELECT COUNT() FROM OmniProcess" --json | jq '.result.totalSize'`
+
+**0 means STOP** — this is a Vlocity CMT org (confirm the `vlocity_cmt` namespace via `sf package installed list`). The `OmniProcess` family is empty by design there, so every command below succeeds while deleting nothing and the self-check passes vacuously. CMT content lives in `vlocity_cmt__OmniScript__c` / `vlocity_cmt__Element__c` / `vlocity_cmt__DRBundle__c`; invalidate via `vlocity packDeploy` plus re-activation in OmniStudio Designer.
+
 ## The cache model
 
 - Each OmniScript / IP / FlexCard = one **`OmniProcess`** row (`UniqueName = <Type>_<SubType>_<Lang>_<Version>`, or `<Type>_<SubType>_Procedure_<Version>` for IPs); steps are **`OmniProcessElement`** rows.
@@ -29,7 +35,7 @@ description: OmniStudio runs from compiled artifacts cached in OmniProcessCompil
 
 ## Preparation before Gate B
 
-Finish functional edits and the one-character top-level `<description>` byte-flip first. Dry-run final bytes; survey exact family/caller IDs; create repo-local ignored operation scripts plus compensating rollback under `.adversarial-review/<generation>/operations/`; include them explicitly in Gate B; hold an exclusive maintenance window through deploy/invalidation. Never edit reviewed bytes/scripts afterward.
+Finish functional edits and the one-character top-level `<description>` byte-flip first. Dry-run final bytes; survey exact family/caller IDs; create gitignored operation scripts plus compensating rollback under `.sf-ops/<timestamp>/` and paste them into the change doc's diff-highlights so Gate B reviews the exact bytes; re-check freshness immediately before deploying and run deploy plus invalidation as one uninterrupted sequence; abort and rerun Gate B if someone else deploys into the family mid-sequence. Never edit reviewed bytes/scripts afterward.
 
 ## Path A — deploy first, then invalidate
 
@@ -37,7 +43,7 @@ Deploy reviewed bytes, then atomically delete only exact reviewed Vcurrent/calle
 
 ## Path B — atomic same-version reactivation
 
-Deploy reviewed bytes first. Then run one reviewed Apex transaction that deterministically locks Vcurrent plus every caller process `FOR UPDATE`, validates the complete ID set, deactivates current, deletes exact compilations, and reactivates current. Any failure rolls back. Post-deploy discrepancy executes the reviewed compensating deployment before a new generation. Never delete process/config/local metadata rows.
+Deploy reviewed bytes first. Then run one reviewed Apex transaction that deterministically locks Vcurrent plus every caller process `FOR UPDATE`, validates the complete ID set, deactivates current, deletes exact compilations, and reactivates current. Any failure rolls back. Post-deploy discrepancy executes the reviewed compensating deployment, then reruns Gate B against the new revision. Never delete process/config/local metadata rows.
 
 ## Caller chain — #1 reason "the dance worked but probes still don't fire"
 
@@ -74,7 +80,7 @@ Diagnostic: a parent IP's `OmniProcessCompilation.LastModifiedDate` predating yo
 | Error | Cause | Fix |
 |---|---|---|
 | `You can't update or delete an active Omniscript record...` | Unsupported process/config deletion or active mutation | Use reviewed Path A or atomic Path B; never delete process/config |
-| `UNABLE_TO_LOCK_ROW` | Another operator owns Vcurrent/family | Abort, recheck state/window, create a new gate generation |
+| `UNABLE_TO_LOCK_ROW` | Another operator owns Vcurrent/family | Abort, recheck org state, rerun Gate B on the new revision |
 | `DEPENDENCY_EXISTS: ... Omni Integration Procedure Configuration` | Someone attempted unnecessary config/process deletion | Keep config/process rows; delete only compilation |
 | `Status: Succeeded` + `State: Unchanged` | File matches org byte-for-byte | Description tweak didn't persist |
 | `No source-backed components present...` | Slash-syntax manifest member | Use `<Type>_<SubType>_Procedure_<N>` |

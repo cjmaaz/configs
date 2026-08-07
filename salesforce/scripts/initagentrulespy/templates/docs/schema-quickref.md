@@ -43,7 +43,7 @@ ER.md (project root)             # Mermaid ER of every detected junction (skim f
 When you need a specific `RecordTypeId` without hitting the org:
 
 ```bash
-rg "DeveloperName.*PRM_" config/schema/objects/<Object>/record_types.toon
+rg "DeveloperName.*<YourPrefix>_" config/schema/objects/<Object>/record_types.toon
 ```
 
 `record_types.toon` is a tabular file with `api_name,label,description,active,record_count` columns. Use `api_name` (DeveloperName) as the lookup key in Apex; never hardcode the Id.

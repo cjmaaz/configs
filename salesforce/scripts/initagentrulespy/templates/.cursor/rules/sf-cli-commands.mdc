@@ -25,7 +25,7 @@ Skipping this step silently overwrites newer org state on your next deploy. The 
 
 1. **Default target org is `{{ORG_ALIAS}}`** (sandbox). Every command in this repo assumes `-o {{ORG_ALIAS}}` (equivalent to `--target-org {{ORG_ALIAS}}`).
 2. Confirm the org list with `sf org list --all` before destructive ops.
-3. Source API version is **66.0**; package directory is `force-app/`.
+3. Source API version is **{{API_VERSION}}**; package directory is `force-app/`.
 4. Manifests live in `manifest/<feature>.xml` — create a NEW one per feature, never overwrite `apex.xml` / `mainpackage.xml`.
 5. `--ignore-conflicts` is used in this repo because source tracking is not the source of truth — trust the manifest.
 6. After ANY Apex execution, enumerate every operation-bound log ID (`sf apex list log --json`), fetch each specific ID, and inspect errors/automation/limits. Never trust `recent` in a shared org. See [`apex-development.mdc`](./apex-development.mdc).
@@ -651,15 +651,15 @@ sf force data bulk status -i <jobId> -b <batchId> -o {{ORG_ALIAS}}              
 | `--stream-to-file` | `-S` | `api request rest`, `api request graphql` (binary-safe response capture) |
 
 ```bash
-sf api request rest '/services/data/v66.0/sobjects/Account/describe' -o {{ORG_ALIAS}}
-sf api request rest '/services/data/v66.0/query?q=SELECT+Id+FROM+Account' -o {{ORG_ALIAS}}
-sf api request rest '/services/data/v66.0/sobjects/Account' --method POST --body '{"Name":"Acme"}' -o {{ORG_ALIAS}}
-sf api request rest '/services/data/v66.0/sobjects/Account' -X POST -b '{"Name":"Acme"}' -o {{ORG_ALIAS}}      # Short form
-sf api request rest '/services/data/v66.0/sobjects/Account' -X POST -b @body.json -o {{ORG_ALIAS}}             # Body from file
-sf api request rest '/services/data/v66.0/sobjects/Account/001...' -X PATCH -b '{"BillingCity":"SF"}' -o {{ORG_ALIAS}}
-sf api request rest '/services/data/v66.0/limits' -H 'Accept: application/xml' -o {{ORG_ALIAS}}                # XML response
-sf api request rest '/services/data/v66.0/' -i -o {{ORG_ALIAS}}                                                # Include HTTP status/headers
-sf api request rest '/services/data/v66.0/' -S response.txt -o {{ORG_ALIAS}}                                   # Stream to file
+sf api request rest '/services/data/v{{API_VERSION}}/sobjects/Account/describe' -o {{ORG_ALIAS}}
+sf api request rest '/services/data/v{{API_VERSION}}/query?q=SELECT+Id+FROM+Account' -o {{ORG_ALIAS}}
+sf api request rest '/services/data/v{{API_VERSION}}/sobjects/Account' --method POST --body '{"Name":"Acme"}' -o {{ORG_ALIAS}}
+sf api request rest '/services/data/v{{API_VERSION}}/sobjects/Account' -X POST -b '{"Name":"Acme"}' -o {{ORG_ALIAS}}      # Short form
+sf api request rest '/services/data/v{{API_VERSION}}/sobjects/Account' -X POST -b @body.json -o {{ORG_ALIAS}}             # Body from file
+sf api request rest '/services/data/v{{API_VERSION}}/sobjects/Account/001...' -X PATCH -b '{"BillingCity":"SF"}' -o {{ORG_ALIAS}}
+sf api request rest '/services/data/v{{API_VERSION}}/limits' -H 'Accept: application/xml' -o {{ORG_ALIAS}}                # XML response
+sf api request rest '/services/data/v{{API_VERSION}}/' -i -o {{ORG_ALIAS}}                                                # Include HTTP status/headers
+sf api request rest '/services/data/v{{API_VERSION}}/' -S response.txt -o {{ORG_ALIAS}}                                   # Stream to file
 sf api request rest -f request-spec.json -o {{ORG_ALIAS}}                                                       # Postman-style spec
 
 sf api request graphql --body query.graphql -o {{ORG_ALIAS}}
@@ -852,7 +852,7 @@ sf alias unset -a -p                                                            
 
 sf config set target-org={{ORG_ALIAS}}                 # default org (local — current project only)
 sf config set target-dev-hub=DevHub
-sf config set org-api-version=66.0
+sf config set org-api-version={{API_VERSION}}
 sf config set --global target-org={{ORG_ALIAS}} target-dev-hub=DevHub                     # Global (all projects)
 sf config set -g target-org={{ORG_ALIAS}}                                                  # -g ≡ --global
 sf config get target-org
@@ -1283,12 +1283,12 @@ sf apex run test -n MyClassTest -o {{ORG_ALIAS}} -y -c -r human -w 10           
 sf apex list log -o {{ORG_ALIAS}} --json
 sf apex get log -i <operation-log-id> -o {{ORG_ALIAS}} | grep -E "(EXCEPTION|ERROR|FATAL|CUMULATIVE_LIMIT_USAGE)"
 
-# 5. Ad-hoc SOQL
-sf data query -q "SELECT Id FROM IndividualApplication WHERE RecordType.DeveloperName='PRM_PDMManualChange' LIMIT 5" -o {{ORG_ALIAS}}
-sf data query -q "SELECT Id FROM IndividualApplication LIMIT 5" -r csv --output-file out.csv -o {{ORG_ALIAS}}   # Save as CSV
+# 5. Ad-hoc SOQL (substitute your own object / RecordType names)
+sf data query -q "SELECT Id FROM <SObject> WHERE RecordType.DeveloperName='<RecordTypeDeveloperName>' LIMIT 5" -o {{ORG_ALIAS}}
+sf data query -q "SELECT Id FROM <SObject> LIMIT 5" -r csv --output-file out.csv -o {{ORG_ALIAS}}   # Save as CSV
 
 # 6. Describe an object
-sf sobject describe -s HealthcareFacility -o {{ORG_ALIAS}} | head -80
+sf sobject describe -s <SObject> -o {{ORG_ALIAS}} | head -80
 
 # 7. Retrieve a component before editing (MANDATORY per repo convention)
 sf project retrieve start --metadata ApexClass:MyClass -o {{ORG_ALIAS}}

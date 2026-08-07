@@ -2,9 +2,9 @@
 
 A repeatable, hybrid-shard strategy for pulling a **verified metadata footprint** of a Salesforce org into local source while staying under Metadata API limits and surviving slow orgs.
 
-> **Why this doc exists:** A naive `sf project retrieve start --metadata '*'` (or even a single 127-type manifest) blows past the **10,000-component limit** on any non-trivial org and locks up for hours when the org is slow. The {{ORG_NAME}} sandbox has ~14k+ components in `force-app/`, so we split the retrieve into ~23 sequential calls plus a Phase 3 audit + 2 commits, sized so each call fits under the limit and finishes in a bounded time.
+> **Why this doc exists:** A naive `sf project retrieve start --metadata '*'` (or even one all-types manifest) blows past the **10,000-component limit** — a hard Metadata API cap per retrieve — on any non-trivial org, and locks up for hours when the org is slow. So we split the retrieve into a sequence of bounded calls plus a Phase 3 audit and two commits, each call sized to fit under the limit and finish in a predictable time.
 
-The workflow is portable, but the shipped type list/counts/shards are only a **seed from the source org**. A new project MUST discover its own supported metadata types, compare them to the seed manifests, generate supplemental/rebalanced shards, and record exclusions before claiming “org-wide.” `$ORG_ALIAS` makes commands reusable; it does not make source-org coverage assumptions universal.
+**Nothing in this runbook hardcodes how big your org is.** The shipped manifests and the small/heavy type split are a **seed**, not truth. Phase 0 measures your org's actual footprint and that measurement drives the shard plan. Never copy another org's counts, another org's phase numbering, or another run's timings into your plan — discover them.
 
 ---
 
@@ -28,15 +28,13 @@ The workflow is portable, but the shipped type list/counts/shards are only a **s
    sf org login web -a <YourOrgAlias>
    ```
 
-2. **An SFDX project rooted at the repo.** `sfdx-project.json` should point at `force-app` (or your equivalent package dir) and use the same API version your org supports (this repo uses `66.0`).
+2. **An SFDX project rooted at the repo.** `sfdx-project.json` should point at `force-app` (or your equivalent package dir) and use the same API version your org supports (this repo uses `{{API_VERSION}}`).
 
-3. **Seed manifests at `manifest/fullpackage.xml` and `manifest/fullpackage/`.** The kit ships a source-org baseline (127 types / 11 shards). Treat it as input to the mandatory discovery/gap step below, never as proof your target org is fully covered.
+3. **Seed manifests at `manifest/fullpackage.xml` and `manifest/fullpackage/`.** These are a starting point — a list of type names, with no org-specific members. Phase 0 tells you which of them your org actually supports and how they need re-sharding. Never treat the seed as proof of coverage.
 
 4. **A clean spot to capture logs.** The runbook writes the active run's per-phase logs to `.retrieve-logs/current/` and rotates previous runs to `.retrieve-logs/archive/<TS>/`. Both subdirs are covered by the single `.retrieve-logs/` gitignore entry.
 
-### Mandatory target-org coverage discovery
-
-Before Phase 0, run `sf org list metadata-types -o "$ORG_ALIAS" --json`, compare the supported/retrievable type set against every `<name>` in the seed master/shards, and build target-org supplemental/rebalanced manifests. For each unsupported, permission-blocked, folder-scoped, or intentionally excluded type, record the reason in the audit doc. Do not reuse source-org component counts as expectations; collect fresh target counts. The plan and Gate A must include this discovered coverage map.
+5. **`jq`** for parsing `--json` output in the Phase 0 discovery loop.
 
 ---
 
@@ -69,74 +67,130 @@ The runbook below uses the env-var form because it's safer when you work across 
 
 ## The strategy in one paragraph
 
-We split the org's 127 metadata types into two passes:
+Phase 0 measures your org, then that measurement splits the supported types into two passes:
 
-- **Phase 1 — small bundled shards.** 11 calls, each pulling a logical group of low-volume admin / config types (NamedCredential, RemoteSiteSetting, PermissionSet, Workflow, modern-auth types, etc.). Either the existing `manifest/fullpackage/*.xml` or a single `--metadata <Type1> --metadata <Type2> …` invocation. Each shard is sized so total component count stays comfortably under 10k.
+- **Phase 1 — small bundled shards.** Each call pulls a logical group of low-volume admin / config types (NamedCredential, RemoteSiteSetting, PermissionSet, Workflow, modern-auth types, and so on), either via an existing `manifest/fullpackage/*.xml` shard or a single `--metadata <Type1> --metadata <Type2> …` invocation. Each shard is sized so its total component count stays comfortably under 10k.
 
-- **Phase 2 — heavy types one at a time.** 12 calls, one per high-volume type (`AuraDefinitionBundle`, `Flow`, `FlexiPage`, `LightningComponentBundle`, `Layout`, `ApexClass`, `CustomObject`, `CustomField`, `OmniScript`, `OmniIntegrationProcedure`, `OmniDataTransform`, `Profile`). These are the types that, by themselves, can approach or exceed the 10k limit on a mature org.
+- **Phase 2 — heavy types, one per call.** Every type whose live count is large enough to approach the limit on its own, or slow enough to dominate wall-clock, gets its own call.
 
-We run **strictly sequentially** — one retrieve in flight at a time. Slow orgs penalise concurrency badly; back-to-back parallel retrieves end up taking longer than serial ones because the org throttles. We also order Phase 2 **lightest-first** so any fatal errors surface in the first 5 minutes rather than after 20.
+**Which types land in which pass is an output of Phase 0, not a constant.** A type that is trivial in one org is the heaviest in another.
+
+We run **strictly sequentially** — one retrieve in flight at a time. Slow orgs penalise concurrency badly; parallel retrieves finish later than serial ones because the org throttles. Order Phase 2 **lightest-first** so fatal errors surface in the first few minutes rather than at the end.
 
 Skip noisy / non-code types (Translations, Reports, Dashboards, EmailTemplates, Documents, StaticResources, Letterhead, ContentAsset, Prompt) by default — they're large, change rarely in a code workflow, and rarely matter for development.
 
 ---
 
-## Sizing rationale (why the heavy types are split out)
+## Sizing rules (why some types must run alone)
 
-Local component counts on this repo as of the last full mirror:
+Three rules decide the split. All three are properties of the Metadata API, not of any particular org:
 
-| Type | Count | Notes |
-|---|---:|---|
-| `CustomField` | ~8,900 | Closest to the 10k limit — must be solo |
-| `OmniDataTransform` | ~1,710 | DataRaptors. **Files use `.rpt-meta.xml`** — easy to miss when sizing by glob |
-| `OmniIntegrationProcedure` | ~1,670 | Heaviest IP — wall-clock king |
-| `OmniScript` | ~765 | Slow due to per-script element traversal |
-| `CustomObject` | ~670 folders | Must precede CustomField |
-| `ApexClass` | ~683 | |
-| `Layout` | ~495 | |
-| `LightningComponentBundle` | ~304 | |
-| `FlexiPage` | ~108 | |
-| `Flow` | ~52 | |
-| `Profile` | ~29 | Tiny count but FLS-heavy → slow per record |
-| `AuraDefinitionBundle` | ~12 | |
+1. **The cap is 10,000 *files* per retrieve call, not 10,000 components** — plus 39 MB compressed / 600 MB uncompressed for the zip. Bundle types multiply: an LWC averages roughly six files per component, Aura around five, Apex two (`.cls` + `.cls-meta.xml`), most single-file types one. Multiply the unmanaged component count by the type's file ratio before comparing to 10,000. Getting this wrong inverts the ranking — a type reporting 1,500 LWC bundles is near the cap while one reporting 8,000 managed-heavy Apex classes may retrieve barely 2,000 files. The size caps bind first for binary-heavy types (`StaticResource`, `ContentAsset`, `Document`).
+2. **Some types are slow per record regardless of count.** `Profile` is the classic case: a handful of records, but each carries the org's entire FLS matrix. Sort by *observed wall-clock*, not by count alone.
+3. **`CustomObject` must run before `CustomField`.** The `force-app/main/default/objects/<Object>/` folder has to exist before the field-meta files arrive.
 
-> **Sizing trap (caught the hard way):** When sizing OmniStudio types by globbing local files, **DataRaptors use `.rpt-meta.xml`, not `.odt-meta.xml`**. If you glob the wrong extension you get 0 and bundle them into a small-types call where they silently fail to retrieve. Always cross-check against `manifest/fullpackage.xml` for the canonical list of types and their counts via `find force-app/main/default/<folder> -type f`.
+Fill this table from your own Phase 0 output and put it in the audit doc:
 
-Anything bundled with one of these would push the call past 10k or extend its runtime past sane timeouts.
+| Type | Live count (Phase 0) | Pass | Why |
+|---|---:|---|---|
+| `<Type>` | `<n>` | solo / bundled | near the cap / slow per record / trivial |
 
-`CustomObject` **must run before** `CustomField` so that the `force-app/main/default/objects/<Object>/` folder exists when the field-meta files arrive.
+> **Sizing trap (caught the hard way):** when sizing OmniStudio types by globbing local files, **DataRaptors use `.rpt-meta.xml`, not `.odt-meta.xml`**. Glob the wrong extension and you get 0, bundle them into a small-types call, and they silently fail to retrieve. This is exactly why Phase 0 sizes from `sf org list metadata` (what the org reports) rather than from local file globs (what you think is there).
 
 ---
 
-## Phase 0 — pre-flight (1 read-only check)
+## Hard lessons (mandatory ops)
+
+Apply these **before Phase 1**, every run:
+
+1. **Single runner only.** Never launch two `sf project retrieve start` (or dual agent runners) against the same working tree. Concurrent retrieves corrupt `.git/index` (`isomorphic-git` checksum errors) and cascade false failures. Use one shell + a PID/flock single-flight check.
+2. **Always pass `--ignore-conflicts`.** This repo does not use source tracking as truth; without `-c` / `--ignore-conflicts`, retrieves stall or fail on local/org drift noise.
+3. **Prefer source tracking OFF for huge mirrors.** If isomorphic-git / SourceMember races appear, run `sf org disable tracking -o "$ORG_ALIAS"` for the retrieve window and leave it disabled afterward unless you explicitly need tracking. Re-enabling on 50k+ file trees is optional and not required for retrieve-before-edit workflows.
+4. **OmniStudio: find out which flavour your org runs before planning Omni at all.** See the branch below — on a Vlocity CMT org the MDAPI Omni types are dead calls, and Omni is **not** part of the recurring mirror.
+
+Example retrieve flag shape (every phase):
+
+```bash
+sf project retrieve start --manifest "./manifest/fullpackage/<shard>.xml" \
+  -o "$ORG_ALIAS" --ignore-conflicts --wait 120
+```
+
+---
+
+## OmniStudio: standard vs Vlocity CMT (decide this in Phase 0)
+
+Two different products wear the same name, and they behave completely differently here. Detect which one you have before writing the phase plan:
+
+```bash
+# Does MDAPI see any Omni components? Probe all six — the three light ones decide
+# whether Phase 1's OmniStudio shard is worth running at all.
+for T in OmniScript OmniIntegrationProcedure OmniDataTransform \
+         OmniUiCard OmniInteractionConfig OmniInteractionAccessConfig; do
+  printf "%-28s %s\n" "$T" \
+    "$(sf org list metadata -m "$T" -o "$ORG_ALIAS" --json 2>/dev/null | jq '.result | length // 0')"
+done
+
+# Is the Vlocity CMT managed package installed?
+sf package installed list -o "$ORG_ALIAS" --json | jq -r '.result[].SubscriberPackageNamespace' | grep -i vlocity
+```
+
+**Standard OmniStudio** — MDAPI returns non-zero counts. Omni types are ordinary metadata: size them in Phase 0 and retrieve them like any other heavy type.
+
+**Vlocity CMT** — MDAPI returns **0** while the components plainly exist. **Detect on the namespace, not on the standard sObjects.** On a real CMT org `OmniProcess` is empty *by design* — the content lives in `vlocity_cmt__OmniScript__c`, `vlocity_cmt__Element__c`, and `vlocity_cmt__DRBundle__c` — so testing `OmniProcess` for rows would tell you the org has no OmniStudio at all, which is exactly the false-completeness claim this section exists to prevent. Confirm with the managed-package objects:
+
+```bash
+sf data query -o "$ORG_ALIAS" -q "SELECT COUNT() FROM vlocity_cmt__OmniScript__c"
+sf data query -o "$ORG_ALIAS" -q "SELECT COUNT() FROM vlocity_cmt__DRBundle__c"
+```
+
+(`OmniDataTransform` can be partially populated on a CMT org, so it is not a reliable signal in either direction.) These components live as **datapacks in the managed package**, not as source-backed metadata. In that case:
+
+- **Omni is out of scope for the recurring mirror — all six types, not just the heavy three.** Do not add the MDAPI Omni types to your phase plan, and skip the Phase 1 OmniStudio shard entirely; they will "succeed" with 0 files and quietly create a false completeness claim.
+- **Export once, at project initialization.** Run `vlocity packExport` for the active baseline a single time when the repo is first set up, and commit that as the reference snapshot.
+- **After that, export per ticket only.** When a ticket touches a specific OmniScript / IP / DataRaptor, export that pack, work on it, commit it. Nothing else.
+- **Never bulk-export inactive versions.** Pull a specific inactive pack only when a ticket genuinely needs it.
+- **Clean up after large exports.** `packExport` creates org-side `vlocity_cmt__VlocityDataPack__c` staging rows that consume Data storage (and File storage for any attachment payloads parented to them). `vlocity_cmt__Status__c` is a free-text field, not a picklist, so enumerate what is actually there rather than filtering on a guessed value list: `sf data query -o "$ORG_ALIAS" -q "SELECT vlocity_cmt__Status__c s, COUNT(Id) c FROM vlocity_cmt__VlocityDataPack__c GROUP BY vlocity_cmt__Status__c"`. Deleting these staging rows does not touch the OmniScript/IP/DR definitions themselves.
+
+Record the outcome in the audit doc rather than leaving it implicit. On a Vlocity CMT org, §4 should read something like:
+
+> Omni: Vlocity CMT — out of recurring scope (baseline exported `<date>`, ref `<commit>`). MDAPI list-metadata = 0 by design; `force-app/` Omni is **not** a completeness claim.
+
+Why this matters: a run that lists `OmniScript … Succeeded` with 0 files looks identical in the logs to a run that genuinely had no OmniScripts. Six months later nobody can tell whether the org has no Omni or the mirror silently skipped it.
+
+---
+
+## Phase 0 — pre-flight, discovery, and Gate A
+
+Phase 0 is not read-only: it rotates logs, may stash WIP, and produces the footprint that every later phase depends on. Run all of it before the first retrieve.
 
 ### 0.0 Spawn the explicit plan FIRST (mandatory)
 
-**Before running any `sf` command, before any retrieve writes to disk, the agent MUST spawn an explicit `TodoWrite` plan covering the entire end-to-end sequence.** A full retrieve is a long-running multi-stage operation (~20–45 min wall-clock across ~23 SF MDAPI calls plus an audit doc and two git commits), and any single phase can stall, hit a transient org error, or get interrupted. A plan up front makes the run **resumable** — if Phase 2.17 fails, the agent can re-read its todo list and know exactly which phases still need to run, which already-succeeded phases can be skipped, and where in the audit/commit workflow it left off.
+**Before running any `sf` command, before any retrieve writes to disk, the agent MUST spawn an explicit `TodoWrite` plan covering the entire end-to-end sequence.** A full retrieve is a long-running multi-stage operation — many MDAPI calls plus an audit doc and two git commits — and any single phase can stall, hit a transient org error, or get interrupted. A plan up front makes the run **resumable**: if a heavy phase fails, the agent re-reads its todo list and knows exactly which phases still need to run, which already succeeded, and where in the audit/commit workflow it left off.
 
-Minimum required todo entries (one per concrete step — agent may add more, but must not collapse any of these into a single sweep):
+Minimum required todo entries. The Phase 1 and Phase 2 entries are **filled in from Phase 0.3's footprint** — one todo per actual shard and per actual solo type, not a fixed count copied from this doc:
 
 ```
-[ ] Phase 0 — pre-flight (org auth + WIP check + HEAD capture + .retrieve-logs/ rotation)
-[ ] Phase 0.A — adversarial Gate A on the retrieve plan (three parallel reviewers)
-[ ] Phase 1.1  → 1.11   (11 bundled / small-type retrieves, sequential)
-[ ] Phase 2.11 → 2.22   (12 single-type heavy retrieves, sequential lightest→heaviest)
-[ ] Phase 3.4.1 — per-type analysis todos (one TodoWrite entry per type that changed; spawned later, after Phase 2 completes)
+[ ] Phase 0.1 — org auth check
+[ ] Phase 0.2 — rotate .retrieve-logs/ + seed fresh current/
+[ ] Phase 0.3 — footprint discovery (supported types + live counts + OmniStudio flavour)
+[ ] Phase 0.4 — WIP check (interactive) + capture PRE_HEAD
+[ ] Phase 0.5 — build the shard plan from the footprint
+[ ] Phase 0.A — adversarial Gate A on the retrieve plan (three parallel critics)
+[ ] Phase 1.<n>  — one todo per bundled small-type shard, sequential
+[ ] Phase 2.<n>  — one todo per solo heavy type, sequential lightest→heaviest
+[ ] Phase 3.4.1 — per-type analysis todos (one per type that changed; spawned after Phase 2)
 [ ] Phase 3.4.2 — cross-type synthesis todo
-[ ] Phase 3.4.3 — fill remaining audit-doc sections (header, §1, §2, §3, §5, §6, §7, §8, §10)
+[ ] Phase 3.4.3 — fill remaining audit-doc sections
+[ ] Phase 3.4.B — adversarial Gate B on the finished audit doc (three parallel critics)
 [ ] Phase 3.5 — Commit 1: mirror snapshot (force-app/ + manifest/ + config/, doc held back)
 [ ] Phase 3.5 — Embed mirror hash in audit doc §9
 [ ] Phase 3.5 — Commit 2: audit doc only
-[ ] Phase 3.6 — pop WIP (only if stashed in 3.1) + verify clean tree
+[ ] Phase 3.6 — pop WIP (only if stashed in 0.4) + verify clean tree
 ```
 
-Mark each as `in_progress` before starting it and `completed` only after it actually finishes successfully (per `Status: Succeeded` in the log for retrieves, per the `git log -1` hash for commits). Do NOT batch-complete todos retroactively — losing the running-todo signal makes a mid-sequence failure ambiguous about what was actually finished.
+Mark each `in_progress` before starting and `completed` only after it actually finishes successfully (per `Status: Succeeded` in the log for retrieves, per the `git log -1` hash for commits). Do NOT batch-complete todos retroactively — losing the running-todo signal makes a mid-sequence failure ambiguous about what was actually finished.
 
-If the run was interrupted (org timeout, user `Ctrl-C`, agent crash, transient `sf` hang, sandbox restart), the FIRST thing the resuming agent does is read the todo list and identify the most recent `in_progress` entry — that's where work resumes. Don't restart from Phase 1.1 unless the resume-point todo logic is unrecoverably ambiguous.
-
-### 0.A Mandatory adversarial Gate A
-
-Before the first `sf` retrieve, launch all three independent reviewers from `.cursor/rules/adversarial-review.mdc` in one parallel fan-out against this run's exact phase plan, target alias, manifests, WIP strategy, and rollback/resume assumptions. Resolve/re-review every blocker; record reviewer IDs, plan digest, verdicts, and dispositions in working notes. Planning approval from a prior run is stale if alias/manifests/WIP/phase scope changed.
+If the run was interrupted (org timeout, user `Ctrl-C`, agent crash, transient `sf` hang, sandbox restart), the FIRST thing the resuming agent does is read the todo list and identify the most recent `in_progress` entry — that's where work resumes. Don't restart from Phase 1 unless the resume point is unrecoverably ambiguous.
 
 ### 0.1 Org authentication check
 
@@ -164,13 +218,161 @@ date "+Started: %Y-%m-%d %H:%M:%S" > .retrieve-logs/current/_session.txt
 
 > **Tip:** Add `.retrieve-logs/` to `.gitignore` if it isn't already. The single umbrella entry covers both the active subdir (`.retrieve-logs/current/`) and every archived prior run (`.retrieve-logs/archive/<TS>/`).
 
+### 0.3 Footprint discovery (MANDATORY — this drives everything downstream)
+
+Measure the org. Do not skip this and do not substitute counts from a previous run or another org — a stale footprint is how a type silently exceeds the 10k cap or gets bundled into a call it should never have shared.
+
+```bash
+# a) Which types does THIS org actually support and expose to your user?
+#    childXmlNames is NOT optional: CustomField, RecordType, ValidationRule,
+#    ListView, WebLink, CompactLayout, FieldSet, BusinessProcess and the
+#    Workflow* types are children of CustomObject/Workflow and never appear in
+#    xmlName. Omit them and the single heaviest type in most orgs — CustomField —
+#    is silently reported "unsupported" and never gets sized.
+sf org list metadata-types -o "$ORG_ALIAS" --json \
+  | jq -r '.result.metadataObjects[] | .xmlName, ((.childXmlNames // [])[])' \
+  | sort -u > .retrieve-logs/current/_types-supported.txt
+
+# Sanity gate: the two types with a hard ordering constraint must both be here.
+for T in CustomObject CustomField; do
+  grep -qx "$T" .retrieve-logs/current/_types-supported.txt \
+    || echo "  !! $T missing from supported set — discovery is wrong, STOP"
+done
+
+# b) Which types does the seed manifest set ask for?
+grep -ho '<name>[^<]*</name>' manifest/fullpackage.xml manifest/fullpackage/*.xml \
+  | sed 's/<[^>]*>//g' | sort -u > .retrieve-logs/current/_types-requested.txt
+
+# c) The gap in both directions — requested-but-unsupported, and supported-but-unrequested.
+comm -13 .retrieve-logs/current/_types-supported.txt .retrieve-logs/current/_types-requested.txt \
+  > .retrieve-logs/current/_types-unsupported.txt
+comm -23 .retrieve-logs/current/_types-supported.txt .retrieve-logs/current/_types-requested.txt \
+  > .retrieve-logs/current/_types-uncovered.txt
+
+# d) Live component count per requested+supported type. This is the sizing input.
+#    Three traps, all of which silently produce a wrong number rather than an error:
+#      - A `<members>*</members>` retrieve returns ONLY manageableState=unmanaged.
+#        listMetadata counts managed-package components too, so the raw total can be
+#        an order of magnitude high on a package-heavy org. Size on `unmanaged`.
+#      - Folder-based types need --folder; without it they report 0 however many exist.
+#      - On any sf error there is no .result key, and `null | length` is 0 — so a failed
+#        call is indistinguishable from an empty type. Record it, never count it as 0.
+FOLDER_TYPES='Report|Dashboard|Document|EmailTemplate'
+: > .retrieve-logs/current/_footprint.tsv
+: > .retrieve-logs/current/_footprint-errors.tsv
+while read -r T; do
+  if printf '%s' "$T" | grep -qxE "$FOLDER_TYPES"; then
+    n=0
+    for F in $(sf org list metadata -m "${T}Folder" -o "$ORG_ALIAS" --json 2>/dev/null \
+                 | jq -r '.result[]?.fullName'); do
+      n=$(( n + $(sf org list metadata -m "$T" --folder "$F" -o "$ORG_ALIAS" --json 2>/dev/null \
+                    | jq '[.result[]? | select(.manageableState == "unmanaged")] | length') ))
+    done
+    printf "%s\t%s\n" "$n" "$T" >> .retrieve-logs/current/_footprint.tsv
+    continue
+  fi
+  raw=$(sf org list metadata -m "$T" -o "$ORG_ALIAS" --json 2>&1)
+  if ! printf '%s' "$raw" | jq -e 'has("result")' >/dev/null 2>&1; then
+    printf "%s\t%s\n" "$T" "$(printf '%s' "$raw" | jq -r '.message // "unknown error"')" \
+      >> .retrieve-logs/current/_footprint-errors.tsv
+    continue
+  fi
+  printf "%s\t%s\n" \
+    "$(printf '%s' "$raw" | jq '[.result[] | select(.manageableState == "unmanaged")] | length')" \
+    "$T" >> .retrieve-logs/current/_footprint.tsv
+done < <(comm -12 .retrieve-logs/current/_types-supported.txt .retrieve-logs/current/_types-requested.txt)
+sort -rn -o .retrieve-logs/current/_footprint.tsv .retrieve-logs/current/_footprint.tsv
+column -t .retrieve-logs/current/_footprint.tsv
+
+# The footprint is only usable if nothing failed. An error here is not a zero.
+[ -s .retrieve-logs/current/_footprint-errors.tsv ] \
+  && { echo "!! footprint incomplete — resolve these before Phase 0.5:"; \
+       cat .retrieve-logs/current/_footprint-errors.tsv; }
+```
+
+Then run the **OmniStudio flavour detection** from the section above, and record which branch applies.
+
+Step (d) is the slow part — it makes one list-metadata call per type. Let it finish; every later decision reads from `_footprint.tsv`.
+
+Two known quirks of `_types-unsupported.txt`. Folder pseudo-types (`ReportFolder`, `DashboardFolder`, `DocumentFolder`, `EmailFolder`) are addressed through their parent type and legitimately never appear in the supported list. And if a type you *know* the org uses shows up there, suspect the discovery query before believing it — that is the symptom of the `childXmlNames` mistake above.
+
+**Container types under-report.** `CustomLabels`, `SharingRules`, `Workflow`, `MatchingRules`, and `AssignmentRules` each count as **1** while carrying many children (`CustomLabel` alone can be five figures). They retrieve as a single file, so they are cheap in file terms — but do not read their `1` as "trivial component count" when reasoning about anything else.
+
+Review `_types-uncovered.txt` deliberately rather than ignoring it. Most entries will be licensed-but-unused platform features, but this is exactly where an important type goes missing. For each uncovered type decide *cover it* or *exclude it with a reason*, and record both in the audit doc's **Type coverage & sizing** section. "We didn't notice it" is not a reason.
+
+### 0.4 WIP check (interactive) + capture `PRE_HEAD`
+
+This runs before Gate A so the critics can review your actual WIP strategy, and before any retrieve writes to disk.
+
+```bash
+wip_count=$(git status --short | wc -l | tr -d ' ')
+if [ "$wip_count" -gt 0 ]; then
+  echo "WIP detected: $wip_count modified or untracked files."
+  git status --short | head -20
+  # Ask the user: stash+pop / continue / abort  (table in Phase 3.1-3.3)
+fi
+
+PRE_HEAD=$(git rev-parse HEAD)
+echo "$PRE_HEAD" > .retrieve-logs/current/_pre-head.txt
+echo "Pre-retrieve HEAD: $(git rev-parse --short HEAD)"
+```
+
+`PRE_HEAD` is persisted to a file, not just an env var — the shell may not survive a long run.
+
+### 0.5 Build the shard plan from the footprint
+
+Using `_footprint.tsv` and the three sizing rules above, decide for this run:
+
+- Which types run **solo** (Phase 2) and in what order (lightest first).
+- Which types are **bundled** (Phase 1) and into which shards, with each shard's summed count well under 10,000.
+- Which types are **excluded**, each with a reason.
+
+Then write the Phase 2 order to disk — the Phase 2 driver loop reads this exact file, and it does not exist until you create it:
+
+```bash
+# Solo types only: exclude everything you bundled into a Phase 1 shard.
+# Ascending count (lightest first) so failures surface early.
+cat > .retrieve-logs/current/_phase2-solo.txt <<'EOF'
+<Type>
+<Type>
+EOF
+
+# Apply the two hard ordering constraints:
+#   CustomObject immediately before CustomField (field files need the folders);
+#   Profile last (few records, slowest each, cheapest to retry).
+awk 'NR==FNR{c[$2]=$1; next} {print (c[$1]+0)"\t"$1}' \
+    .retrieve-logs/current/_footprint.tsv .retrieve-logs/current/_phase2-solo.txt \
+  | sort -n | cut -f2 \
+  | grep -vxE 'CustomObject|CustomField|Profile' \
+  > .retrieve-logs/current/_phase2-order.txt
+for T in CustomObject CustomField Profile; do
+  grep -qx "$T" .retrieve-logs/current/_phase2-solo.txt \
+    && echo "$T" >> .retrieve-logs/current/_phase2-order.txt
+done
+cat -n .retrieve-logs/current/_phase2-order.txt
+```
+
+Confirm the printed order reads lightest → heaviest, with `CustomObject` before `CustomField` and `Profile` last. That file plus your shard/exclusion decisions is the artifact Gate A reviews. Turn each shard and each solo type into its own todo now.
+
+### 0.A Mandatory adversarial Gate A
+
+Before the first `sf` retrieve, launch three independent critics in one parallel fan-out per [`.cursor/rules/adversarial-review.mdc`](../.cursor/rules/adversarial-review.mdc), against this run's shard plan, footprint, target alias, WIP decision, and resume assumptions.
+
+Use these retrieve-specific lenses:
+
+1. **Coverage** — attack the plan for missing types that are **important and change frequently**: Apex classes and triggers, LWC and Aura, Flow, CustomObject and CustomField, Layout, FlexiPage, Profile, PermissionSet, and the Omni types when they are MDAPI-backed. Cross-check `_types-uncovered.txt` and challenge every recorded exclusion reason. **Do not block on rarely-changing bulk types** — Translations, Reports, Dashboards, EmailTemplates, Documents, StaticResources, Letterhead, ContentAsset, Prompt — unless this run's plan explicitly claims them. A finding on those is out of scope by default.
+2. **Limits and ordering** — attack the sizing: any shard whose summed count approaches 10,000, any solo type sized from a stale or missing footprint entry, `CustomObject` not preceding `CustomField`, missing `--ignore-conflicts`, concurrent runners against one working tree, and `--wait` values too short for the observed counts.
+3. **Safety and truthfulness** — attack the blast radius: wrong `$ORG_ALIAS` (empty variable silently falling back to the default org), WIP that could be wiped or folded into the mirror commit, resume/rollback holes, and any claim of completeness the evidence does not support — especially Omni on a Vlocity CMT org.
+
+Verify each finding before acting on it, rebut rather than silently dropping, and escalate to the user after three unresolved rounds. Record critic IDs, the plan revision reviewed, verdicts, and dispositions in the audit doc's Gate A section. A prior run's approval is stale the moment the alias, footprint, shard plan, or WIP decision changes.
+
 ---
 
-## Phase 1 — small / medium bundled shards (11 calls)
+## Phase 1 — small / medium bundled shards
 
 Run **strictly in order**, lightest first. Each call writes its full output to a numbered log so you can audit afterwards.
 
-> **All commands use `$ORG_ALIAS`** — make sure you exported it in the [Setup](#setup-set-your-org-alias-once) section above. Run `echo "$ORG_ALIAS"` to confirm before starting.
+> **All commands use `$ORG_ALIAS`** — make sure you exported it in the [Setup](#setup--set-your-org-alias-once) section above. Run `echo "$ORG_ALIAS"` to confirm before starting.
 
 ### 1.1 Integration shard — 17 admin types
 
@@ -183,8 +385,6 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/01-integration.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected wall-clock: **~30s – 8 min** (varies wildly by org load).
-
 ### 1.2 Community shard — 15 community/site types
 
 ```bash
@@ -193,8 +393,6 @@ sf project retrieve start \
   -o "$ORG_ALIAS" --wait 60 \
   2>&1 | tee .retrieve-logs/current/02-community.log | grep -E "Status: (Succeeded|Failed)"
 ```
-
-Expected: **~20s – 2 min**.
 
 ### 1.3 Content (filtered) — only 3 useful types
 
@@ -209,8 +407,6 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/03-content-filtered.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~15s – 6 min**.
-
 ### 1.4 Translations (filtered) — `CustomObjectTranslation` only
 
 We deliberately skip `Translations` (the user-facing language pack). `CustomObjectTranslation` is what carries field-level translation overrides we sometimes want.
@@ -222,9 +418,9 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/04-translations-filtered.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~4 – 12 min** (this is one of the slowest single-type retrieves).
-
 ### 1.5 OmniStudio small types — only the lightweight ones
+
+> **Skip this entire shard on a Vlocity CMT org.** Phase 0.3's flavour detection tells you which branch you are on; on CMT all six Omni types return 0 and this call books three more "covered" types that retrieved nothing.
 
 OmniUiCard, OmniInteractionConfig, OmniInteractionAccessConfig.
 
@@ -238,8 +434,6 @@ sf project retrieve start \
   -o "$ORG_ALIAS" --wait 60 \
   2>&1 | tee .retrieve-logs/current/05-omnistudio-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
-
-Expected: **~20s – 4 min**.
 
 ### 1.6 Code small types
 
@@ -255,8 +449,6 @@ sf project retrieve start \
   -o "$ORG_ALIAS" --wait 60 \
   2>&1 | tee .retrieve-logs/current/06-code-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
-
-Expected: **~15s – 2 min**.
 
 ### 1.7 Schema small types — everything in `fullpackage-schema.xml` except CustomObject and CustomField
 
@@ -283,8 +475,6 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/07-schema-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~40s – 3 min**.
-
 ### 1.8 UI small types — everything in `fullpackage-ui.xml` except Layout, FlexiPage, Prompt
 
 ```bash
@@ -308,8 +498,6 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/08-ui-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~40s – 90s**.
-
 ### 1.9 Automation small types — everything in `fullpackage-automation.xml` except Flow
 
 ```bash
@@ -331,8 +519,6 @@ sf project retrieve start \
   -o "$ORG_ALIAS" --wait 60 \
   2>&1 | tee .retrieve-logs/current/09-automation-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
-
-Expected: **~15s – 90s**.
 
 ### 1.10 Security small types — everything in `fullpackage-security.xml` except Profile
 
@@ -356,11 +542,9 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/10-security-small.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~30s – 90s**.
+### 1.11 Gap shard — types the seed manifest misses
 
-### 1.11 Modern auth + Apex notifications — 3 types not in `manifest/fullpackage.xml`
-
-These three types are silently absent from the master manifest but matter:
+Types that Phase 0.3 flagged in `_types-uncovered.txt` and you decided to cover. The three below are a common example — they are silently absent from most seed manifests but matter:
 
 - `ExternalCredential` — the modern auth attached to `NamedCredential`. Salesforce is migrating username/password and OAuth flows here, away from the older fields inside the NamedCredential itself.
 - `ExternalClientApplication` — Salesforce's official replacement for `ConnectedApp`. New OAuth integrations should land here.
@@ -375,82 +559,43 @@ sf project retrieve start \
   2>&1 | tee .retrieve-logs/current/11-modern-auth-apex.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected: **~10s – 30s**.
-
-> **Why these and not other gaps?** A full audit (`sf org list metadata-types -o $ORG_ALIAS`) shows the org reports **284** metadata types vs the 127 in `manifest/fullpackage.xml`. Most of the delta is licensed-but-unused industry features (Field Service, CRM Analytics, classic Communities, Health Cloud `Care*`). The three above are the only **active, customised, infrastructure-critical** types that aren't already covered. Other "missing" types in this org (ExperienceBundle for the LWR site, ModerationRule, NetworkBranding, WaveAnalyticAssetCollection, EmailServicesFunction, EntitlementProcess, BusinessProcessTypeDefinition, IdentityVerificationProcDef) are owned by other teams or do not affect the credentialing code paths — intentionally not tracked here.
+> **Why a gap shard exists at all.** Orgs typically report far more metadata types than any seed manifest lists, and most of that delta is licensed-but-unused platform features you genuinely do not want. But a few uncovered types are active, customised, and infrastructure-critical — that is what `_types-uncovered.txt` from Phase 0.3 is for. Work through it, decide *cover* or *exclude with a reason* for each entry, put the covered ones in a shard like this, and record the exclusions in the audit doc. This shard's membership is therefore **per-org**; the three types above are a common starting set, not a fixed answer.
 
 ---
 
-## Phase 2 — heavy types, strictly one type per call (12 calls)
+## Phase 2 — heavy types, strictly one type per call
 
-Order is **lightest → heaviest** so failures surface early.
+**Which types appear here, and in what order, comes from your Phase 0.5 shard plan.** Order **lightest → heaviest** by live count so failures surface early. The two ordering constraints that are not negotiable: `CustomObject` runs before `CustomField`, and `Profile` runs last (few records, but each carries the whole FLS matrix, so it is slow and its failure is the least disruptive to retry).
+
+Every call has the same shape — substitute the type, the log name, and a `--wait` sized to the live count:
 
 ```bash
-# 2.11 — AuraDefinitionBundle (~12 bundles)
-sf project retrieve start --metadata AuraDefinitionBundle -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/11-aura.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.12 — Flow (~50)
-sf project retrieve start --metadata Flow -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/12-flow.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.13 — FlexiPage (~108)
-sf project retrieve start --metadata FlexiPage -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/13-flexipage.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.14 — LightningComponentBundle (~300)
-sf project retrieve start --metadata LightningComponentBundle -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/14-lwc.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.15 — Layout (~495)
-sf project retrieve start --metadata Layout -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/15-layout.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.16 — ApexClass (~680)
-sf project retrieve start --metadata ApexClass -o "$ORG_ALIAS" --wait 60 \
-  2>&1 | tee .retrieve-logs/current/16-apexclass.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.17 — CustomObject (~670 folders) — MUST precede CustomField
-sf project retrieve start --metadata CustomObject -o "$ORG_ALIAS" --wait 120 \
-  2>&1 | tee .retrieve-logs/current/17-customobject.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.18 — CustomField (~8,900) — closest to 10k limit
-sf project retrieve start --metadata CustomField -o "$ORG_ALIAS" --wait 120 \
-  2>&1 | tee .retrieve-logs/current/18-customfield.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.19 — OmniScript (~765)
-sf project retrieve start --metadata OmniScript -o "$ORG_ALIAS" --wait 120 \
-  2>&1 | tee .retrieve-logs/current/19-omniscript.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.20 — OmniIntegrationProcedure (~1,670) — second heaviest
-sf project retrieve start --metadata OmniIntegrationProcedure -o "$ORG_ALIAS" --wait 120 \
-  2>&1 | tee .retrieve-logs/current/20-omniip.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.21 — OmniDataTransform / DataRaptors (~1,710) — heaviest single retrieve
-sf project retrieve start --metadata OmniDataTransform -o "$ORG_ALIAS" --wait 180 \
-  2>&1 | tee .retrieve-logs/current/21-omnidatatransform.log | grep -E "Status: (Succeeded|Failed)"
-
-# 2.22 — Profile (~29) — small count, slow per record (FLS-heavy); runs LAST
-sf project retrieve start --metadata Profile -o "$ORG_ALIAS" --wait 120 \
-  2>&1 | tee .retrieve-logs/current/22-profile.log | grep -E "Status: (Succeeded|Failed)"
+sf project retrieve start --metadata <Type> -o "$ORG_ALIAS" --ignore-conflicts --wait <n> \
+  2>&1 | tee ".retrieve-logs/current/<NN>-<type>.log" | grep -E "Status: (Succeeded|Failed)"
 ```
 
-Expected per-call wall-clock (varies 3-10x by org load):
+Or drive the whole pass from your plan:
 
-| Step | Type | Best-case | Slow org |
-|---|---|---:|---:|
-| 2.11 | AuraDefinitionBundle | 13s | 60s |
-| 2.12 | Flow | 30s | 90s |
-| 2.13 | FlexiPage | 50s | 90s |
-| 2.14 | LightningComponentBundle | 35s | 100s |
-| 2.15 | Layout | 45s | 90s |
-| 2.16 | ApexClass | 25s | 75s |
-| 2.17 | CustomObject | 220s | 360s |
-| 2.18 | CustomField | 35s | 90s |
-| 2.19 | OmniScript | 235s | 320s |
-| 2.20 | OmniIntegrationProcedure | 150s | 200s |
-| 2.21 | OmniDataTransform (DataRaptors) | 100s | 200s |
-| 2.22 | Profile | 35s | 100s |
+```bash
+# One type per line, lightest first — written by Phase 0.5.
+[ -s .retrieve-logs/current/_phase2-order.txt ] || { echo "run Phase 0.5 first"; exit 1; }
+NN=0
+while read -r T; do
+  NN=$((NN + 1))
+  printf '\n=== Phase 2.%02d — %s ===\n' "$NN" "$T"
+  # Size the wait to the live count: a type in the thousands needs far more
+  # than one near zero. Bump WAIT per type rather than leaving one flat value,
+  # which Gate A lens 2 is explicitly told to attack.
+  WAIT=$(awk -v t="$T" '$2==t{print ($1>1000)?300:(($1>200)?180:90)}' \
+           .retrieve-logs/current/_footprint.tsv)
+  /usr/bin/time -p sf project retrieve start --metadata "$T" \
+    -o "$ORG_ALIAS" --ignore-conflicts --wait "${WAIT:-180}" \
+    2>&1 | tee ".retrieve-logs/current/$(printf '%02d' "$NN")-$(echo "$T" | tr '[:upper:]' '[:lower:]').log" \
+    | grep -E "Status: (Succeeded|Failed)"
+done < .retrieve-logs/current/_phase2-order.txt
+```
+
+**Record your own per-call wall-clock as you go** — it goes into audit-doc §2 and becomes the baseline the *next* run compares against. Do not copy timings from another org or another doc; they vary several-fold with org load, and a borrowed number tells you nothing about whether today's run is healthy. If you want a prior baseline, read the most recent audit doc in `changes/git/`.
 
 ---
 
@@ -460,46 +605,25 @@ Every retrieve run ends with a persistent audit doc under `changes/git/`, commit
 
 **Why this matters:** in a Salesforce repo where teammates deploy directly to the org — often via a VDI pipeline that commits later, or sometimes never — the local repo is rarely the source of truth. Most of the diff in any retrieve is someone else's work. The audit doc lets a future investigator bisect by retrieve date and pinpoint when a given component shifted, even if no commit ever landed in the repo from the person who shipped it.
 
-### 3.1 Pre-flight WIP check (interactive)
+### 3.1–3.3 Already done in Phase 0 — do not re-run
 
-Before any retrieve writes to disk, check for uncommitted work and ask the user how to handle it:
+| Step | Where it happened | Why it moved |
+|---|---|---|
+| WIP check (interactive) | **Phase 0.4** | Gate A must review the actual WIP decision, and nothing may write to disk before it. |
+| Capture `PRE_HEAD` | **Phase 0.4** | Persisted to `.retrieve-logs/current/_pre-head.txt` so a long run surviving a shell restart still has its diff base. |
+| Run the retrieve phases | **Phases 1 and 2** | Record per-phase wall-clock and any retries as you go; that data feeds §2 of the audit doc. |
 
-```bash
-wip_count=$(git status --short | wc -l | tr -d ' ')
-if [ "$wip_count" -gt 0 ]; then
-  echo "WIP detected: $wip_count modified or untracked files."
-  git status --short | head -20
-  # Ask the user: stash+pop / continue / abort
-fi
-```
-
-Three valid responses:
+WIP responses, for reference (captured in Phase 0.4, reported in §7):
 
 | Response | What happens |
 |---|---|
-| **stash + pop** | `git stash push -u -m "pre-retrieve-$(date +%Y%m%d-%H%M)"` runs now. After Phase 3.6, `git stash pop` runs and any conflicts are reported. |
-| **continue** | Retrieve runs with WIP in the tree. The WIP files will appear in the same uncommitted set as the org diffs — be careful not to fold them into the mirror commit (use selective `git add` paths in 3.5). |
+| **stash + pop** | `git stash push -u -m "pre-retrieve-$(date +%Y%m%d-%H%M)"` ran in Phase 0.4. After Phase 3.6, `git stash pop` runs and any conflicts are reported. |
+| **continue** | Retrieve runs with WIP in the tree. The WIP files land in the same uncommitted set as the org diffs — do not fold them into the mirror commit; use selective `git add` paths in 3.5. |
 | **abort** | Stop. Nothing has changed yet. |
-
-Capture the user's choice for §7 of the audit doc.
-
-### 3.2 Capture pre-retrieve HEAD
-
-```bash
-PRE_HEAD=$(git rev-parse HEAD)
-PRE_HEAD_SHORT=$(git rev-parse --short HEAD)
-echo "Pre-retrieve HEAD: $PRE_HEAD_SHORT"
-```
-
-Stash this value (env var, scratch file under `.retrieve-logs/current/`, or in your head) — it goes into §5 of the audit doc as the "since" reference.
-
-### 3.3 Run all 23 retrieve phases
-
-Phases 0 through 2.22 as described above. The agent does these sequentially, recording per-phase wall-clock and any retries — that data feeds §2 of the audit doc.
 
 ### 3.4 Generate the audit doc
 
-Once the last phase (2.22 Profile) finishes:
+Once the last Phase 2 type finishes:
 
 ```bash
 ALIAS="$ORG_ALIAS"
@@ -514,12 +638,16 @@ The audit doc is THEN filled in three explicit phases — **do not collapse them
 
 ### 3.4.1 Per-type analysis (todo-driven, magnitude-ordered)
 
-**Mandatory.** Spawn one `TodoWrite` entry per metadata type that ACTUALLY changed (skip the empty types — don't pre-populate the full 23-type list). Each todo is worked end-to-end before moving to the next.
+**Mandatory.** Spawn one `TodoWrite` entry per metadata type that ACTUALLY changed — skip the empty types rather than pre-populating one todo per planned phase. Each todo is worked end-to-end before moving to the next.
 
 #### Compute magnitude
 
 ```bash
-DIFF_BASE="$PRE_HEAD"  # compare the base commit to current index + working tree
+# Read the base from disk, not from $PRE_HEAD — the shell that set it may be
+# long gone. An empty base makes every `git diff` below return nothing, which
+# reads exactly like "the org didn't change".
+DIFF_BASE=$(cat .retrieve-logs/current/_pre-head.txt)
+[ -n "$DIFF_BASE" ] || { echo "no PRE_HEAD recorded — cannot compute the diff"; exit 1; }
 
 # Total churn per type (modifications only, doesn't count untracked yet):
 for dir in classes triggers lwc aura omniScripts omniIntegrationProcedures \
@@ -571,7 +699,7 @@ For each per-type todo, in order:
    | `.field-meta.xml` | `<type>` (changing this on an existing field is destructive), `<trackHistory>`, `<required>`, `<unique>` |
    | `.recordType-meta.xml` | `<picklistValues>` blocks (new field added to picklist set), `<active>` |
    | `.profile-meta.xml` / `.permissionset-meta.xml` | `<allowDelete>`, `<allowEdit>`, `<allowRead>` flips on `<objectPermissions>`; new `<fieldPermissions>` with `<editable>true</editable>`; new `<classAccesses>` with `<enabled>true</enabled>` (the `<enabled>false</enabled>` ones are mechanical awareness-list noise) |
-   | `.flow-meta.xml` | `<status>Active|Draft|Obsolete</status>` |
+   | `.flow-meta.xml` | `<status>Active\|Draft\|Obsolete</status>` |
    | `.flexipage-meta.xml` | Component additions/removals on record pages |
    | Anything else | Plain diff; ask yourself "what behaviour does this change?" |
 
@@ -652,16 +780,6 @@ If you see paired `-` / `+` lines with different class names, OR if the `+` clas
 
 §4.1 noted yesterday's new `AccountValidationService` and today's new `ContactValidationService` — paired with the renamed `XMLValidationService → XmlValidationService` (also flagged in §6.1 as a casing rename). **Synthesis:** the team is splitting the validation surface into per-sObject variants (Account-side, Contact-side); today's `Contact` completes a symmetry that started 2 days ago with `Account`. Worth a future-state check: are there callers still routing through the renamed `Xml` service that should be migrated to the new per-sObject services?
 
-#### Mandatory adversarial cross-type review
-
-After per-type analysis and synthesis, but before filling §6/finalizing the audit, build the canonical staged+unstaged+untracked snapshot from `.cursor/rules/adversarial-review.mdc` using `$PRE_HEAD` as the base, then launch the minimum three independent reviewers in one parallel fan-out:
-
-1. Salesforce runtime/limits.
-2. Concurrency/data integrity.
-3. Requirements/regression/shared dependencies.
-
-Record reviewer IDs, reviewed revision, verdicts, evidence-backed failure hypotheses, and dispositions in audit-doc §6.5. High/Critical findings block final audit handoff until validated and resolved/re-reviewed; a failed reviewer does not count.
-
 ### 3.4.3 Fill remaining sections
 
 After §3.4.2 finishes, fill the remaining sections (header / §1 TL;DR (now informed by the synthesis) / §2 Per-phase status / §3 Source-count deltas / §5 Diff context / §6 Suspicion analysis / §7 WIP impact / §8 Warnings / §10 Follow-ups). Use the live data per the table below:
@@ -674,10 +792,10 @@ After §3.4.2 finishes, fill the remaining sections (header / §1 TL;DR (now inf
 | §3 Source-count deltas | Compare current counts (per the "Validating the run" snippet below) against the §3 table of the *previous* file in `changes/git/` |
 | §4 Changes by metadata type (§4.1–§4.10) | **Already filled in §3.4.1** (one per-type todo per non-empty type). Do not redo here. |
 | §4.11 Cross-type synthesis | **Already filled in §3.4.2** (the synthesis todo). Do not redo here. |
-| §5 Diff context | `$PRE_HEAD` and `git diff --stat "$PRE_HEAD"..HEAD \| tail -5` |
+| §5 Diff context | `DIFF_BASE=$(cat .retrieve-logs/current/_pre-head.txt)` then `git diff --stat "$DIFF_BASE"..HEAD \| tail -5` |
 | §6 Suspicion analysis | Run the four heuristic sets below |
-| §7 WIP impact | Carry over the choice + outcome from 3.1 / 3.6 |
-| §8 Retrieve warnings | `grep -hE "Warning|Problem" .retrieve-logs/current/*.log` cross-checked against the "Known non-fatal warnings" table |
+| §7 WIP impact | Carry over the choice from 0.4 and the outcome from 3.6 |
+| §8 Retrieve warnings | `grep -hE "Warning\|Problem" .retrieve-logs/current/*.log` cross-checked against the "Known non-fatal warnings" table |
 | §9 Mirror commit reference | Filled in *after* 3.5 — leave `<short-hash>` placeholder until then |
 | §10 Open follow-ups | Anything from §6 that needs human review, plus anything the agent noticed |
 
@@ -686,7 +804,8 @@ After §3.4.2 finishes, fill the remaining sections (header / §1 TL;DR (now inf
 Run all four in sequence. Each is a read-only diff inspection — none of them blocks the commit.
 
 ```bash
-DIFF_BASE="$PRE_HEAD"  # pre-commit working-tree comparison
+DIFF_BASE=$(cat .retrieve-logs/current/_pre-head.txt)   # pre-commit working-tree comparison
+[ -n "$DIFF_BASE" ] || { echo "no PRE_HEAD recorded — cannot compute the diff"; exit 1; }
 
 # 6.1 Possibly-breaking
 git diff "$DIFF_BASE" -- 'force-app/main/default/classes/*Test.cls' \
@@ -716,7 +835,7 @@ git diff "$DIFF_BASE" -- 'force-app/main/default/objects/*/validationRules/*.val
 git diff --diff-filter=D --name-only "$DIFF_BASE" -- 'force-app/main/default/classes/*.cls' || true
 git status --short -- 'force-app/main/default/objects/' \
   | grep -E '^\?\?\s.*objects/[^/]+/$' || true
-git diff --stat "$DIFF_BASE" -- 'force-app/main/default/lwc/*/lwc/*.js-meta.xml' || true
+git diff --stat "$DIFF_BASE" -- 'force-app/main/default/lwc/*/*.js-meta.xml' || true
 # >50% line churn for IPs / OmniScripts — compare diff lines to wc -l:
 for f in $(git diff --name-only "$DIFF_BASE" -- \
     'force-app/main/default/omniIntegrationProcedures/*.oip-meta.xml' \
@@ -731,6 +850,18 @@ done
 ```
 
 Pipe each into a scratch file and reference the relevant entries inside §6.x of the doc.
+
+### 3.4.B Mandatory adversarial Gate B — review the finished audit
+
+Run after §3.4.3 fills the remaining sections, and before the commits in §3.5. Unlike a normal Gate B this is not approval to deploy anything — nothing gets deployed by a retrieve. **What it reviews is the quality and honesty of the analysis**, because a mirror audit that misses a connection is worse than no audit: it looks like diligence while hiding the thing that later breaks.
+
+Build the evidence pack — `PRE_HEAD` from `.retrieve-logs/current/_pre-head.txt` as the base, the per-type churn table, `_footprint.tsv`, and the `.retrieve-logs/current/` log set — then launch three independent critics in one parallel fan-out with these lenses:
+
+1. **Per-type analysis depth** — attack shallow "file X changed" notes that never say what *behavior* changed. Every notable file should name the concrete risk: a sharing-keyword flip, a field `<type>` change, an `<isActive>` flip, a new `<fieldPermissions>` grant. Notes that restate the filename are findings.
+2. **Cross-type synthesis completeness** — attack missed connections the synthesis should have caught: an Apex method added alongside the LWC that imports it, a new field read by a new DataRaptor, an IP and DR sharing a domain word, a permset grant paired with a FlexiPage edit on the same sObject. Findings here name the specific pair that was left unlinked.
+3. **Mirror and commit honesty** — attack overstated coverage and staging errors: a type reported `Succeeded` with 0 files being counted as covered, Omni completeness claimed on a Vlocity CMT org, WIP about to be folded into the mirror commit, changed paths omitted from the staging list, or an exclusion in §3 with no recorded reason.
+
+Verify each finding against the actual diff before acting on it, rebut rather than silently dropping, and escalate to the user after three unresolved rounds. Record critic IDs, the revision reviewed, verdicts, dispositions, and round counts in audit-doc §6.5. Critical/High findings block the commits until fixed or rejected with evidence; a failed or timed-out critic does not count toward the three.
 
 ### 3.5 Two-commit pattern
 
@@ -747,7 +878,7 @@ git status -s
 git commit -m "$(cat <<'EOF'
 mirror(<sandbox-alias>): sync from <sandbox-alias> @ YYYY-MM-DD HH:MM
 
-Org-wide metadata retrieve via the 23-phase plan in docs/sf-org-mirror-retrieve.md.
+Org-wide metadata retrieve via the phase plan in docs/sf-org-mirror-retrieve.md.
 Triggered by: <user>. Wall-clock: ~XX min. All phases Succeeded / Partial (see audit doc).
 
 Source counts after retrieve:
@@ -788,7 +919,7 @@ Snapshot record of the org-wide retrieve described in
 docs/sf-org-mirror-retrieve.md. References mirror commit ${MIRROR_SHORT}.
 
 Saved at: ${DOC}
-Wall-clock: ~XX min.  Phases: 23 of 23 (or M of 23, see doc §2).
+Wall-clock: ~XX min.  Phases: <M> of <N planned> (see doc §2).
 Notable: <one-line carried over from doc TL;DR>
 EOF
 )"
@@ -807,7 +938,7 @@ git status -s
 
 Report both hashes back to the user.
 
-### 3.6 Pop WIP (if stashed in 3.1)
+### 3.6 Pop WIP (if stashed in 0.4)
 
 ```bash
 if git stash list | grep -q "pre-retrieve-"; then
@@ -819,16 +950,9 @@ fi
 
 Update §7 of the audit doc with the pop result (clean / conflict list). If conflicts appeared, this is a `git commit --amend` to the doc commit only — not a new commit.
 
-### Total Phase 3 wall-clock
-
-- Audit-doc generation: ~30s – 2 min (depending on how big the diff is for §4)
-- Both commits + verifications: ~10s
-- WIP stash/pop: ~5s each
-- **Total Phase 3 overhead per run: ~1 – 3 min on top of the retrieve itself**
-
 ---
 
-## CustomField fallback — only if step 2.18 hits the 10k limit
+## CustomField fallback — only if a single type hits the 10k limit
 
 If a single `--metadata CustomField` retrieve fails with `LIMIT_EXCEEDED` or returns truncated results, shard by object family. Top folders by `.field-meta.xml` count are typically the standard high-volume objects (Account, Contact, Case) plus your custom `*__c` ones.
 
@@ -847,11 +971,13 @@ find force-app/main/default/objects -name '*.field-meta.xml' \
   | awk -F/ '{print $5}' | sort | uniq -c | sort -rn | head -30
 ```
 
+The generated `CustomField:<Object>.*` shard manifests enumerate your org's real object API names, so they are **project-only** — keep them in your repo, and never ship them in a shared bootstrap kit.
+
 ---
 
 ## Validating the run
 
-After all 23 calls finish, check for failures:
+After every planned call finishes, check for failures:
 
 ```bash
 echo "=== Failures (none expected) ==="
@@ -905,10 +1031,16 @@ These appear as `Warnings` rows in the retrieve output. They're metadata API edg
 | `You do not have the proper permissions to access Layout.` (×2) | Managed-package layouts the running user can't see | Ignore (or run as a higher-privilege user) |
 | `Entity of type 'QuickAction' named '<sObject>.<QuickActionApiName>' cannot be found` | Stale manifest reference (the QuickAction was deleted from the org but still listed in your `manifest/fullpackage.xml`) | Ignore (or clean the manifest) |
 
-If you see anything **other than** these — particularly `LIMIT_EXCEEDED`, `MalformedQueryException`, `FATAL`, `too large`, or `Status: Failed` — that's a real failure. Re-run that single type with a longer wait:
+> **Exceeding `--wait` is not a failure, and re-running is harmful.** `--wait` bounds how long the CLI polls, nothing more — when it lapses the CLI hands back your terminal while **the retrieve keeps running server-side**. Starting the same type again puts two retrieves in flight against one working tree, which is the `.git/index` corruption that Hard lesson 1 warns about. Resume instead:
+>
+> ```bash
+> sf project retrieve resume --use-most-recent -o "$ORG_ALIAS"
+> ```
+
+Only `LIMIT_EXCEEDED`, `MalformedQueryException`, `FATAL`, `too large`, or an explicit `Status: Failed` are real failures. For those, re-run that single type:
 
 ```bash
-sf project retrieve start --metadata <Type> -o "$ORG_ALIAS" --wait 240 \
+sf project retrieve start --metadata <Type> -o "$ORG_ALIAS" --ignore-conflicts --wait 240 \
   2>&1 | tee .retrieve-logs/current/<NN>-<type>-retry.log | grep -E "Status: (Succeeded|Failed)"
 ```
 
@@ -935,22 +1067,19 @@ sf project retrieve start --metadata <SkippedType> -o "$ORG_ALIAS" --wait 120
 
 ---
 
-## Total wall-clock estimates
+## How long it takes
 
-| Org load | Total time | Per-call median |
-|---|---:|---:|
-| Fast org (early morning, no batch jobs) | **~20 min** | ~30s |
-| Typical sandbox during business hours | **~30 – 60 min** | ~90s |
-| Slow / loaded org (large package install in progress, Apex jobs running) | **~60 – 90 min** | ~3 min |
-| Severely degraded org | **2 – 3 hours** | ~5 min |
+There is no useful universal estimate. Total wall-clock is a product of your org's component count, its current load, and how many calls your shard plan needs — and it swings several-fold on the same org between a quiet morning and a business-hours window with batch jobs running.
 
-The runbook is **background-friendly** — start it and keep working. It writes Status to terminal in real time and full output to `.retrieve-logs/current/` (with the previous run rotated to `.retrieve-logs/archive/<TS>/` during pre-flight).
+Get your number the only way that works: read §2 of the most recent audit doc in `changes/git/`. That is your org's real baseline, measured on your org. The first mirror into an empty repo runs substantially longer than reruns because every component is `Created` rather than `Changed`.
+
+The runbook is **background-friendly** — start it and keep working. It writes Status to the terminal in real time and full output to `.retrieve-logs/current/` (with the previous run rotated to `.retrieve-logs/archive/<TS>/` during pre-flight).
 
 ---
 
 ## Pre-flight WIP handling
 
-The default flow lives in [Phase 3.1](#31-pre-flight-wip-check-interactive) (stash + pop / continue / abort). Two additional patterns for cases the default doesn't cover:
+The default flow lives in [Phase 0.4](#04-wip-check-interactive--capture-pre_head) (stash + pop / continue / abort). Two additional patterns for cases the default doesn't cover:
 
 **Commit WIP to a temporary branch first** — best when you want to diff your edits against org state afterwards:
 
@@ -962,7 +1091,7 @@ git checkout -    # back to your working branch
 # use: git diff pre-retrieve-<date> -- <path>  to see what got overwritten
 ```
 
-**Accept overwrite** — fine if your WIP is committed locally on a feature branch you can recover from `git reflog`. Pick the **continue** option in Phase 3.1, then use selective `git add` paths during Phase 3.5 so your WIP files don't end up in the mirror commit.
+**Accept overwrite** — fine if your WIP is committed locally on a feature branch you can recover from `git reflog`. Pick the **continue** option in Phase 0.4, then use selective `git add` paths during Phase 3.5 so your WIP files don't end up in the mirror commit.
 
 To audit afterwards (works for any of the three approaches):
 
@@ -976,17 +1105,20 @@ git log --oneline HEAD@{1}..HEAD 2>/dev/null        # any commits during retriev
 
 ## Adapting this runbook to a different org
 
-1. **Set your `ORG_ALIAS` env var** in the new shell (see [Setup](#setup-set-your-org-alias-once)). All commands in this runbook will then work as-is — no editing needed.
+1. **Set your `ORG_ALIAS` env var** in the new shell (see [Setup](#setup--set-your-org-alias-once)). All commands in this runbook will then work as-is — no editing needed.
    ```bash
    export ORG_ALIAS=YourAliasHere
    echo "$ORG_ALIAS"     # confirm it printed what you expected
    ```
-2. **Confirm the manifest shards exist** at `manifest/fullpackage/`. If not, copy them from a repo that has them (e.g. this one), or build your own from the canonical 127-type list in `manifest/fullpackage.xml`. The 11 shard files are pure metadata-name lists; they're not org-specific.
-3. **Recheck local counts before the first run** — if your org has dramatically different sizes (e.g. 20k CustomFields), re-shard heavy types accordingly. See the [CustomField fallback](#customfield-fallback--only-if-step-218-hits-the-10k-limit) for the per-object pattern.
-4. **First-run timing** will be longer than reruns because every component is `Created` rather than `Changed`. Budget 2–3x the typical estimates above.
-5. **Add `.retrieve-logs/` to `.gitignore`** in the new repo.
-6. **Don't run two retrieves to the same org concurrently** — they serialize on the org side and frequently fail with timeouts.
-7. **Open a fresh shell per org** (or re-export `ORG_ALIAS`) — the env var doesn't follow you across terminals.
+2. **Confirm the manifest shards exist** at `manifest/fullpackage/`. If not, copy them from a repo that has them, or build your own. The shard files are pure metadata-type-name lists with `<members>*</members>` — no org-specific content.
+3. **Run Phase 0.3 discovery — always.** This is the step that adapts the runbook to the new org. Its output decides which types are supported, which are solo, which bundle, and which are excluded. Skipping it and reusing another org's split is the single most common way this workflow fails.
+4. **Re-shard heavy types if the footprint demands it.** A type near the 10k cap needs the per-object pattern in the [CustomField fallback](#customfield-fallback--only-if-a-single-type-hits-the-10k-limit).
+5. **Expect the first run to be slower** than reruns — every component is `Created` rather than `Changed`.
+6. **Add `.retrieve-logs/` to `.gitignore`** in the new repo.
+7. **Don't run two retrieves to the same org concurrently** — they serialize on the org side and frequently fail with timeouts.
+8. **Open a fresh shell per org** (or re-export `ORG_ALIAS`) — the env var doesn't follow you across terminals.
+
+Org-measured artifacts stay with the project, never with the kit. Sharded manifests that enumerate real object API names (the `CustomField:<Object>.*` variety) are generated per-org by the fallback pattern below — they are not part of the shared bootstrap kit, because they would carry one org's entire object inventory into every other project.
 
 ---
 
@@ -994,54 +1126,38 @@ git log --oneline HEAD@{1}..HEAD 2>/dev/null        # any commits during retriev
 
 - `.cursor/rules/sf-cli-commands.mdc` — canonical `sf` CLI reference (every flag, every command).
 - `.cursor/rules/apex-development.mdc` — Apex deploy + test workflow (the inverse direction).
-- `manifest/fullpackage.xml` — master manifest of all 127 metadata types this org cares about.
-- `manifest/fullpackage/` — pre-sharded versions of the master manifest.
+- `.cursor/rules/adversarial-review.mdc` — the Gate A / Gate B protocol this runbook invokes.
+- `manifest/fullpackage.xml` — seed master manifest listing the metadata types to consider.
+- `manifest/fullpackage/` — pre-sharded versions of the seed master manifest.
+- `changes/git/` — previous audit docs; the most recent one is your org's real baseline for counts and timings.
 
 ---
 
 ## Quick checklist (TL;DR)
 
 ```text
-[ ]  Phase 0.0 — Spawn the explicit TodoWrite plan FIRST (mandatory; see runbook §0.0). Long-running, resumable on failure.
-[ ]  export ORG_ALIAS=YourAlias            → set once at top of shell
-[ ]  echo "$ORG_ALIAS"                     → confirm it printed
-[ ]  sf org list --all                     → confirm Connected
-[ ]  Rotate prior .retrieve-logs/current/ → .retrieve-logs/archive/<TS>/ (see Pre-flight)
-[ ]  mkdir -p .retrieve-logs/current changes/git
-[ ]  Phase 3.1 — WIP check (interactive)   → stash+pop / continue / abort
-[ ]  Phase 3.2 — capture PRE_HEAD          → git rev-parse HEAD
-[ ]  Phase 1 — 11 sequential calls   (~5–20 min total)
-       1.1  fullpackage-integration.xml
-       1.2  fullpackage-community.xml
-       1.3  PostTemplate, ManagedContentType, ActionLinkGroupTemplate
-       1.4  CustomObjectTranslation
-       1.5  OmniUiCard, OmniInteractionConfig, OmniInteractionAccessConfig
-       1.6  ApexComponent, ApexPage, ApexTestSuite, ApexTrigger, LightningMessageChannel
-       1.7  RecordType, ValidationRule, WebLink, CustomMetadata, … (17 types)
-       1.8  QuickAction, CustomApplication, CustomTab, … (15 types)
-       1.9  Workflow*, ApprovalProcess, … (14 types, no Flow)
-       1.10 PermissionSet*, Role, Group, Queue, … (14 types, no Profile)
-       1.11 ExternalCredential, ExternalClientApplication, ApexEmailNotifications
-[ ]  Phase 2 — 12 single-type calls  (~17–65 min total)
-       2.11 AuraDefinitionBundle
-       2.12 Flow
-       2.13 FlexiPage
-       2.14 LightningComponentBundle
-       2.15 Layout
-       2.16 ApexClass
-       2.17 CustomObject              ← MUST precede CustomField
-       2.18 CustomField
-       2.19 OmniScript
-       2.20 OmniIntegrationProcedure
-       2.21 OmniDataTransform         ← DataRaptors (.rpt-meta.xml)
-       2.22 Profile                   ← LAST
+[ ]  Phase 0.0 — Spawn the explicit TodoWrite plan FIRST (mandatory; see §0.0). Long-running, resumable on failure.
+[ ]  export ORG_ALIAS=<your-alias>         → set once at top of shell
+[ ]  echo "$ORG_ALIAS"                     → confirm it printed (empty = silently hits your DEFAULT org)
+[ ]  Phase 0.1 — sf org list --all         → confirm Connected
+[ ]  Phase 0.2 — rotate .retrieve-logs/current/ → archive/<TS>/; mkdir -p .retrieve-logs/current changes/git
+[ ]  Phase 0.3 — FOOTPRINT DISCOVERY       → supported types, live counts, gap lists, OmniStudio flavour
+[ ]  Phase 0.4 — WIP check (interactive)   → stash+pop / continue / abort;  capture PRE_HEAD to a file
+[ ]  Phase 0.5 — build the shard plan FROM the footprint (solo vs bundled vs excluded + reasons)
+[ ]  Phase 0.A — adversarial Gate A        → 3 parallel critics: coverage / limits+ordering / safety+truthfulness
+[ ]  Phase 1 — bundled small-type shards, sequential          (one todo per shard, from your plan)
+[ ]  Phase 2 — solo heavy types, lightest → heaviest          (one todo per type, from your plan)
+                 CustomObject MUST precede CustomField;  Profile LAST
+                 Omni types: only if MDAPI-backed — skip entirely on Vlocity CMT
 [ ]  grep -l "Status: Failed" .retrieve-logs/current/*.log    → expect "None"
-[ ]  Phase 3.4 — generate audit doc        → cp template → changes/git/retrieve-<date>-<time>-<alias>.md, fill in §1-§10
-[ ]  Phase 3.5 — commit 1 (mirror)         → git add force-app/ … ; commit; capture $MIRROR_SHORT
+[ ]  Phase 3.4   — generate audit doc      → cp template → changes/git/retrieve-<date>-<time>-<alias>.md
+[ ]  Phase 3.4.1 — per-type analysis       → one todo per type that ACTUALLY changed
+[ ]  Phase 3.4.2 — cross-type synthesis    → §4.11
+[ ]  Phase 3.4.3 — fill §1-§10             → record YOUR counts and timings; no borrowed numbers
+[ ]  Phase 3.4.B — adversarial Gate B      → 3 parallel critics: analysis depth / synthesis / mirror honesty
+[ ]  Phase 3.5 — commit 1 (mirror)         → explicit git add paths; commit; capture $MIRROR_SHORT
 [ ]  Phase 3.5 — embed hash in doc         → replace <short-hash> in header + §9
 [ ]  Phase 3.5 — commit 2 (audit doc)      → git add changes/git/<file>; commit referencing $MIRROR_SHORT
 [ ]  Phase 3.6 — pop WIP if stashed        → git stash pop; report conflicts (if any) in doc §7
-[ ]  Report both commit hashes back to user
-[ ]  Snapshot final source counts; diff vs previous mirror
-[ ]  Pop / merge WIP back if you stashed
+[ ]  Report both commit hashes back to the user
 ```

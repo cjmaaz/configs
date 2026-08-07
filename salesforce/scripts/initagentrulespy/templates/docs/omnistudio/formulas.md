@@ -2,7 +2,7 @@
 
 OmniStudio formulas look like a single, unified mini-language across the suite, but they are **not**: the same `=FILTER(...)` expression that works in an Integration Procedure (IP) silently fails in an OmniScript (OS), and the same `=PMT(...)` that works in OS throws in an IP. The reason is that formulas are evaluated by **two completely different runtimes** depending on where you put them.
 
-This doc gives you (1) the architectural model of why that split exists, (2) a category-by-category function reference, (3) the exclusivity matrix that tells you exactly what fails where, and (4) the {{ORG_NAME}} `PRM_FormulaProbe` IP for empirically validating list-formula behavior.
+This doc gives you (1) the architectural model of why that split exists, (2) a category-by-category function reference, (3) the exclusivity matrix that tells you exactly what fails where, and (4) the {{ORG_NAME}} `FormulaProbe` IP for empirically validating list-formula behavior.
 
 > Source-of-truth references: Salesforce Help, [OmniScript Functions](https://help.salesforce.com/s/articleView?id=xcloud.os_omniscript_functions.htm&type=5) and [Function Reference](https://help.salesforce.com/s/articleView?id=xcloud.os_function_reference.htm&type=5). The lists below are distilled from those pages and from the `propertySetConfig` of real OmniStudio metadata.
 
@@ -61,7 +61,7 @@ A few common syntactic patterns:
 | `=IF(cond, then, else)` | Ternary conditional |
 | Argument quoting in IP-only functions like `FILTER`/`SORTBY` | The condition string uses single quotes around its outer body and double-quoted comparison values: `FILTER(%list%, 'Status == "Active"')` |
 
-The string-quoting rules are the most error-prone part of OmniStudio formulas. When in doubt, write the formula and test it through the [PRM_FormulaProbe IP](#probing-formula-behavior).
+The string-quoting rules are the most error-prone part of OmniStudio formulas. When in doubt, write the formula and test it through the [FormulaProbe IP](#probing-formula-behavior).
 
 ---
 
@@ -128,7 +128,7 @@ Each function is listed with where it works (OS = OmniScript, IP/DR = Integratio
 | `REPLACE(s, find, replace)` | ✅ | ✅ | Replace all occurrences | `=REPLACE(%Phone%, "-", "")` |
 | `SUBSTITUTE(s, old, new)` | ✅ | ✅ | Single substitution | `=SUBSTITUTE(%Text%, "foo", "bar")` |
 | `CONTAINS(haystack, needle)` | ✅ | ✅ | Boolean: substring present? | `=CONTAINS(%Email%, "@")` |
-| `BEGINS(s, prefix)` | ✅ | ✅ | Boolean: starts-with | `=BEGINS(%Code%, "PRM_")` |
+| `BEGINS(s, prefix)` | ✅ | ✅ | Boolean: starts-with | `=BEGINS(%Code%, "<YourPrefix>_")` |
 | `ENDS(s, suffix)` | ✅ | ✅ | Boolean: ends-with | `=ENDS(%File%, ".pdf")` |
 | `SPLIT(s, sep)` | ✅ | ✅ | Split into list | `=SPLIT(%CSV%, ",")` |
 | `JOIN(list, sep)` | ⚠️ | ✅ | Concatenate list with separator (OS struggles with deeply-nested lists) | `=JOIN(%Tags%, ", ")` |
@@ -242,7 +242,7 @@ A practical heuristic: if your candidate formula references `%path%` of somethin
 
 ## Type coercion and list-vs-object caveats
 
-These are the bugs that cost the most debugging time across the entire OmniStudio surface. They are subtle, runtime-version-dependent, and rarely surface in unit tests because the test data is too uniform. Read this section before writing any formula that touches a list, and probe with [`PRM_FormulaProbe`](#probing-formula-behavior) when the behavior surprises you.
+These are the bugs that cost the most debugging time across the entire OmniStudio surface. They are subtle, runtime-version-dependent, and rarely surface in unit tests because the test data is too uniform. Read this section before writing any formula that touches a list, and probe with [`FormulaProbe`](#probing-formula-behavior) when the behavior surprises you.
 
 ### 1. A single-item list often collapses to an object
 
@@ -417,7 +417,7 @@ A handful of JSON keys are intercepted by the OmniStudio framework and have spec
 | `IPResult` | Default IP response wrapper key |
 | `Action` | Reserved in some contexts |
 
-Avoid using these as your own data keys. If you must, prefix them (`PRM_error`, `applicationError`).
+Avoid using these as your own data keys. If you must, prefix them (`app_error`, `applicationError`).
 
 ### 12. Element API Name collisions silently overwrite
 
@@ -436,7 +436,7 @@ Within a single `Set Values` element, whether row 2 can reference row 1's freshl
 When a formula returns the wrong value, walk this list in order:
 
 1. **Identify the runtime.** OS or IP/DR? Check the exclusivity matrix above.
-2. **Check the input shape.** Is it `null` / `[]` / `{}` / collapsed object / true list? Use [`PRM_FormulaProbe`](#probing-formula-behavior) or temporarily set `includeAllActionsInResponse: true` on the IP.
+2. **Check the input shape.** Is it `null` / `[]` / `{}` / collapsed object / true list? Use [`FormulaProbe`](#probing-formula-behavior) or temporarily set `includeAllActionsInResponse: true` on the IP.
 3. **Add `LIST()` defensively** to any list operation. Wrap `FILTER`, `SORTBY`, `LISTSIZE` arguments.
 4. **Check colon-traversal cardinality.** `%path:Field%` returns scalar from object, list from list. Snap shapes upstream in a `Set Values` if the downstream code expects one shape.
 5. **Check type coercion.** Boolean strings, Date strings, Number-vs-Integer. Cast explicitly with `=TOBOOLEAN()`, `=TODATE()`, `=TODOUBLE()` in IPs.
@@ -447,13 +447,13 @@ When a formula returns the wrong value, walk this list in order:
 
 ## Probing formula behavior
 
-Most of the gotchas above are subtle list-vs-scalar coercion bugs, and the only reliable way to characterize them is to test formulas against representative inputs. The repo includes [`PRM_FormulaProbe_Procedure_1.oip-meta.xml`](../../force-app/main/default/omniIntegrationProcedures/PRM_FormulaProbe_Procedure_1.oip-meta.xml) — a small Integration Procedure whose entire job is to compute `LISTSIZE`, `ISNOTBLANK`, and `FILTER` against four input shapes (empty list, single-element list, two-element list, and a bare object) and return the results.
+Most of the gotchas above are subtle list-vs-scalar coercion bugs, and the only reliable way to characterize them is to test formulas against representative inputs. The repo includes `<YourPrefix>_FormulaProbe_Procedure_1.oip-meta.xml` — a small Integration Procedure whose entire job is to compute `LISTSIZE`, `ISNOTBLANK`, and `FILTER` against four input shapes (empty list, single-element list, two-element list, and a bare object) and return the results.
 
 To run it:
 
 ```bash
 scripts/ip-debug/run_ip.sh \
-  --ip PRM_FormulaProbe \
+  --ip FormulaProbe \
   --input scripts/ip-debug/inputs/formula-probe.json
 ```
 
@@ -479,4 +479,4 @@ This is the empirical fallback whenever the function reference disagrees with wh
 - [`integration-procedures.md#payload-shape-caveats`](integration-procedures.md#payload-shape-caveats) — IP-side payload caveats (Pre/Post-Transform naming, additionalOutput interactions, sub-IP nesting, `%input%` namespace)
 - [`patterns.md#anti-patterns`](patterns.md#anti-patterns) — formula-related anti-patterns
 - [`patterns.md#debugging`](patterns.md#debugging) — diagnosing element-skip and pruning issues
-- [`scripts/ip-debug/README.md`](../../scripts/ip-debug/README.md) — running the formula probe
+- `scripts/ip-debug/README.md` — running the formula probe

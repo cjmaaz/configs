@@ -126,7 +126,7 @@ Like OmniScripts, IPs use `%path%` merge syntax to read from the payload. The pa
 
 The IP also supports several special functions in formulas that OmniScript does not — most notably `LISTSIZE`, `FILTER`, `VLOOKUP`, `SORTBY`, `LIST`, and the Apex bridge `FUNCTION`. See [`formulas.md`](formulas.md) for the exclusivity matrix.
 
-A subtle but important behavior: when an Action's response is set to a single-object scalar but a downstream merge field treats it as a list (or vice versa), formulas like `LISTSIZE()` may silently return 0 / 1 in counterintuitive ways. The repo's [`PRM_FormulaProbe_Procedure_1.oip-meta.xml`](../../force-app/main/default/omniIntegrationProcedures/PRM_FormulaProbe_Procedure_1.oip-meta.xml) was built specifically to characterize that behavior; if you suspect a formula misfire on lists, run the probe with sample inputs through the [`scripts/ip-debug/`](../../scripts/ip-debug/README.md) toolchain.
+A subtle but important behavior: when an Action's response is set to a single-object scalar but a downstream merge field treats it as a list (or vice versa), formulas like `LISTSIZE()` may silently return 0 / 1 in counterintuitive ways. The repo's `<YourPrefix>_FormulaProbe_Procedure_1.oip-meta.xml` was built specifically to characterize that behavior; if you suspect a formula misfire on lists, run the probe with sample inputs through the `scripts/ip-debug/` toolchain.
 
 ---
 
@@ -221,7 +221,7 @@ Every element in an IP carries a JSON blob called `propertySetConfig` in the met
 |-----|------|---------|
 | `elementValueMap` | object | Map of `<keyName>` → `<formula>`. Each entry computes one value and writes it to `responseJSONPath.<keyName>`. |
 
-Example from [`PRM_FormulaProbe_Procedure_1.oip-meta.xml`](../../force-app/main/default/omniIntegrationProcedures/PRM_FormulaProbe_Procedure_1.oip-meta.xml):
+Example from `<YourPrefix>_FormulaProbe_Procedure_1.oip-meta.xml`:
 
 ```json
 {
@@ -321,7 +321,7 @@ Every Action element supports Pre/Post Transform DRs. They reshape input/output 
 
 ### Test with the IP Debug runner
 
-For any IP that takes more than a trivial input, build a JSON fixture and run it through the `scripts/ip-debug/` runner before the OmniScript ever touches it. See [`scripts/ip-debug/README.md`](../../scripts/ip-debug/README.md). The runner emits both the response and the raw debug log to disk, which is by far the fastest way to characterize the IP's behavior.
+For any IP that takes more than a trivial input, build a JSON fixture and run it through the `scripts/ip-debug/` runner before the OmniScript ever touches it. See `scripts/ip-debug/README.md`. The runner emits both the response and the raw debug log to disk, which is by far the fastest way to characterize the IP's behavior.
 
 ---
 
@@ -420,7 +420,7 @@ A common bug: the parent's downstream formula expects `%subResult.foo%` but a de
 
 ### 9. Reserved-ish JSON keys
 
-A handful of keys are intercepted by the OmniStudio framework and have special meaning: `error`, `errorMessage`, `errorCode`, `vlcStatus`, `vlcMessage`, `IPResult`. Avoid using these as your own data keys — prefix with a domain marker (`PRM_error`, `applicationError`) instead. See [`formulas.md` § 11](formulas.md#11-reserved-ish-json-keys).
+A handful of keys are intercepted by the OmniStudio framework and have special meaning: `error`, `errorMessage`, `errorCode`, `vlcStatus`, `vlcMessage`, `IPResult`. Avoid using these as your own data keys — prefix with a domain marker (`app_error`, `applicationError`) instead. See [`formulas.md` § 11](formulas.md#11-reserved-ish-json-keys).
 
 ### 10. Cache keys without user scope
 
@@ -472,4 +472,4 @@ An IP can be exposed as a REST endpoint by checking the **OmniScript Procedure A
 
 with a JSON body matching the IP's expected input. Response shape matches whatever the terminal Response Action returns.
 
-This is how non-OmniScript consumers (external apps, Mulesoft, Apex callouts) reach IPs. It's also how the [`scripts/ip-debug/run_ip.sh`](../../scripts/ip-debug/README.md) runner invokes an IP from anonymous Apex via `Omnistudio.IntegrationProcedureService.runIntegrationService`.
+This is how non-OmniScript consumers (external apps, Mulesoft, Apex callouts) reach IPs. It's also how the `scripts/ip-debug/run_ip.sh` runner invokes an IP from anonymous Apex via `Omnistudio.IntegrationProcedureService.runIntegrationService`.

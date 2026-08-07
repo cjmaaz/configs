@@ -7,7 +7,9 @@ alwaysApply: false
 
 Production-ready Selenium patterns: fail-fast architecture, 3-retry logic per field, comprehensive XPath logging, explicit waits, and zero silent failures.
 
-Every Selenium plan/change also passes the two mandatory parallel gates in [`adversarial-review.mdc`](./adversarial-review.mdc). Gate B must attack stale/virtualized DOM state, retry duplication, browser/session concurrency, shared selectors, masked-input events, cleanup, and regressions in existing journeys before execution/commit.
+**Whether this needs the adversarial gates depends on what the script does, not where it lives.** A Selenium script that fills and submits org forms, or drives a deployable process, mutates org data — that is Salesforce delivery, and [`adversarial-review.mdc`](./adversarial-review.mdc) applies in full. A read-only scraper, a screenshot tool, or a pure selector/XPath refactor mutates nothing and is personal tooling under `scripts/`, gated only when the user asks. `adversarial-review.mdc` is the sole authority on that call; this rule never widens or narrows it.
+
+When the gates do apply, Gate B must attack stale/virtualized DOM state, retry duplication, browser/session concurrency, shared selectors, masked-input events, cleanup, and regressions in existing journeys before execution/commit.
 
 ## When to apply
 
@@ -102,4 +104,4 @@ driver.switch_to.active_element.send_keys(Keys.SHIFT + Keys.TAB)
 - [ ] JavaScript used for masked inputs; post-fill verification on critical fields.
 - [ ] XPaths centralized in `XPATH_TEMPLATES`; `.replace()` (not `.format()`) for dynamic ones.
 - [ ] Consistent visual indicators (✓ ❌ → ⚠️); data validated before the run starts.
-- [ ] Gate A/Gate B reviewer evidence is recorded; all blocker findings were fixed and re-reviewed.
+- [ ] If the script mutates org data: Gate A/Gate B critic evidence is recorded; every finding was verified, and all blockers fixed and re-reviewed. (Read-only tooling: `N/A — no org mutation`.)

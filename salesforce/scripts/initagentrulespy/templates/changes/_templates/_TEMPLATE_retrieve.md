@@ -7,8 +7,8 @@
     changes/git/retrieve-<YYYY-MM-DD>-<HHMM>-<sandbox-alias>.md
 
   …then fill in every section with concrete values from the just-completed
-  retrieve. Delete guidance comments, but PRESERVE every BEGIN/END
-  ADVERSARIAL receipt marker. Strip
+  retrieve. Delete guidance comments, but KEEP the `6.5 Adversarial Gate B`
+  section in full — it is the review's audit trail, not guidance. Strip
   sections that genuinely don't apply (write `n/a` with a one-line reason
   rather than deleting the heading entirely).
 
@@ -75,12 +75,9 @@
 **Phases run:** <N> of <total> (e.g. "23 of 23" or "22 of 23 — Phase 1.4 skipped, see §7")
 **Wall-clock:** ~XX min
 **Outcome:** Succeeded / Partial (M failures, see §7) / Failed
-**Gate A plan attestation:** `<generation / reviewer IDs / digest / evidence reference>`
-<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized audit digest -->
-**Adversarial audit review:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
-**Mirror revision reviewed:** `<pre-head..mirror-head / diff fingerprint>`
-**Adversarial artifact SHA-256:** `<digest>`
-<!-- END ADVERSARIAL RECEIPT HEADER -->
+**Gate A plan outcome:** `<critic IDs / verdicts / plan revision reviewed>`
+**Adversarial Gate B (audit review):** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
+**Mirror revision reviewed:** `<PRE_HEAD..working tree + per-type churn output>`
 **Mirror commit:** [`<short-hash>`](#9-mirror-commit-reference) (this doc references the metadata-snapshot commit; see §9)
 **Doc commit:** (this commit — the audit doc itself)
 
@@ -119,32 +116,46 @@
   retry, mark it with an asterisk and explain in §7.
 -->
 
+<!--
+  Phase numbers below are THIS run's, from your Phase 0.5 shard plan — the
+  Phase 1 and Phase 2 rows are per-org, so add/remove rows to match what you
+  actually ran. Do not copy another run's numbering.
+-->
+
 | # | Phase | Status | Wall-clock |
 |---|---|---|---|
-| 0 | Pre-flight (`sf org list --all`) | OK | ~Xs |
-| 1.1 | integration shard | Succeeded | Xs |
-| 1.2 | community shard | Succeeded | Xs |
-| 1.3 | content (filtered) | Succeeded | Xs |
-| 1.4 | translations (filtered) | Succeeded | Xs |
-| 1.5 | omnistudio small | Succeeded | Xs |
-| 1.6 | code small | Succeeded | Xs |
-| 1.7 | schema small | Succeeded | Xs |
-| 1.8 | ui small | Succeeded | Xs |
-| 1.9 | automation small | Succeeded | Xs |
-| 1.10 | security small | Succeeded | Xs |
-| 1.11 | modern auth + Apex notifications | Succeeded | Xs |
-| 2.11 | AuraDefinitionBundle | Succeeded | Xs |
-| 2.12 | Flow | Succeeded | Xs |
-| 2.13 | FlexiPage | Succeeded | Xs |
-| 2.14 | LightningComponentBundle | Succeeded | Xs |
-| 2.15 | Layout | Succeeded | Xs |
-| 2.16 | ApexClass | Succeeded | Xs |
-| 2.17 | CustomObject | Succeeded | Xs |
-| 2.18 | CustomField | Succeeded | Xs |
-| 2.19 | OmniScript | Succeeded | Xs |
-| 2.20 | OmniIntegrationProcedure | Succeeded | Xs |
-| 2.21 | OmniDataTransform (DRs) | Succeeded | Xs |
-| 2.22 | Profile | Succeeded | Xs |
+| 0.1 | Org auth check | OK | ~Xs |
+| 0.2 | Log rotation | OK | ~Xs |
+| 0.3 | Footprint discovery | OK | Xs |
+| 0.4 | WIP check + PRE_HEAD | OK — `<stash+pop / continue>` | ~Xs |
+| 0.5 | Shard plan built | OK | ~Xs |
+| 0.A | **Adversarial Gate A** | PASS / PASS_WITH_FINDINGS / BLOCK | ~Xs |
+| 1.N | `<shard name>` | Succeeded | Xs |
+| 2.NN | `<Type>` | Succeeded | Xs |
+| 3.4.B | **Adversarial Gate B** (audit review) | PASS / PASS_WITH_FINDINGS / BLOCK | ~Xs |
+
+---
+
+## 2.1 Type coverage & sizing (from Phase 0.3 / 0.5)
+
+<!--
+  The footprint that drove this run's shard plan, plus every coverage decision.
+  Gate A lens 1 attacks missing frequently-changing types and challenges every
+  exclusion reason recorded here; Gate B lens 3 attacks any exclusion with no
+  reason. Source: .retrieve-logs/current/_footprint.tsv and _types-uncovered.txt.
+-->
+
+| Type | Live count (Phase 0.3) | Pass | Why |
+|---|---:|---|---|
+| `<Type>` | N | solo / bundled | near the 10k cap / slow per record / trivial |
+
+**Excluded types and reasons** (one row per entry you chose not to cover):
+
+| Type | Reason for exclusion |
+|---|---|
+| `<Type>` | rarely changes in a code workflow / not licensed / owned by another team / not supported by this org |
+
+**OmniStudio flavour:** `standard MDAPI` / `Vlocity CMT — out of recurring scope (baseline exported <date>, ref <commit>)`
 
 ---
 
@@ -406,41 +417,50 @@ git show <short-hash> -- force-app/main/default/classes/<ClassName>.cls   # focu
 |---|---|---|
 | [`<path>`](<path>) | Large IP churn | <line count: was N, now M, +N% / -N%> |
 
-<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized audit digest -->
-### 6.5 Adversarial cross-type review
+### 6.5 Adversarial Gate B — audit-doc review
 
 <!--
-  After per-type analysis + cross-type synthesis, run the three independent
-  parallel critics from .cursor/rules/adversarial-review.mdc against the exact
-  mirror diff. This is a review of observed org changes, not approval to deploy.
+  After per-type analysis + cross-type synthesis, run three independent parallel
+  critics from .cursor/rules/adversarial-review.mdc against this finished audit
+  doc and the exact mirror diff. This reviews the QUALITY OF THE ANALYSIS and
+  the honesty of the mirror — it is not approval to deploy anything.
+
+  Keep this whole section in the finished doc; it is the review's audit trail.
 -->
 
-**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
-**Review context/profile:** `Salesforce mirror audit; in scope = retrieved metadata diff/cross-type regressions; out of scope = redesigning the retrieve bootstrap itself`
-**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
-**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+**Scope contract:** `owned = this run's retrieved diff + this audit doc | blast radius = cross-type links the synthesis should have caught | not owned = the components' own pre-existing defects | out of scope = redesigning the retrieve runbook`
+**Profile / change kind:** `Salesforce delivery` / `retrieve_mirror`
+**Evidence pack:** `<PRE_HEAD SHA (from _pre-head.txt), per-type churn output, _footprint.tsv, .retrieve-logs/current/ log paths>` — no commit SHA yet; Gate B runs before §3.5.
+**Parallel dispatch:** `<single timestamp proving all three launched together>`
 
-| Reviewer / run | Lens | Revision reviewed | Verdict |
+| Critic / run | Lens | Revision reviewed | Verdict |
 |---|---|---|---|
-| `<id>` | Salesforce runtime + limits | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
-| `<id>` | Concurrency + data integrity | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
-| `<id>` | Requirements + regression + dependencies | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | Per-type analysis depth | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | Cross-type synthesis completeness | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
+| `<id>` | Mirror + commit honesty | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
 
 | Mandatory attack category | Result | Evidence / finding IDs |
 |---|---|---|
-| Apex/trigger/flow/OmniStudio cascade + bulk/limit risk | Pass / findings / N/A | <evidence> |
-| Concurrency/locking/async/idempotency/data-integrity risk | Pass / findings / N/A | <evidence> |
-| Null/exception/partial rollback/retry/failure-handling risk | Pass / findings / N/A | <evidence> |
-| Cross-type callers/config/security/RecordTypes/sibling regression | Pass / findings / N/A | <evidence> |
-| Active/status/type/deletion/structural compatibility risk | Pass / findings / N/A | <evidence> |
-| Requirement/logical/state/boundary counterexamples | Pass / findings / N/A | <evidence> |
+| Shallow "file changed" notes that miss the behavioral risk | Pass / findings / N/A | <evidence> |
+| Missed Apex↔LWC / field↔DataRaptor / IP↔DR / permset↔FlexiPage links | Pass / findings / N/A | <evidence> |
+| Security, sharing, or RecordType drift recorded but not interpreted | Pass / findings / N/A | <evidence> |
+| Active/status flips and structural overhauls under-reported | Pass / findings / N/A | <evidence> |
+| Staging correctness — WIP folded into the mirror commit, or paths missed | Pass / findings / N/A | <evidence> |
+| Overstated coverage (claiming completeness for a type that returned 0) | Pass / findings / N/A | <evidence> |
 
-| Finding | Severity | Cross-type evidence + failure hypothesis | Disposition / follow-up |
-|---|---|---|---|
-| `<AR-AUDIT-001>` | Critical/High/Medium/Low | <files/types and plausible regression> | Critical/High: fixed or rejected with evidence; Medium/Low may be accepted/deferred with ticket + owner |
+<!--
+  Verified? is mandatory before any disposition — never auto-apply a finding,
+  and never drop one without a recorded rebuttal round. Rounds counts rebuttal
+  rounds used; at 3 unresolved the finding escalates to the user (see below).
+-->
+
+| Finding | Severity | Cross-type evidence + failure hypothesis | Verified? | Disposition | Rounds | Follow-up / owner |
+|---|---|---|---|---|---|---|
+| `<AR-AUDIT-001>` | Critical/High/Medium/Low | <files/types and plausible regression> | Yes / No — <how you confirmed or refuted it> | **Critical/High: `Fixed` or `Rejected with evidence` ONLY.** Medium/Low may also be `Accepted risk` (explicit user approval) or `Deferred` (owner + ticket). Also valid: `N/A with evidence`, `Out of scope — outside declared ownership`. | `<n>/3` | <ticket + owner> |
+
+**Escalated to the user:** <none, or: finding IDs, both positions, the decision, and who made it>
 **Residual/accepted risk:** <none, or explicit Medium/Low user-approved risk + rationale>.
-**Re-review:** <new generation/reviewer verdicts after any mirror/evidence change>.
-<!-- END ADVERSARIAL GATE B RECEIPT -->
+**Re-review:** <critic verdicts after any change to the mirror or the evidence>.
 
 ---
 

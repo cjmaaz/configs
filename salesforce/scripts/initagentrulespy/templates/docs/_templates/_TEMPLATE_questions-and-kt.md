@@ -2,7 +2,8 @@
   TEMPLATE: Open questions + reverse-KT
   =====================================
   Copy this file to docs/lld/<work-id>-questions-and-kt.md and fill it in.
-  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
+  Delete guidance comments, but KEEP any adversarial Gate A/B content — it is
+  the review's audit trail, not guidance.
 
   Use this when the LLD has design assumptions that need stakeholder / SME
   confirmation before building. OPTIONAL — create it only when there are real
@@ -36,7 +37,7 @@
 |---|---|---|---|---|---|---|
 | `<AR-A-001 / Q1>` | <severity> | <evidence + design impact> | <answer> | <name/role> | YYYY-MM-DD | Open / Decided |
 
-Any answer that changes an assumption, scope, AC, or design requires updating the LLD, creating a new artifact digest, and rerunning all three Gate A reviewers before implementation.
+Any answer that changes an assumption, scope, AC, or design makes the LLD a new revision — update it and rerun all three Gate A critics against that revision before implementation.
 
 ### A. <theme — e.g. Definitions>
 

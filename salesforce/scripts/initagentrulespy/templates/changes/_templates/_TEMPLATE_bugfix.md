@@ -2,7 +2,9 @@
   TEMPLATE: Bug-fix changes doc
   =============================
   Copy this file to changes/<short-kebab-slug>.md and fill it in.
-  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
+  Delete guidance comments, but KEEP the `Mandatory adversarial Gate B`
+  section in full (heading, all three tables, and the bold summary lines).
+  It is the review's audit trail, not guidance.
   Strip any sections that genuinely do not apply (note "n/a" rather than deleting
   the heading if the section is part of your team's required minimum).
 
@@ -20,11 +22,8 @@
 **Code commit(s):** [`<short-hash>`](#15-deploy-ids-and-commit-references) (latest; full list in section 15)
 **Manifest:** [`manifest/<feature>.xml`](../manifest/<feature>.xml) (the deploy manifest used; XML inlined in section 15)
 **Status:** Resolved / Resolved for <subset>, pending observation on <other subset> / In progress
-<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from normalized digest -->
 **Adversarial Gate B:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
-**Implementation revision reviewed:** `<base..head / working-diff fingerprint / commit>`
-**Adversarial artifact SHA-256:** `<digest>`
-<!-- END ADVERSARIAL RECEIPT HEADER -->
+**Implementation revision reviewed:** `<base SHA..HEAD + explicit changed-path list>`
 
 <!--
   For "Status" — be honest. If only one of three sub-scenarios was verified, say so here and detail in section 12.
@@ -402,17 +401,20 @@ sf project deploy start \
 | `07L<...>` | sync | <component> | Success |
 | `07L<...>` | Batch Apex | `<BatchClass>` | Success / 0 errors |
 
-<!-- BEGIN ADVERSARIAL GATE B RECEIPT — excluded from normalized implementation/doc digest -->
 ### Mandatory adversarial Gate B
 
-<!-- At least three independent parallel reviewers; see .cursor/rules/adversarial-review.mdc. -->
+<!--
+  Three independent critics in ONE parallel fan-out; see
+  .cursor/rules/adversarial-review.mdc. Keep this whole section in the finished
+  doc — it is the review's audit trail, not guidance.
+-->
 
-**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
-**Review context/profile:** `<purpose; in scope; out of scope; selected profile>`
-**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
-**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+**Scope contract:** `<owned surface (explicit paths) | blast radius | not owned | out of scope + reason>`
+**Profile / change kind:** `<Salesforce delivery | agent-guidance | other>` / `<existing_modified | greenfield | retrieve_mirror>`
+**Evidence pack:** `<base SHA, HEAD SHA, changed-path list, validation job id, test/coverage + PMD output, operation-bound log IDs, freshness recheck>`
+**Parallel dispatch:** `<single timestamp proving all three launched together>`
 
-| Reviewer / run | Lens | Revision reviewed | Verdict |
+| Critic / run | Lens | Revision reviewed | Verdict |
 |---|---|---|---|
 | `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
 | `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
@@ -420,19 +422,25 @@ sf project deploy start \
 
 | Mandatory attack category | Result | Evidence / finding IDs |
 |---|---|---|
-| `<selected profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
-| `<selected profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
-| `<selected profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
+| `<profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
+| `<profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
+| `<profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
 | Requirements/correctness + shared-dependency/regression | Pass / findings / N/A | <evidence> |
 | Explicit out-of-scope categories | N/A | <why they do not apply> |
 
-| Finding | Severity | Evidence + failure scenario | Disposition | Fix/test/owner | Re-review |
-|---|---|---|---|---|---|
-| `<AR-B-001>` | Critical/High/Medium/Low | <path/line + triggering shape> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + test/ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+<!--
+  Verified? is mandatory before any disposition — never auto-apply a finding,
+  and never drop one without a recorded rebuttal round. Rounds counts rebuttal
+  rounds used; at 3 unresolved the finding escalates to the user (see below).
+-->
 
+| Finding | Severity | Evidence + failure scenario | Verified? | Disposition | Rounds | Fix / test / owner |
+|---|---|---|---|---|---|---|
+| `<AR-B-001>` | Critical/High/Medium/Low | <path/line + triggering shape> | Yes / No — <how you confirmed or refuted it> | **Critical/High: `Fixed` or `Rejected with evidence` ONLY.** Medium/Low may also be `Accepted risk` (explicit user approval) or `Deferred` (owner + ticket). Also valid: `N/A with evidence`, `Out of scope — outside declared ownership`. | `<n>/3` | <change + test/ticket> |
+
+**Escalated to the user:** <none, or: finding IDs, both positions, the decision, and who made it>
 **Legacy/sibling/previously-working path proof:** <tests or before/after evidence>.
 **Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
-<!-- END ADVERSARIAL GATE B RECEIPT -->
 
 ---
 
@@ -520,7 +528,7 @@ sf project deploy start --metadata "<Type>:<Name>" -o <sandbox-alias> --ignore-c
         <members><member-name></members>
         <name><MetadataType></name>
     </types>
-    <version>66.0</version>
+    <version>{{API_VERSION}}</version>
 </Package>
 ```
 

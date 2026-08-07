@@ -60,5 +60,5 @@
         <members>*</members>
         <name>Skill</name>
     </types>
-    <version>66.0</version>
+    <version>{{API_VERSION}}</version>
 </Package>

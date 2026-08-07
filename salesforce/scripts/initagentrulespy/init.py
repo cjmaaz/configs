@@ -36,7 +36,18 @@ Options:
                          {{ORG_NAME}} placeholders. Default: "CURR ORG".
     --java-home PATH     Skip Java detection; use PATH as the JDK home.
     --pmd-path  PATH     Skip PMD detection; use PATH as the absolute pmd binary.
+    --api-version VER    Skip sfdx-project.json detection; use VER (e.g. "66.0").
     --force              Overwrite all managed files (default: fail on differing collision).
+                         Merged files (.gitignore, .vscode/settings.json) are still
+                         merged, not replaced — see --replace-merged.
+    --replace-merged     Replace .gitignore and .vscode/settings.json with the kit
+                         version instead of merging into them. DESTRUCTIVE: discards
+                         project-specific ignore rules and editor settings.
+    --replace-seeded     Reset the seed-once scaffolds (org-data-model.mdc,
+                         org-conventions.md) to the kit's blank version.
+                         DESTRUCTIVE: discards your documented data model.
+    --reset              Restore the target to pristine kit state. Shorthand for
+                         --force --replace-merged --replace-seeded.
     --update             Stage safe merge candidates for an existing customized kit.
     --ignore-conflicts   Install missing files and leave conflicting files unchanged.
     --missing-only       Backward-compatible alias for --ignore-conflicts.
@@ -59,6 +70,7 @@ import time
 import uuid
 from dataclasses import dataclass
 from pathlib import Path
+from urllib.parse import quote
 
 # ────────────────────────────────────────────────────────────────────────────
 # Placeholder tokens (baked into templates/ ahead of time by the
@@ -78,6 +90,7 @@ TOKEN_JAVA_HOME = "{{JAVA_HOME}}"
 TOKEN_PMD_PATH = "{{PMD_PATH}}"
 TOKEN_WORKSPACE = "{{WORKSPACE_PATH}}"
 TOKEN_HOME = "{{HOME_PATH}}"
+TOKEN_API_VERSION = "{{API_VERSION}}"
 
 # Default for {{ORG_NAME}} when the user doesn't pass `--org-name`. Not a
 # sentinel — this is a deliberate, human-readable placeholder ("CURR ORG"
@@ -90,8 +103,12 @@ ORG_NAME_DEFAULT = "CURR ORG"
 ALIAS_SENTINEL = "<TARGET_ORG_ALIAS>"
 JAVA_SENTINEL = "<JAVA_HOME>"
 PMD_SENTINEL = "<PMD_PATH>"
+# No angle brackets: this sentinel lands inside <version> elements in the
+# manifest XML, where "<...>" would open a tag and make the file unparseable.
+API_VERSION_SENTINEL = "API_VERSION_UNSET"
 
 ALIAS_RE = re.compile(r"^[A-Za-z0-9_.\-]+$")  # Conservative: alphanumerics + . _ -
+API_VERSION_RE = re.compile(r"^\d{2,3}\.0$")  # Salesforce shape: "66.0", "100.0"
 
 IS_WINDOWS = os.name == "nt"
 
@@ -146,17 +163,75 @@ def detect_alias(target: Path, cli_alias: str | None, prompt_ok: bool) -> tuple[
     return ALIAS_SENTINEL, "sentinel (no alias detected)"
 
 
-def detect_org_name(cli_org_name: str | None) -> tuple[str, str]:
+def read_install_marker(target: Path) -> dict:
+    """Return the target's install manifest, or {} when absent/unreadable."""
+    marker = target / ".initagentrulespy-manifest.json"
+    if not marker.is_file():
+        return {}
+    try:
+        data = json.loads(marker.read_text(encoding="utf-8"))
+        return data if isinstance(data, dict) else {}
+    except (json.JSONDecodeError, OSError):
+        return {}
+
+
+def detect_org_name(cli_org_name: str | None, target: Path | None = None) -> tuple[str, str]:
     """Return (org_name, source_descriptor).
 
-    Unlike alias/Java/PMD, org name has no auto-detection path. It's a
-    human-readable label that goes into prose, not a machine-detectable
-    value. If the user didn't pass --org-name, fall back to ORG_NAME_DEFAULT
-    so the substituted templates stay readable.
+    Org name is the one value with no machine-detectable source — it's a
+    human-readable label for prose. So after the CLI flag we fall back to
+    whatever a previous install recorded, which keeps re-runs (and --status
+    / --verify-templates) consistent without re-passing the flag.
     """
     if cli_org_name:
         return cli_org_name, "--org-name flag"
+    if target is not None:
+        recorded = read_install_marker(target).get("substitutions", {}).get("org_name")
+        if isinstance(recorded, str) and recorded and recorded != ORG_NAME_DEFAULT:
+            return recorded, "previous install (.initagentrulespy-manifest.json)"
     return ORG_NAME_DEFAULT, f"default ('{ORG_NAME_DEFAULT}' — no --org-name flag)"
+
+
+def recall_substitution(target: Path, key: str, detected: str, sentinel: str,
+                        detected_source: str) -> tuple[str, str]:
+    """Prefer a previous install's recorded value over a failed detection.
+
+    Detection depends on the machine (JDK layout, PATH, sf config). A colleague
+    whose probe fails should not be told their files are hand-edited, nor have a
+    sentinel written over a value that worked yesterday.
+    """
+    if detected != sentinel:
+        return detected, detected_source
+    recorded = read_install_marker(target).get("substitutions", {}).get(key)
+    if isinstance(recorded, str) and recorded and recorded != sentinel:
+        return recorded, "previous install (.initagentrulespy-manifest.json)"
+    return detected, detected_source
+
+
+def detect_api_version(target: Path, cli_api_version: str | None) -> tuple[str, str]:
+    """Return (api_version, source_descriptor).
+
+    The target repo's sfdx-project.json is authoritative: manifests and REST
+    paths written by this kit must match the API version the project already
+    builds against, otherwise deploys silently target a different version.
+    """
+    if cli_api_version:
+        if not API_VERSION_RE.match(cli_api_version):
+            raise SystemExit(f"✗ --api-version '{cli_api_version}' is not a valid "
+                             f"Salesforce API version (expected e.g. '66.0')")
+        return cli_api_version, "--api-version flag"
+
+    project_json = target / "sfdx-project.json"
+    if project_json.is_file():
+        try:
+            data = json.loads(project_json.read_text(encoding="utf-8"))
+            found = data.get("sourceApiVersion")
+            if isinstance(found, str) and API_VERSION_RE.match(found):
+                return found, "sfdx-project.json sourceApiVersion"
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    return API_VERSION_SENTINEL, "sentinel (no sourceApiVersion detected)"
 
 
 def detect_java_home(cli_java_home: str | None) -> tuple[str, str]:
@@ -271,7 +346,7 @@ def detect_pmd_path(cli_pmd_path: str | None) -> tuple[str, str]:
 
 def substitute_text(content: str, *, alias: str, org_name: str, pmd_path: str,
                     java_home: str, workspace_path: str, home_path: str,
-                    json_escape: bool = False) -> str:
+                    api_version: str, json_escape: bool = False) -> str:
     """Replace {{...}} placeholders with detected runtime values.
 
     The placeholders only appear in templates/ files where the relevant
@@ -290,6 +365,7 @@ def substitute_text(content: str, *, alias: str, org_name: str, pmd_path: str,
     out = out.replace(TOKEN_PMD_PATH, rendered(pmd_path))
     out = out.replace(TOKEN_WORKSPACE, rendered(workspace_path))
     out = out.replace(TOKEN_HOME, rendered(home_path))
+    out = out.replace(TOKEN_API_VERSION, rendered(api_version))
     return out
 
 
@@ -303,6 +379,179 @@ def is_text_file(rel: Path) -> bool:
 def is_managed_target_path(rel: Path) -> bool:
     """The bootstrapper never installs, updates, or removes target scripts."""
     return bool(rel.parts) and rel.parts[0] != "scripts"
+
+
+# Files the kit ships as an empty scaffold for the project to fill in with its
+# own content. They are installed when absent, but NEVER overwritten or deleted
+# afterwards — not even by --force — because the target's version is the real
+# work and the kit's is a placeholder. Without this, re-materializing after a
+# rule edit would silently destroy a project's documented data model.
+SEED_ONCE_PATHS = frozenset({
+    Path(".cursor/rules/org-data-model.mdc"),
+    Path("docs/omnistudio/org-conventions.md"),
+})
+
+
+def is_seed_once(rel: Path) -> bool:
+    """True when the target's copy outranks the kit's and must be preserved.
+
+    Consulted on BOTH mutation paths — the overwrite path and the obsolete-file
+    tombstone path. Missing the second one would mean that dropping the stub
+    from a future kit release silently deletes every project's filled-in copy.
+    """
+    return rel in SEED_ONCE_PATHS
+
+
+# Merged property-by-property into the user's existing file rather than
+# overwritten, so the target legitimately carries content the template does
+# not (their own settings, plus the commented-out previous values init.py
+# leaves behind). Divergence here is by design, not drift.
+MERGED_PATHS = frozenset({
+    Path(".vscode/settings.json"),
+    Path(".gitignore"),
+})
+
+
+# ────────────────────────────────────────────────────────────────────────────
+# Leak gate
+#
+# templates/ is the single source of truth and gets shared verbatim, so it must
+# never contain a value belonging to whichever project last edited it. This is
+# what structurally replaces the old reverse-tokenizer: instead of teaching a
+# tool to recognize one specific org's spelling (which silently stops matching
+# the moment the kit moves), we assert that no absolute machine path and no
+# derivable org value reaches templates/. A miss is a hard failure, not a silent
+# write — and a check with nothing to look for fails rather than reporting clean.
+#
+# Its reach is bounded: it cannot know your org's object or component names.
+# Those still have to be kept out of templates/ by hand.
+# ────────────────────────────────────────────────────────────────────────────
+
+# Class 1 — shapes that are machine-specific in ANY project. Safe to hardcode
+# because they describe a filesystem layout, not an org's vocabulary.
+LEAK_PATTERNS: tuple[tuple[str, "re.Pattern[str]"], ...] = (
+    ("absolute POSIX home path", re.compile(r"/(?:Users|home)/[A-Za-z0-9._-]+")),
+    ("absolute Windows user path", re.compile(r"[A-Za-z]:\\+Users\\+[A-Za-z0-9._-]+")),
+    ("absolute JDK path", re.compile(r"/(?:Library|usr/lib)/[A-Za-z0-9._/-]*"
+                                     r"(?:jvm|JavaVirtualMachines)[A-Za-z0-9._/-]*")),
+    ("absolute pmd binary path", re.compile(r"/[A-Za-z0-9._/-]+/bin/pmd\b")),
+)
+
+
+def scan_for_leaks(
+    templates_dir: Path, derived: dict[str, str] | None = None
+) -> list[tuple[Path, int, str, str]]:
+    """Return [(relative_path, line_number, leak_kind, offending_line)].
+
+    Two classes of finding:
+
+    Class 1 (LEAK_PATTERNS) — absolute machine paths, universally wrong in a
+    shared kit.
+
+    Class 2 (`derived`) — the literal values THIS project's tokens resolve to.
+    Deriving the denylist from the live repo instead of declaring it is the
+    whole point: a declared list only ever knows the vocabulary of whichever
+    project wrote it down, and goes silently blind the moment the kit moves.
+    Generic placeholders in examples (`MyScratch`, `v62.0`) are untouched
+    because they are not this project's values.
+    """
+    findings: list[tuple[Path, int, str, str]] = []
+    derived = derived or {}
+    for path in sorted(p for p in templates_dir.rglob("*") if p.is_file()):
+        rel = path.relative_to(templates_dir)
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (UnicodeDecodeError, OSError):
+            continue
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            hit = next(
+                (kind for kind, pattern in LEAK_PATTERNS if pattern.search(line)),
+                None,
+            )
+            if hit is None:
+                hit = next(
+                    (f"this project's {label} ({value!r})"
+                     for label, value in derived.items() if value and value in line),
+                    None,
+                )
+            if hit is not None:
+                findings.append((rel, lineno, hit, line.strip()))
+    return findings
+
+
+def run_verify_templates(templates_dir: Path, derived: dict[str, str]) -> int:
+    print(f"Scanning {templates_dir} for org-specific leakage")
+    print("=" * 72)
+
+    # A check with no value silently matches nothing. Reporting "clean" in that
+    # state is worse than reporting nothing at all, because the caller acts on
+    # it — so an undetectable value is a hard failure, not a skipped check.
+    disarmed = [label for label, value in derived.items() if not value]
+    print("  Armed checks (absolute machine paths are always checked):")
+    for label, value in derived.items():
+        state = value if value else "— NOT DETECTED —"
+        print(f"    {label:<12} {state}")
+    print()
+
+    if disarmed:
+        print(f"  ✗ cannot verify: {len(disarmed)} check(s) have no value to look for")
+        for label in disarmed:
+            print(f"      {label}")
+        print()
+        print("  Run this from the project root, or supply the values explicitly:")
+        print("    python3 init.py <project-root> --verify-templates \\")
+        print("        --org-name '<Your Org>' --alias <alias> --api-version <nn.0>")
+        return 1
+
+    findings = scan_for_leaks(templates_dir, derived)
+    if not findings:
+        total = sum(1 for p in templates_dir.rglob("*") if p.is_file())
+        print(f"  ✓ {total} template file(s) clean — no org-specific values found")
+        print("    (detects absolute machine paths and the derived values above;")
+        print("     it cannot know your org's object or component names)")
+        return 0
+    for rel, lineno, kind, line in findings:
+        print(f"  ✗ {rel.as_posix()}:{lineno}  [{kind}]")
+        print(f"      {line}")
+    print()
+    print(f"  {len(findings)} leak(s). templates/ must stay org-agnostic — replace")
+    print("  each value with a {{TOKEN}} that init.py substitutes at install time.")
+    return 1
+
+
+def run_status(templates_dir: Path, target: Path, rendered: list[tuple[Path, bytes]]) -> int:
+    """Report template->target drift without writing anything."""
+    print(f"Comparing generated files in {target}")
+    print("=" * 72)
+    missing: list[Path] = []
+    edited: list[Path] = []
+    for rel, new_bytes in rendered:
+        dst = target / rel
+        if not dst.exists():
+            missing.append(rel)
+        elif is_seed_once(rel) or rel in MERGED_PATHS:
+            continue
+        elif dst.read_bytes() != new_bytes:
+            edited.append(rel)
+
+    for rel in missing:
+        print(f"  ✗ missing:     {rel.as_posix()}")
+    for rel in edited:
+        print(f"  ✗ hand-edited: {rel.as_posix()}")
+
+    print()
+    if not missing and not edited:
+        print(f"  ✓ in sync — all {len(rendered)} generated file(s) match templates/")
+        return 0
+    print(f"  {len(missing)} missing, {len(edited)} differ from templates/.")
+    print("  Generated files are OUTPUT: edit the matching file under")
+    print(f"  {templates_dir} and re-run with --force to regenerate.")
+    print()
+    print("  Before doing that, check the substitution values printed above. A")
+    print("  value this run failed to detect (or an --org-name you didn't pass)")
+    print("  produces the same report as a real hand-edit — and regenerating")
+    print("  would then bake the wrong value in. Fix the value first.")
+    return 1
 
 
 @dataclass(frozen=True)
@@ -512,6 +761,65 @@ def comment_jsonc_block(block: str, indent: str) -> str:
     return "".join(output)
 
 
+def _gitignore_key(pattern: str) -> str:
+    """Normalized form used only to decide 'is this pattern already ignored?'.
+
+    A trailing slash changes git's meaning (directory-only), but `.sf-ops` and
+    `.sf-ops/` in one file is noise rather than a second rule — so they compare
+    equal here and we leave whichever the project already had.
+    """
+    return pattern.strip().rstrip("/")
+
+
+def merge_gitignore(existing: str, template: str) -> str:
+    """Append the kit's missing ignore rules, preserving everything already there.
+
+    Purely additive. A project's own entries, ordering, and comments are never
+    rewritten or reordered — we only append the template blocks whose patterns
+    are absent, each still carrying its explanatory comment. Idempotent: a
+    second run finds every pattern present and changes nothing.
+    """
+    if not existing.strip():
+        return template
+
+    have = {
+        _gitignore_key(line)
+        for line in existing.splitlines()
+        if line.strip() and not line.lstrip().startswith("#")
+    }
+
+    additions: list[str] = []
+    comments: list[str] = []
+    patterns: list[str] = []
+
+    def flush() -> None:
+        # A block is worth appending only if it carries a pattern we lack;
+        # otherwise its comment would land with nothing under it.
+        if patterns:
+            additions.extend(comments + patterns)
+            additions.append("")
+        comments.clear()
+        patterns.clear()
+
+    for raw in template.splitlines():
+        line = raw.strip()
+        if not line:
+            flush()
+        elif line.startswith("#"):
+            if patterns:
+                flush()
+            comments.append(raw)
+        elif _gitignore_key(line) not in have:
+            patterns.append(raw)
+    flush()
+
+    if not additions:
+        return existing
+
+    body = existing if existing.endswith("\n") else existing + "\n"
+    return body + "\n" + "\n".join(additions).rstrip("\n") + "\n"
+
+
 def merge_vscode_settings(existing: str, template: str) -> str:
     """Merge top-level JSONC settings, preserving previous values as comments."""
     _, _, template_properties = parse_jsonc_properties(template)
@@ -621,6 +929,18 @@ def fsync_directory(path: Path) -> None:
         os.fsync(directory_fd)
     finally:
         os.close(directory_fd)
+
+
+def backup_slot(transaction: Path, rel: Path) -> Path:
+    """Where the rollback journal stores the prior contents of one target file.
+
+    Flat and percent-encoded rather than mirroring the target's directory tree.
+    Mirroring would recreate `.cursor/` and `.claude/` inside the journal, and
+    some sandboxed environments — including Cursor's own agent sandbox — refuse
+    to create directories with those names anywhere. That made `--force`
+    unusable in the very repo that maintains this kit.
+    """
+    return transaction / "backup" / quote(rel.as_posix(), safe="")
 
 
 def durable_unlink(path: Path) -> None:
@@ -769,7 +1089,10 @@ def recover_incomplete_transactions(target: Path) -> None:
                 if item["existed"]:
                     if dst.is_dir():
                         prune_empty_parents(dst, target)
-                    atomic_write(dst, (transaction / "backup" / item["path"]).read_bytes())
+                    atomic_write(
+                        dst,
+                        backup_slot(transaction, Path(item["path"])).read_bytes(),
+                    )
                 else:
                     if dst.is_file():
                         durable_unlink(dst)
@@ -808,6 +1131,38 @@ def main() -> int:
                         help="Override Java home detection.")
     parser.add_argument("--pmd-path", dest="pmd_path",
                         help="Override PMD binary path detection.")
+    parser.add_argument("--api-version", dest="api_version",
+                        help="Override Salesforce API version detection "
+                             "(default: sourceApiVersion from the target's "
+                             "sfdx-project.json). Example: 66.0")
+    parser.add_argument("--verify-templates", action="store_true",
+                        help="Scan templates/ for org-specific leakage and exit. "
+                             "Writes nothing, but DOES read target_dir to derive "
+                             "this project's live values — run it from the project "
+                             "root, or pass --alias / --org-name / --api-version.")
+    parser.add_argument("--status", action="store_true",
+                        help="Report which generated files are missing or "
+                             "hand-edited relative to templates/, then exit. "
+                             "Writes nothing.")
+    parser.add_argument("--replace-merged", action="store_true",
+                        dest="replace_merged",
+                        help="Replace the merged files (.gitignore, "
+                             ".vscode/settings.json) with the kit version instead of "
+                             "merging into them. DESTRUCTIVE — discards project-specific "
+                             "ignore rules and editor settings. Combine with --force to "
+                             "actually write them; on its own an existing differing file "
+                             "is still reported as a conflict.")
+    parser.add_argument("--replace-seeded", action="store_true",
+                        dest="replace_seeded",
+                        help="Reset the seed-once scaffolds (.cursor/rules/"
+                             "org-data-model.mdc, docs/omnistudio/org-conventions.md) "
+                             "to the kit's blank version. DESTRUCTIVE — discards your "
+                             "documented data model. Combine with --force to write.")
+    parser.add_argument("--reset", action="store_true",
+                        help="Restore the target to pristine kit state. Shorthand for "
+                             "--force --replace-merged --replace-seeded. DESTRUCTIVE — "
+                             "discards local edits to managed files, your .gitignore "
+                             "and editor settings, and your filled-in data model.")
     parser.add_argument("--force", action="store_true",
                         help="Overwrite all managed files (default: fail on differing collisions).")
     parser.add_argument("--update", action="store_true",
@@ -825,6 +1180,20 @@ def main() -> int:
                         help="Never prompt interactively.")
     args = parser.parse_args()
 
+    # --reset is shorthand, not a fourth mode: expand it before the mutual-
+    # exclusivity check so the messages below stay accurate. Checked against the
+    # staging modes first, otherwise the user is told "--force conflicts with
+    # --update" about a flag they never typed.
+    if args.reset and (args.update or args.ignore_conflicts):
+        parser.error(
+            "--reset implies --force, so it cannot be combined with "
+            "--update or --ignore-conflicts"
+        )
+    if args.reset:
+        args.force = True
+        args.replace_merged = True
+        args.replace_seeded = True
+
     if sum(bool(flag) for flag in (args.force, args.update, args.ignore_conflicts)) > 1:
         parser.error(
             "--force, --update, and --ignore-conflicts are mutually exclusive"
@@ -841,6 +1210,21 @@ def main() -> int:
             f"(both init.py AND the sibling templates/ directory), not just "
             f"init.py on its own."
         )
+
+    if args.verify_templates:
+        # Derive the denylist from whatever this repo actually uses, so the gate
+        # never needs to be told a project's vocabulary.
+        probe_alias, _ = detect_alias(target, args.alias, prompt_ok=False)
+        probe_org_name, _ = detect_org_name(args.org_name, target)
+        probe_api, _ = detect_api_version(target, args.api_version)
+        derived = {
+            "org alias": "" if probe_alias == ALIAS_SENTINEL else probe_alias,
+            "org name": "" if probe_org_name == ORG_NAME_DEFAULT else probe_org_name,
+            "API version": "" if probe_api == API_VERSION_SENTINEL else probe_api,
+            "workspace": str(target),
+            "home": str(Path.home()),
+        }
+        return run_verify_templates(templates_dir, derived)
 
     # Read every bundled template directly. Older kits may still carry the
     # retired release-inventory file; it is metadata, not a target template.
@@ -868,9 +1252,16 @@ def main() -> int:
 
     # Detect everything up front so the user sees what's about to be substituted.
     alias, alias_src = detect_alias(target, args.alias, prompt_ok=not args.no_prompt)
-    org_name, org_name_src = detect_org_name(args.org_name)
+    org_name, org_name_src = detect_org_name(args.org_name, target)
     java_home, java_src = detect_java_home(args.java_home)
+    java_home, java_src = recall_substitution(
+        target, "java_home", java_home, JAVA_SENTINEL, java_src)
     pmd_path, pmd_src = detect_pmd_path(args.pmd_path)
+    pmd_path, pmd_src = recall_substitution(
+        target, "pmd_path", pmd_path, PMD_SENTINEL, pmd_src)
+    api_version, api_version_src = detect_api_version(target, args.api_version)
+    api_version, api_version_src = recall_substitution(
+        target, "api_version", api_version, API_VERSION_SENTINEL, api_version_src)
     workspace_path = str(target)
     home_path = str(Path.home())
 
@@ -879,6 +1270,7 @@ def main() -> int:
     print(f"  Org name:    {org_name}    ({org_name_src})")
     print(f"  Java home:   {java_home}    ({java_src})")
     print(f"  PMD path:    {pmd_path}    ({pmd_src})")
+    print(f"  API version: {api_version}    ({api_version_src})")
     print(
         f"  Workspace:   {workspace_path}    "
         f"(used for {{{{WORKSPACE_PATH}}}} in MCP + sandbox config)"
@@ -905,6 +1297,7 @@ def main() -> int:
                     java_home=java_home,
                     workspace_path=workspace_path,
                     home_path=home_path,
+                    api_version=api_version,
                     json_escape=rel.suffix.lower() == ".json",
                 )
                 rendered.append((rel, content.encode("utf-8")))
@@ -914,9 +1307,71 @@ def main() -> int:
             print(f"  ✗ FAILED to render {rel.as_posix()}: {e}")
             errors += 1
 
+    # Seed-once: where the target already has one of these, its content wins.
+    # Swapping in the existing bytes (rather than dropping the entry) keeps the
+    # file inside the managed set, so it neither registers as a conflict nor
+    # gets tombstoned as obsolete on the next run.
+    #
+    # --replace-seeded opts out, restoring the kit's blank scaffold. That is the
+    # only way back to a pristine target, so it exists — but it discards real
+    # authored work (a filled-in data model is often the longest file in the
+    # repo), which is why it is its own flag and announces every file it resets.
+    preserved_seeds: list[Path] = []
+    for index, (rel, _) in enumerate(rendered):
+        if not is_seed_once(rel):
+            continue
+        existing = target / rel
+        if not existing.is_file():
+            continue
+        if args.replace_seeded:
+            print(f"  ⚠ --replace-seeded: {rel.as_posix()} will be RESET to the kit "
+                  f"scaffold; your filled-in content is discarded")
+            continue
+        rendered[index] = (rel, existing.read_bytes())
+        preserved_seeds.append(rel)
+
+    if args.status:
+        if errors:
+            print(f"  ✗ {errors} template(s) failed to render; cannot report status")
+            return 1
+        return run_status(templates_dir, target, rendered)
+
+    # A failed detection must never downgrade a value the target already has
+    # working. Otherwise the documented `--force` re-materialize loop silently
+    # replaces a real JDK/PMD path with a sentinel on any machine whose layout
+    # the probes don't recognise.
+    for token, value, sentinel, label in (
+        (TOKEN_JAVA_HOME, java_home, JAVA_SENTINEL, "Java home"),
+        (TOKEN_PMD_PATH, pmd_path, PMD_SENTINEL, "PMD path"),
+    ):
+        if value != sentinel:
+            continue
+        for index, (rel, new_bytes) in enumerate(rendered):
+            if sentinel.encode("utf-8") not in new_bytes:
+                continue
+            dst = target / rel
+            if not dst.is_file():
+                continue
+            existing = dst.read_bytes()
+            if sentinel.encode("utf-8") in existing:
+                continue
+            rendered[index] = (rel, existing)
+            print(f"  · kept existing {label} in {rel.as_posix()} "
+                  f"(detection failed; refusing to overwrite a working value)")
+
+    # --replace-merged opts out of merging entirely: the rendered template stays
+    # as-is, so these files go through the normal conflict/overwrite path like any
+    # other managed file. Announce it — silently discarding a project's ignore
+    # rules or editor settings would be the worst possible surprise.
+    if args.replace_merged:
+        for rel in sorted(MERGED_PATHS, key=lambda p: p.as_posix()):
+            if (target / rel).is_file():
+                print(f"  ⚠ --replace-merged: {rel.as_posix()} will be REPLACED, "
+                      f"not merged; its current contents are discarded")
+
     settings_rel = Path(".vscode/settings.json")
     settings_dst = target / settings_rel
-    if not errors and settings_dst.is_file():
+    if not args.replace_merged and not errors and settings_dst.is_file():
         for index, (rel, new_bytes) in enumerate(rendered):
             if rel != settings_rel:
                 continue
@@ -931,6 +1386,26 @@ def main() -> int:
                 print(
                     f"  ✗ FAILED to merge {settings_rel.as_posix()}: {error}"
                 )
+                errors += 1
+            break
+
+    gitignore_rel = Path(".gitignore")
+    gitignore_dst = target / gitignore_rel
+    if not args.replace_merged and not errors and gitignore_dst.is_file():
+        for index, (rel, new_bytes) in enumerate(rendered):
+            if rel != gitignore_rel:
+                continue
+            try:
+                existing_text = gitignore_dst.read_text(encoding="utf-8")
+                merged = merge_gitignore(existing_text, new_bytes.decode("utf-8"))
+                rendered[index] = (rel, merged.encode("utf-8"))
+                mergeable_existing.add(rel)
+                if merged != existing_text:
+                    added = len(merged.splitlines()) - len(existing_text.splitlines())
+                    print(f"  · .gitignore: appending {added} line(s); "
+                          f"existing entries untouched")
+            except Exception as error:
+                print(f"  ✗ FAILED to merge {gitignore_rel.as_posix()}: {error}")
                 errors += 1
             break
 
@@ -980,7 +1455,7 @@ def main() -> int:
             dry_obsolete = sorted(
                 Path(path)
                 for path in prior_files - current_files
-                if (target / path).exists()
+                if (target / path).exists() and not is_seed_once(Path(path))
             )
             dry_conflicts.extend(dry_obsolete)
         dry_conflicts = sorted(
@@ -1102,7 +1577,7 @@ def main() -> int:
             obsolete = sorted(
                 Path(path)
                 for path in previous_files - current_files
-                if (target / path).exists()
+                if (target / path).exists() and not is_seed_once(Path(path))
             )
             assert_safe_target_paths(target, obsolete)
             unsafe_shape_conflicts = [
@@ -1188,7 +1663,11 @@ def main() -> int:
                 planned = [
                     (rel, new_bytes)
                     for rel, new_bytes in rendered
-                    if (
+                    # A file that already matches needs no write under any mode.
+                    # Rewriting it churns mtimes, fills the rollback journal with
+                    # no-ops, and can fail on a path the run did not need to touch.
+                    if not file_matches(target / rel, new_bytes)
+                    and (
                         args.force
                         or (
                             (
@@ -1227,6 +1706,16 @@ def main() -> int:
                                 if args.ignore_conflicts and existing_conflicts
                                 else "complete"
                             ),
+                            # Recorded so later --status / --verify-templates
+                            # runs can rebuild the same values without the user
+                            # re-passing flags that have no auto-detect path.
+                            "substitutions": {
+                                "org_alias": alias,
+                                "org_name": org_name,
+                                "api_version": api_version,
+                                "pmd_path": pmd_path,
+                                "java_home": java_home,
+                            },
                             "installed_files": installed_files,
                             "orphaned_managed_files": (
                                 {
@@ -1280,7 +1769,7 @@ def main() -> int:
                     )
                     if existed:
                         atomic_write(
-                            transaction / "backup" / rel,
+                            backup_slot(transaction, rel),
                             dst.read_bytes(),
                         )
                 for rel in planned_deletions:
@@ -1299,7 +1788,7 @@ def main() -> int:
                             ),
                         }
                     )
-                    atomic_write(transaction / "backup" / rel, dst.read_bytes())
+                    atomic_write(backup_slot(transaction, rel), dst.read_bytes())
                 # Recovery iterates in reverse: restore/remove new-shape writes
                 # before recreating obsolete file paths that may replace dirs.
                 transaction_files.sort(
@@ -1368,8 +1857,21 @@ def main() -> int:
                         ),
                     )
                 except BaseException:
-                    recover_incomplete_transactions(target)
-                    print("  ✗ write failed; rolled back every file from this run")
+                    # Rollback can fail too — a path that blocked the write will
+                    # usually block its restore. Say so explicitly: the difference
+                    # between "nothing changed" and "half-written, journal kept for
+                    # retry" is the only thing the operator actually needs to know.
+                    try:
+                        recover_incomplete_transactions(target)
+                    except BaseException as rollback_error:
+                        print(f"  ✗ ROLLBACK FAILED: {rollback_error}")
+                        print("    The target is PARTIALLY WRITTEN. The transaction "
+                              "journal is preserved at")
+                        print(f"    .initagentrulespy-transactions/{transaction.name} "
+                              "— re-run init.py to retry recovery,")
+                        print("    or restore from version control.")
+                    else:
+                        print("  ✗ write failed; rolled back every file from this run")
                     raise
                 else:
                     try:
@@ -1402,6 +1904,15 @@ def main() -> int:
         for rel in ignored_conflicts:
             print(f"    - {rel.as_posix()}")
 
+    if preserved_seeds:
+        print()
+        print(
+            f"  Preserved {len(preserved_seeds)} seed-once file(s) — the kit ships "
+            "these as\n  scaffolds only, so your filled-in version is never replaced:"
+        )
+        for rel in preserved_seeds:
+            print(f"    - {rel.as_posix()}")
+
     sentinels_used = []
     if alias == ALIAS_SENTINEL:
         sentinels_used.append(ALIAS_SENTINEL)
@@ -1409,6 +1920,8 @@ def main() -> int:
         sentinels_used.append(JAVA_SENTINEL)
     if pmd_path == PMD_SENTINEL:
         sentinels_used.append(PMD_SENTINEL)
+    if api_version == API_VERSION_SENTINEL:
+        sentinels_used.append(API_VERSION_SENTINEL)
 
     if sentinels_used:
         print()

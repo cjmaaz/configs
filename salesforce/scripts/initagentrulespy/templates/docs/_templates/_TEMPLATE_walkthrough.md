@@ -2,7 +2,8 @@
   TEMPLATE: Session walkthrough & decision capture
   ================================================
   Copy this file to docs/lld/<work-id>-walkthrough.md and fill it in.
-  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
+  Delete guidance comments, but KEEP any adversarial Gate A/B content — it is
+  the review's audit trail, not guidance.
 
   Use this for ANY alignment session — stakeholder / SME / business review OR a
   technical / design review — where you need to (a) share how something works
@@ -104,6 +105,6 @@ flowchart TD
 ## 9. Next steps after the session
 
 1. Update the LLD with every decision that changes assumptions, scope, ACs, or design.
-2. Create a new plan digest and rerun all three Gate A reviewers; do not build on the pre-session verdict.
+2. Treat the updated LLD as a new revision and rerun all three Gate A critics against it; do not build on the pre-session verdict.
 3. After Gate A passes, <reproduce / implement / verify>.
 4. <coordinate sequencing with related work, if any.>

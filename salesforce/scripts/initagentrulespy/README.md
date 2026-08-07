@@ -4,6 +4,39 @@ A self-contained Python kit that materializes a curated AI-agent rule, skill, do
 
 The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_ALIAS}}`, `{{ORG_NAME}}`, `{{JAVA_HOME}}`) instead of any real org-specific values, so nothing personal or org-specific leaks through the kit when you share it with colleagues. The human-readable project / org name (`{{ORG_NAME}}`) defaults to `CURR ORG` — pass `--org-name 'Your Project Name'` to substitute something nicer.
 
+## `templates/` is the single source of truth
+
+Content flows in exactly one direction:
+
+```
+templates/**  ──(init.py substitutes tokens)──>  your repo's .cursor/, .claude/, docs/, …
+```
+
+The installed files are **generated output**. To change a rule, edit the file under `templates/`, then re-run `init.py <target> --force` and commit both sides. Do not hand-edit the generated copies — `init.py <target> --status` exists to catch it if you do.
+
+This direction matters. An earlier version of the kit worked backwards: a generator read the *installed* files and find-replaced the source project's literals into `{{...}}` tokens. That forced it to hard-code one specific project's vocabulary (its alias, its brand name), which stopped matching the instant the kit was copied to a different project — and then silently wrote the new project's real values into `templates/` instead of tokens. Generating forwards removes the failure mode entirely: there is no reverse conversion to go stale.
+
+Run the leak gate **from your project root** before sharing the kit:
+
+```bash
+python3 scripts/initagentrulespy/init.py . --verify-templates --org-name 'Your Org'
+```
+
+It fails on absolute machine paths and on the literal values your own tokens resolve to, deriving that list from the live repo rather than from a hard-coded denylist — which is what keeps it working after the kit moves to a new project. It reads `target_dir` to find those values, so running it from the kit folder leaves the org checks with nothing to look for; in that case it exits non-zero rather than reporting a false all-clear.
+
+It cannot detect what it cannot derive: your org's object, field, and component names are invisible to it. Keep those out of `templates/` by hand.
+
+### File classes
+
+| Class | Behaviour | Examples |
+|---|---|---|
+| **Kit-managed** | Regenerated on every `--force` run | The rules, skills, docs, doc templates, manifests |
+| **Kit-seeded** | Installed when absent, then never overwritten or deleted — your filled-in version wins, even under `--force`. Pass `--replace-seeded` to reset to the blank scaffold. | `.cursor/rules/org-data-model.mdc`, `docs/omnistudio/org-conventions.md` |
+| **Merged** | Combined with your existing file instead of replacing it, even under `--force`. Pass `--replace-merged` to overwrite instead. | `.vscode/settings.json` (property-by-property), `.gitignore` (append-only) |
+| **Project-only** | The kit never reads or writes these | `force-app/`, `config/schema/*.toon`, `changes/`, `docs/lld/`, `docs/ut/`, `scripts/`, org-measured manifests such as the `fullpackage-customfield-shard-*.xml` files |
+
+Org-measured artifacts stay project-only on purpose. The CustomField shard manifests, for instance, list well over a thousand literal object API names from one specific org — shipping them would be the single largest leak in the kit. `docs/sf-org-mirror-retrieve.md` documents how to generate them for whatever org you are pointed at.
+
 ---
 
 ## TL;DR — for end users
@@ -15,7 +48,7 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
    python3 /path/to/initagentrulespy/init.py
    ```
 
-   That's it. The script writes ~52 files (the 51-file kit plus an `.initagentrulespy-manifest.json` install-tracking marker) into the current directory and reports a summary.
+   That's it. The script writes ~53 files (the 52-file kit plus an `.initagentrulespy-manifest.json` install-tracking marker) into the current directory and reports a summary.
 
 3. Open `.cursor/rules/sf-cli-commands.mdc` in your editor — that's the canonical entry point for the rules.
 
@@ -34,12 +67,12 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
 | `.mcp.json` + `.cursor/mcp.json` |                   2 (same content) | MCP server config. Same file content is written to BOTH paths so Claude Code (reads project-root `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. The filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/`                      |                     12 (1 + 11) | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                            |
 | `config/pmd-ruleset.xml`         |                                  1 | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                                             |
-| `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker written into the target: records the kit protocol version, status, and managed file paths so later runs can identify files that became obsolete.                                                                                                                                        |
+| `.gitignore`                     |                                  1 | Salesforce/LWC/Node/OS noise plus the paths this workflow generates (`.retrieve-logs/`, `.sf-ops/`, Vlocity build temp, and this kit's own install state). **Append-only merge** — an existing `.gitignore` keeps every entry, ordering, and comment it already had; only missing patterns are added. |
+| `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker: kit protocol version, status, managed file paths, and the values substituted — so later runs can spot obsolete files and recover a value whose detection fails on a given machine. **Gitignore it**; it records the JDK and PMD paths of whoever ran the install. |
 
 The bootstrapper never installs, updates, inventories, or removes anything under
-the target's `scripts/` directory. Provision `schemapy` and
-`adversarial_review_snapshot.py` separately when the generated guidance requires
-them; existing project scripts remain untouched.
+the target's `scripts/` directory. Provision `schemapy` separately when the
+generated guidance requires it; existing project scripts remain untouched.
 
 ### CLI reference
 
@@ -54,7 +87,23 @@ Options:
   --org-name NAME         Human-readable project / org name. Default: 'CURR ORG'.
   --java-home PATH        Override Java JDK home detection.
   --pmd-path PATH         Override PMD binary path detection.
+  --api-version VER       Override API version detection (default: sourceApiVersion
+                          from the target's sfdx-project.json). Example: 66.0
+  --verify-templates      Scan templates/ for org-specific leakage and exit.
+                          Writes nothing. Run this before sharing the kit.
+  --status                Report which generated files are missing or hand-edited
+                          relative to templates/, then exit. Writes nothing.
   --force                 Overwrite all managed files (default: fail on a differing collision).
+                          Merged files are still merged, not replaced.
+  --replace-merged        Replace .gitignore and .vscode/settings.json with the kit
+                          version instead of merging into them. DESTRUCTIVE. Combine
+                          with --force to write; alone, a differing file is still
+                          reported as a conflict.
+  --replace-seeded        Reset the seed-once scaffolds (org-data-model.mdc,
+                          org-conventions.md) to the kit's blank version.
+                          DESTRUCTIVE. Combine with --force to write.
+  --reset                 Restore the target to pristine kit state. Shorthand for
+                          --force --replace-merged --replace-seeded. DESTRUCTIVE.
   --update                Stage changed/new kit files under .initagentrulespy-updates/<gen>/
                           instead of overwriting; never clobbers a customized target.
   --ignore-conflicts      Install missing files in the target, leave conflicting files
@@ -64,20 +113,43 @@ Options:
   --no-prompt             Never prompt; fall back to sentinel placeholders.
 ```
 
-`--force`, `--update`, and `--ignore-conflicts` are mutually exclusive.
+`--force`, `--update`, and `--ignore-conflicts` are mutually exclusive. `--replace-merged` and `--replace-seeded` are orthogonal and compose with any of them.
+
+### Putting a mangled target back to pristine kit state
+
+`--force` alone already restores every ordinary managed file — rules, skills, doc templates, docs, manifests, `config/pmd-ruleset.xml`. Edit them freely; a bad edit is one command away from being undone.
+
+Two classes survive `--force` on purpose, because they are yours rather than the kit's, and each has an explicit opt-out:
+
+| Class | Why `--force` spares it | Opt out with |
+|---|---|---|
+| **Merged** — `.gitignore`, `.vscode/settings.json` | Shared files the project owns; re-baselining the kit is no reason to drop your ignore rules or editor settings | `--replace-merged` |
+| **Seed-once** — `org-data-model.mdc`, `org-conventions.md` | Blank scaffolds you fill in; the filled-in data model is often the longest file in the repo | `--replace-seeded` |
+
+So the complete reset — everything, no exceptions — is `--reset`, shorthand for all three:
+
+```bash
+python3 init.py <target> --reset
+# identical to: --force --replace-merged --replace-seeded
+```
+
+`--reset` implies `--force`, so it cannot be combined with `--update` or `--ignore-conflicts`.
+
+Each destructive flag names every file it is about to discard before anything is written, and neither writes on its own: without `--force` a differing file is still reported as a conflict. They are kept separate rather than folded into `--force` so that refreshing the kit and destroying your own content are never the same keystroke.
 
 ### What gets substituted
 
-`templates/` ships with six placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
+`templates/` ships with seven placeholder tokens. `init.py` replaces each of them with a runtime-detected (or CLI-supplied) value:
 
 | Placeholder in `templates/`                                    | Becomes (at init time)                                 | Detection chain                                                                                                                                                                                             | Fallback if detection / CLI flag missing                                   |
 | -------------------------------------------------------------- | ------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------- |
 | `{{ORG_ALIAS}}`                                                | Your `target-org` alias                                | `<target>/.sf/config.json` → `target-org`, then `<target>/.sfdx/sfdx-config.json` → `defaultusername`, then `--alias` flag, then interactive prompt                                                         | `<TARGET_ORG_ALIAS>` (sentinel)                                            |
-| `{{ORG_NAME}}`                                                 | Human-readable project / org name (e.g. "Acme Health") | `--org-name` CLI flag only — no auto-detect                                                                                                                                                                 | `CURR ORG` (deliberate readable default; grep + replace later if you want) |
+| `{{ORG_NAME}}`                                                 | Human-readable project / org name (e.g. "Acme Health") | `--org-name` CLI flag, then whatever a previous install recorded in `.initagentrulespy-manifest.json`. No machine source exists for a prose label.                                                          | `CURR ORG` (deliberate readable default; grep + replace later if you want) |
 | `{{JAVA_HOME}}` (in `.vscode/settings.json`)                   | Detected JDK home                                      | `/usr/libexec/java_home -v 21\|17\|11` (macOS), `$JAVA_HOME`, `/usr/lib/jvm/java-*` glob (Linux), `where java` parent (Windows)                                                                             | `<JAVA_HOME>` (sentinel)                                                   |
 | `{{PMD_PATH}}` (in `.cursor/rules/apex-development.mdc` etc.)  | Absolute pmd binary path                               | `shutil.which("pmd")`, then OS-specific install paths and `pmd-bin-*` glob, then `$PMD_HOME`. **The full absolute path is baked in** so Windows users without PATH-edit access still get a working command. | `<PMD_PATH>` (sentinel)                                                    |
 | `{{WORKSPACE_PATH}}` (in MCP filesystem `args` and `.cursor/sandbox.json`) | Target dir absolute path                               | `os.path.abspath(target_dir)`                                                                                                                                                                               | n/a (always available)                                                     |
 | `{{HOME_PATH}}` (in `.cursor/sandbox.json`)                    | The current user's home directory                      | `Path.home()`                                                                                                                                                                                               | n/a (always available)                                                     |
+| `{{API_VERSION}}` (in manifests, REST paths, rule prose)       | Salesforce API version                                 | `--api-version` flag, then `<target>/sfdx-project.json` → `sourceApiVersion`                                                                                                                                | `<API_VERSION>` (sentinel)                                                 |
 
 If detection falls back to a sentinel, the script prints a warning at the end of the run with instructions on how to fix it.
 
@@ -89,6 +161,11 @@ A fresh run into an empty (or kit-free) directory just writes every file. On a *
 
 - **Missing files** are always installed.
 - **Identical files** are left alone (counted as skipped).
+- **`.gitignore` is merged append-only.** Missing kit entries are appended with
+  their explanatory comments; your own entries, ordering, and comments are never
+  rewritten. A pattern already present is skipped, and a trailing slash counts as
+  the same rule (`.sf-ops` and `.sf-ops/` do not both get added). Re-running adds
+  nothing.
 - **`.vscode/settings.json` is merged property-by-property** instead of treated
   as a normal conflict. Missing template properties are appended. A property
   with a different existing value is replaced, with the previous property
@@ -116,7 +193,7 @@ Three options, in order of preference:
 
 The script has zero runtime dependencies on the source repo. As long as your colleague has Python 3.9+ and the `templates/` folder, it works.
 
-> The template generator that produced `templates/` is intentionally local-only and not part of the shareable kit — `templates/` ships pre-tokenized with `{{...}}` placeholders that `init.py` substitutes at the colleague's end.
+> Run `python3 init.py <project-root> --verify-templates --org-name '<Your Org>'` before sharing. It must exit 0.
 
 ---
 

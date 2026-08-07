@@ -56,5 +56,5 @@
         <members>*</members>
         <name>DataCategoryGroup</name>
     </types>
-    <version>66.0</version>
+    <version>{{API_VERSION}}</version>
 </Package>

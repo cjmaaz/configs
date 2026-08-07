@@ -8,7 +8,10 @@
     "{{WORKSPACE_PATH}}/.sfdx",
     "{{WORKSPACE_PATH}}/.sf",
     "{{WORKSPACE_PATH}}/.config/sf",
-    "{{WORKSPACE_PATH}}/.cache"
+    "{{WORKSPACE_PATH}}/.cache",
+    "{{WORKSPACE_PATH}}/.cursor",
+    "{{WORKSPACE_PATH}}/.claude",
+    "{{WORKSPACE_PATH}}/.vscode"
   ],
   "networkPolicy": {
     "default": "deny",

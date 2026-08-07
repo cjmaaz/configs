@@ -60,5 +60,5 @@
         <members>*</members>
         <name>CustomNotificationType</name>
     </types>
-    <version>66.0</version>
+    <version>{{API_VERSION}}</version>
 </Package>

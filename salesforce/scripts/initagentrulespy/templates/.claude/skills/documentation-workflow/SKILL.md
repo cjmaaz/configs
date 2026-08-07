@@ -1,17 +1,17 @@
 ---
 name: documentation-workflow
-description: Runs the mandatory documentation lifecycle for every requirement, plan, bug, implementation, and wrap-up: intake, current-state/cascade analysis, LLD before code, blocking adversarial plan and implementation gates, changes documentation, and two commits. Invoke proactively; mirrors `.cursor/rules/documentation-workflow.mdc`.
+description: Runs the mandatory documentation lifecycle for Salesforce delivery work — every requirement, plan, bug, implementation, and wrap-up: intake, current-state/cascade analysis, LLD before code, blocking adversarial plan and implementation gates, changes documentation, and two commits. Scope matches the `adversarial-review` skill, which is the sole authority on which work needs a gate. Invoke proactively; mirrors `.cursor/rules/documentation-workflow.mdc`.
 ---
 
 # Documentation workflow — intake + pre-coding/LLD + wrap-up + UT evidence
 
-Three chronological touchpoints in every piece of work. **Be proactive at all three.** Retrieve before any edit (`retrieve-before-edit` skill); analysis on stale copies is wrong.
+Three chronological touchpoints in every piece of Salesforce delivery work. **Be proactive at all three.** Retrieve before any edit (`retrieve-before-edit` skill); analysis on stale copies is wrong.
 
 1. **Intake** (work starts) — confirm the ticket, transcribe any AC screenshot to text.
 2. **Pre-coding analysis** — map cascading impact, author the **LLD**, then pass adversarial Gate A before editing.
 3. **Implementation gate + wrap-up** — pass Gate B against the final diff/tests before deploy, mutation, commit, or handoff; then finalize the change doc and two commits.
 
-The `adversarial-review` skill / `.cursor/rules/adversarial-review.mdc` is the sole authority for reviewer count, lenses, prompts, evidence, blockers, and re-review.
+The `adversarial-review` skill / `.cursor/rules/adversarial-review.mdc` is the sole authority for **which work needs a gate at all**, plus critic count, lenses, prompts, evidence, dispositions, the challenge loop, and re-review. This skill never widens or narrows that scope.
 
 ---
 
@@ -40,7 +40,7 @@ Salesforce cascades hard: one insert → process builder → flow → trigger �
 - **E5 — Pass adversarial Gate A** via the `adversarial-review` skill. Record reviewer provenance, exact LLD revision, findings/dispositions, residual risk, and re-review. Resolve blockers before editing.
 - **E6 — Spawn the preliminary `changes/<slug>.md`**, filling only architecture/design sections as a SHORT summary linking to the LLD. **Don't commit either yet.**
 
-Tiny work may keep analysis concise but still runs Gate A with evidence-backed `N/A` entries. Planning-only work ends only after Gate A passes.
+Tiny **in-scope** work may keep analysis concise but still runs Gate A with evidence-backed `N/A` entries. Work outside the delivery scope in `adversarial-review` needs no gate at all. Planning-only work ends only after Gate A passes.
 
 ### The LLD
 
@@ -54,7 +54,7 @@ Two **conditional** companions (don't produce by reflex): `docs/lld/<work-id>-qu
 
 ## Touchpoint 3 — Implementation gate + wrap-up (`changes/` doc + two-commit)
 
-When implementation/validation tests are ready, run Gate B through `adversarial-review` before a real deploy/mutation/commit. Use the selected profile's evidence. After deploy verification and code commit, finalize all non-receipt change-doc fields and run a separate documentation-profile Gate B before the doc commit.
+When implementation/validation tests are ready, run Gate B through `adversarial-review` before a real deploy/mutation/commit. Supply the evidence pack (base SHA, explicit changed-path list, `git diff --stat`) plus the profile's validation output. After deploy verification and code commit, finalize the change doc and give it its own Gate B under the **agent-guidance** profile before the doc commit.
 
 ### Template + name
 
@@ -78,13 +78,13 @@ Copy from `changes/_templates/` → `changes/<short-kebab-slug>.md`: `_TEMPLATE_
 
 Prerequisite: Gate B is `PASS` or `PASS_WITH_FINDINGS`; no Critical/High; every Medium resolved or explicitly accepted.
 
-Recompute the implementation digest before code commit. Before doc commit, recompute the final documentation digest; after its gate only uniquely marked adversarial receipt blocks may change. All IDs/prose must already be final.
+Immediately before the code commit, re-run `git diff --name-only <base>` and confirm the changed-path list still matches what Gate B reviewed; a path appearing or vanishing is a new revision and reruns the gate. Before the doc commit the doc must be final — all IDs, hashes, and prose already filled in.
 
 1. **Stage ONLY files you intentionally modified** — name each path. NEVER `git add force-app/` (blanket) — another agent/job may have in-flight changes. Sanity-check `git status -s`; recover with `git diff --name-only [--cached|HEAD]`. A dirty file that isn't yours: leave it. (Exception: the org-wide retrieve commits the whole mirror as one snapshot by design.)
    If unrelated dirty work prevents a complete Gate B snapshot, use an isolated worktree or stop/coordinate; never omit changed paths and claim complete review.
-2. Commit the code with `Adversarial-Artifact-SHA256` and `Adversarial-Receipt-SHA256` trailers.
+2. Commit the code with a multi-line HEREDOC message (subject ≤72 chars imperative; what/why; sub-changes).
 3. Capture the hash: `git log -1 --format='%H%n%h%n%s'`.
-4. Finalize the doc, run a documentation Gate B against its normalized digest, hash-chain its receipt blocks, then commit it SEPARATELY with both digest trailers.
+4. Finalize the doc, run its agent-guidance-profile Gate B, fill in the Gate A/B outcome sections, then commit it SEPARATELY.
 5. Verify: `git log -2` + `git status -s`; report both hashes.
 
 ### Filling the doc
@@ -94,7 +94,7 @@ Recompute the implementation digest before code commit. Before doc commit, recom
 - Revision log (top): first row = date, hash, what, why.
 - Adversarial review: record Gate B status/revision, reviewer provenance, category coverage, findings/dispositions, residual risk, and re-review; link Gate A details from the LLD.
 - **Key changes — diff highlights:** for OmniScripts / IPs / DataRaptors / FlexiPages / layouts / validation rules / formula fields / new Apex, paste a trimmed ```diff``` (small/medium) OR cite line ranges + key method names (large/new). Skip only for 1-2 line obvious changes.
-- Replace every `<...>`; delete guidance comments except machine-required `BEGIN/END ADVERSARIAL ... RECEIPT` markers; write `n/a` (+ reason) for inapplicable sections.
+- Replace every `<...>`; delete the guidance comments; write `n/a` (+ reason) for inapplicable sections. Keep the **Gate A / Gate B outcome** sections — they are the review's audit trail, not guidance.
 
 ### Same thread, same doc
 

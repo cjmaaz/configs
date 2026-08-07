@@ -2,7 +2,9 @@
   TEMPLATE: Low-Level Design (LLD)
   ================================
   Copy this file to docs/lld/<work-id>-<short-kebab-slug>.md and fill it in.
-  Delete guidance comments, but PRESERVE every BEGIN/END ADVERSARIAL receipt marker.
+  Delete guidance comments, but KEEP the `9.1 Mandatory adversarial Gate A`
+  section in full (heading, all three tables, and the bold summary lines).
+  It is the review's audit trail, not guidance.
   Strip any section that genuinely does not apply (write "n/a — <reason>").
 
   Naming: <work-id>-<short-kebab-slug>.md
@@ -27,11 +29,8 @@
 **Lead:** <Name> (<role>)
 **Work item / ticket:** [<TRACKER-NNN>](<url>) — <one-line summary>
 **Status:** Draft — design phase (no code yet) / In review / Approved for build / Superseded
-<!-- BEGIN ADVERSARIAL RECEIPT HEADER — exclude this block from the plan digest -->
 **Adversarial Gate A:** Pending / PASS / PASS_WITH_FINDINGS / BLOCK
-**Plan revision reviewed:** `<LLD path + hash/timestamp/revision>`
-**Adversarial artifact SHA-256:** `<digest>`
-<!-- END ADVERSARIAL RECEIPT HEADER -->
+**Plan revision reviewed:** `<LLD path + base SHA / date the critics saw>`
 **Related docs:** <links to the questions-and-kt doc, the walkthrough doc, and the changes/<slug>.md doc, when they exist>
 
 > <One-paragraph summary: what this LLD covers, and explicitly call out any
@@ -192,22 +191,23 @@ flowchart TD
 - <effect 1 — intended / accidental, and why.>
 - <effect 2 ...>
 
-<!-- BEGIN ADVERSARIAL GATE A RECEIPT — exclude only this block from the plan digest -->
 ### 9.1 Mandatory adversarial Gate A
 
 <!--
-  Launch at least three independent reviewers in one parallel fan-out against
-  the exact plan revision above. Follow .cursor/rules/adversarial-review.mdc.
-  Do not edit source until this gate passes. Preserve superseded review rows
-  when material design changes trigger re-review.
+  Launch three independent critics in ONE parallel fan-out against the exact
+  plan revision above. Follow .cursor/rules/adversarial-review.mdc. Do not edit
+  source until this gate passes. When a revision triggers re-review, add rows —
+  supersede the old verdict, never erase it.
+
+  Keep this whole section in the finished doc; it is the review's audit trail.
 -->
 
-**Gate generation / parallel dispatch:** `<generation UUID> / <single batch timestamp or dispatch receipt>`
-**Review context/profile:** `<artifact purpose; in scope; out of scope; Salesforce implementation / agent-guidance tooling / other>`
-**Artifact / evidence index:** `<manifest + patch + evidence paths + freshness tokens>`
-**Prior generation / reviewer assumptions:** `<none, or superseded digest + assumptions>`
+**Scope contract:** `<owned surface (explicit paths) | blast radius | not owned | out of scope + reason>`
+**Profile / change kind:** `<Salesforce delivery | agent-guidance | other>` / `<existing_modified | greenfield | retrieve_mirror>`
+**Evidence pack:** `<base SHA, HEAD SHA, changed-path list, paths to any test / PMD / log output>`
+**Parallel dispatch:** `<single timestamp proving all three launched together>`
 
-| Reviewer / run | Independent lens | Revision reviewed | Verdict |
+| Critic / run | Independent lens | Revision reviewed | Verdict |
 |---|---|---|---|
 | `<id>` | `<profile lens 1>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
 | `<id>` | `<profile lens 2>` | `<revision>` | PASS / PASS_WITH_FINDINGS / BLOCK |
@@ -215,18 +215,23 @@ flowchart TD
 
 | Attack category | Result | Evidence / finding IDs |
 |---|---|---|
-| `<required categories from selected lens 1>` | Pass / findings / N/A | <evidence> |
-| `<required categories from selected lens 2>` | Pass / findings / N/A | <evidence> |
-| `<required categories from selected lens 3>` | Pass / findings / N/A | <evidence> |
-| Requirements/correctness + shared-dependency/regression coverage | Pass / findings / N/A | <evidence> |
+| `<profile lens 1 categories>` | Pass / findings / N/A | <evidence> |
+| `<profile lens 2 categories>` | Pass / findings / N/A | <evidence> |
+| `<profile lens 3 categories>` | Pass / findings / N/A | <evidence> |
 | Explicit out-of-scope categories | N/A | <why they do not apply to this artifact> |
 
-| Finding | Severity | Failure scenario + evidence | Disposition | Fix/test/owner | Re-review |
-|---|---|---|---|---|---|
-| `<AR-A-001>` | Critical/High/Medium/Low | <concrete failure> | Critical/High: Fixed or Rejected with evidence; Medium/Low may also be Accepted risk/Deferred | <change + test or ticket> | `<review id>: PASS/PASS_WITH_FINDINGS/BLOCK` |
+<!--
+  Verified? is mandatory before any disposition — never auto-apply a finding,
+  and never drop one without a recorded rebuttal round. Rounds counts rebuttal
+  rounds used; at 3 unresolved the finding escalates to the user (see below).
+-->
 
+| Finding | Severity | Failure scenario + evidence | Verified? | Disposition | Rounds | Fix / test / owner |
+|---|---|---|---|---|---|---|
+| `<AR-A-001>` | Critical/High/Medium/Low | <concrete failure> | Yes / No — <how you confirmed or refuted it> | **Critical/High: `Fixed` or `Rejected with evidence` ONLY.** Medium/Low may also be `Accepted risk` (explicit user approval) or `Deferred` (owner + ticket). Also valid: `N/A with evidence`, `Out of scope — outside declared ownership`. | `<n>/3` | <change + test, or ticket> |
+
+**Escalated to the user:** <none, or: finding IDs, both positions, the decision, and who made it>
 **Residual/accepted risk:** <none, or explicit user-approved risk + rationale>.
-<!-- END ADVERSARIAL GATE A RECEIPT -->
 
 ---
 
