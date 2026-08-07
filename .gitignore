@@ -85,3 +85,5 @@ salesforce/scripts/initagentrulespy/_sync.py
 # the active-run subdir (.retrieve-logs/current/) and each archived prior
 # run (.retrieve-logs/archive/<TS>/).
 .retrieve-logs/
+
+.cursor/sandbox.json
