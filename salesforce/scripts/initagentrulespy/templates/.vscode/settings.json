@@ -29,7 +29,11 @@
   // ───────────────────────────────── Editor / Files ───────────────────────────────────
   "editor.formatOnSave": false,
   "files.trimTrailingWhitespace": false,
-  "files.insertFinalNewline": false, // EXTRA LINE AT THE END OF THE FILE (SF TRIMS IT)
+  // Final newline: do not disable workspace-wide — Apex only (SF often trims EOL on classes).
+  "[apex]": {
+    "files.insertFinalNewline": false,
+    "files.trimFinalNewlines": true
+  },
   "prettier.enable": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "never",

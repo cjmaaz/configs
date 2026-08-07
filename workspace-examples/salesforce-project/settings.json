@@ -29,7 +29,12 @@
   // ───────────────────────────────── Editor / Files ───────────────────────────────────
   "editor.formatOnSave": false,
   "files.trimTrailingWhitespace": false,
-  "files.insertFinalNewline": false, // EXTRA LINE AT THE END OF THE FILE (SF TRIMS IT)
+  // Final newline: keep workspace default (usually on via user settings).
+  // Apex only — Salesforce often strips / dislikes a trailing blank line on .cls/.trigger:
+  "[apex]": {
+    "files.insertFinalNewline": false,
+    "files.trimFinalNewlines": true
+  },
   "prettier.enable": false,
   "editor.codeActionsOnSave": {
     "source.fixAll.eslint": "never",
