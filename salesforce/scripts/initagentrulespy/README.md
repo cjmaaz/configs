@@ -35,7 +35,7 @@ The bundled `templates/` folder uses `{{...}}` placeholder tokens (e.g. `{{ORG_A
 | `.mcp.json` + `.cursor/mcp.json` |                   2 (same content) | MCP server config. Same file content is written to BOTH paths so Claude Code (reads project-root `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. The filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/`                      |                     12 (1 + 11) | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                                            |
 | `config/pmd-ruleset.xml`         |                                  1 | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                                             |
-| `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker written into the target: records the kit protocol version, the source-release digest, and per-file hashes so a later `--update` run can tell customized files from stale ones. (The `.initagentrulespy-release.json` inventory itself ships inside `templates/` and is NOT copied out.)                                                          |
+| `.initagentrulespy-manifest.json` |                                 1 | Install-tracking marker written into the target: records the kit protocol version, status, and managed file paths so later runs can identify files that became obsolete.                                                                                                                                        |
 
 ### CLI reference
 
@@ -90,7 +90,7 @@ A fresh run into an empty (or kit-free) directory just writes every file. On a *
 
 Use `--dry-run` first to preview any of these.
 
-**Integrity & safety.** Before touching the target, `init.py` verifies the bundled `templates/` against `.initagentrulespy-release.json` (per-file SHA-256 + size) and refuses to run on an incomplete or tampered kit. Writes are atomic and transactional — a target lock (`.initagentrulespy.lock`) blocks concurrent runs, a journal (`.initagentrulespy-transactions/`) rolls the whole run back on any failure or interruption, and the `.initagentrulespy-manifest.json` marker records what was installed so later `--update` runs can distinguish your edits from stale kit files.
+**Install safety.** Writes are atomic and transactional — a target lock (`.initagentrulespy.lock`) blocks concurrent runs, a journal (`.initagentrulespy-transactions/`) rolls the whole run back on any failure or interruption, and the `.initagentrulespy-manifest.json` marker records what was installed so later `--update` runs can distinguish your edits from stale kit files.
 
 ---
 

@@ -49,7 +49,6 @@ Run `python3 init.py --help` for the full CLI surface.
 from __future__ import annotations
 
 import argparse
-import hashlib
 import json
 import os
 import re
@@ -301,10 +300,6 @@ def is_text_file(rel: Path) -> bool:
     }
 
 
-def sha256_bytes(content: bytes) -> str:
-    return hashlib.sha256(content).hexdigest()
-
-
 def fsync_directory(path: Path) -> None:
     if os.name == "nt":
         return
@@ -354,21 +349,20 @@ def assert_safe_target_paths(target: Path, paths: list[Path]) -> None:
             raise ValueError(f"Managed path escapes target: {rel}") from error
 
 
-def target_state(path: Path) -> tuple[str, str | None]:
+def target_state(path: Path) -> str:
     if path.is_symlink():
         raise ValueError(f"Symlinked managed path is prohibited: {path}")
     if not path.exists():
-        return "missing", None
+        return "missing"
     if path.is_file():
-        return "file", sha256_bytes(path.read_bytes())
+        return "file"
     if path.is_dir():
-        return "directory", None
+        return "directory"
     raise ValueError(f"Unsupported managed path type: {path}")
 
 
 def file_matches(path: Path, expected: bytes) -> bool:
-    state, digest = target_state(path)
-    return state == "file" and digest == sha256_bytes(expected)
+    return target_state(path) == "file" and path.read_bytes() == expected
 
 
 def atomic_write(path: Path, content: bytes) -> None:
@@ -431,24 +425,16 @@ def recover_incomplete_transactions(target: Path) -> None:
             conflicts = []
             for item in reversed(manifest["files"]):
                 dst = target / item["path"]
-                current_state, current_sha = target_state(dst)
-                baseline = (
-                    item.get("baseline_state", "file" if item["existed"] else "missing"),
-                    item.get("baseline_sha256"),
+                current_state = target_state(dst)
+                baseline_state = item.get(
+                    "baseline_state", "file" if item["existed"] else "missing"
                 )
-                intended = (
-                    item.get("intended_state", "file" if item.get("intended_sha256") else "missing"),
-                    item.get("intended_sha256"),
-                )
-                allowed_states = {baseline, intended}
-                if baseline[0] == "file" and intended[0] == "directory":
-                    allowed_states.add(("missing", None))
-                if baseline[0] == "directory" and intended[0] == "file":
-                    allowed_states.add(("missing", None))
-                if (current_state, current_sha) not in allowed_states:
+                intended_state = item.get("intended_state", "missing")
+                allowed_states = {baseline_state, intended_state}
+                if {baseline_state, intended_state} == {"file", "directory"}:
+                    allowed_states.add("missing")
+                if current_state not in allowed_states:
                     conflicts.append(item["path"])
-                    continue
-                if (current_state, current_sha) == baseline:
                     continue
                 if item["existed"]:
                     if dst.is_dir():
@@ -522,29 +508,13 @@ def main() -> int:
             f"init.py on its own."
         )
 
-    release_path = templates_dir / ".initagentrulespy-release.json"
-    if not release_path.exists():
-        raise SystemExit(
-            f"✗ Missing {release_path}; this kit has no verifiable release inventory."
-        )
-    release = json.loads(release_path.read_text(encoding="utf-8"))
-    expected_release_files = release.get("files", {})
-    actual_release_files = {}
-    release_sources: dict[str, bytes] = {}
-    for path in sorted(p for p in templates_dir.rglob("*") if p.is_file()):
-        rel = path.relative_to(templates_dir).as_posix()
-        if rel == ".initagentrulespy-release.json":
-            continue
-        data = path.read_bytes()
-        release_sources[rel] = data
-        actual_release_files[rel] = {
-            "sha256": sha256_bytes(data),
-            "size": len(data),
-        }
-    if actual_release_files != expected_release_files:
-        raise SystemExit(
-            "✗ Template release inventory/hash mismatch; refuse incomplete or mixed kit."
-        )
+    # Read every bundled template directly. Older kits may still carry the
+    # retired release-inventory file; it is metadata, not a target template.
+    template_sources = [
+        (path.relative_to(templates_dir), path.read_bytes())
+        for path in sorted(p for p in templates_dir.rglob("*") if p.is_file())
+        if path.name != ".initagentrulespy-release.json"
+    ]
 
     # Validate target dir.
     if not target.exists():
@@ -577,12 +547,6 @@ def main() -> int:
 
     # Render every file before mutating the target. This catches substitution /
     # read failures up front and gives update mode a complete comparison set.
-    template_sources = sorted(
-        (Path(rel), data) for rel, data in release_sources.items()
-    )
-    source_digest = sha256_bytes(
-        json.dumps(actual_release_files, sort_keys=True).encode("utf-8")
-    )
     rendered: list[tuple[Path, bytes]] = []
     written = skipped = errors = update_conflicts = 0
 
@@ -768,14 +732,10 @@ def main() -> int:
                         "status": "merge-required",
                         "generation": generation,
                         "created_unix": time.time(),
-                        "source_release_sha256": source_digest,
                         "conflicts": [p.as_posix() for p in existing_conflicts],
                         "obsolete": [
                             {
                                 "path": rel.as_posix(),
-                                "target_baseline_sha256": sha256_bytes(
-                                    (target / rel).read_bytes()
-                                ),
                                 "action": "delete",
                             }
                             for rel in obsolete
@@ -783,15 +743,9 @@ def main() -> int:
                         "candidates": [
                             {
                                 "path": rel.as_posix(),
-                                "target_baseline_state": target_state(target / rel)[0],
-                                "target_baseline_sha256": (
-                                    sha256_bytes((target / rel).read_bytes())
-                                    if (target / rel).is_file()
-                                    else None
-                                ),
-                                "candidate_sha256": sha256_bytes(new_bytes),
+                                "target_baseline_state": target_state(target / rel),
                             }
-                            for rel, new_bytes in differing
+                            for rel, _ in differing
                         ],
                     }
                     atomic_write(
@@ -828,17 +782,9 @@ def main() -> int:
                         if rel not in planned_paths:
                             print(f"  · skip (exists): {rel.as_posix()}")
                 marker_rel = Path(".initagentrulespy-manifest.json")
-                planned_map = {rel: new_bytes for rel, new_bytes in planned}
-                installed_hashes = {}
-                for rel, new_bytes in rendered:
-                    if rel in planned_map:
-                        installed_hashes[rel.as_posix()] = sha256_bytes(new_bytes)
-                    elif (target / rel).exists():
-                        installed_hashes[rel.as_posix()] = sha256_bytes(
-                            (target / rel).read_bytes()
-                        )
-                    else:
-                        installed_hashes[rel.as_posix()] = None
+                installed_files = {
+                    rel.as_posix(): None for rel, _ in rendered
+                }
                 marker_bytes = (
                     json.dumps(
                         {
@@ -848,13 +794,10 @@ def main() -> int:
                                 if args.missing_only and existing_conflicts
                                 else "complete"
                             ),
-                            "source_release_sha256": source_digest,
-                            "installed_files": installed_hashes,
+                            "installed_files": installed_files,
                             "orphaned_managed_files": (
                                 {
-                                    rel.as_posix(): sha256_bytes(
-                                        (target / rel).read_bytes()
-                                    )
+                                    rel.as_posix(): None
                                     for rel in obsolete
                                 }
                                 if args.missing_only
@@ -879,16 +822,15 @@ def main() -> int:
                     target, [Path(".initagentrulespy-transactions")]
                 )
                 transaction_files = []
-                for rel, new_bytes in planned:
+                for rel, _ in planned:
                     dst = target / rel
-                    baseline_state, baseline_sha = target_state(dst)
+                    baseline_state = target_state(dst)
                     existed = baseline_state == "file"
                     transaction_files.append(
                         {
                             "path": rel.as_posix(),
                             "existed": existed,
                             "baseline_state": baseline_state,
-                            "baseline_sha256": baseline_sha,
                             "write_precondition_state": (
                                 "missing"
                                 if baseline_state == "directory"
@@ -901,7 +843,6 @@ def main() -> int:
                                 else baseline_state
                             ),
                             "intended_state": "file",
-                            "intended_sha256": sha256_bytes(new_bytes),
                         }
                     )
                     if existed:
@@ -920,18 +861,16 @@ def main() -> int:
                             "path": rel.as_posix(),
                             "existed": True,
                             "baseline_state": "file",
-                            "baseline_sha256": sha256_bytes(dst.read_bytes()),
                             "intended_state": (
                                 "directory" if replaced_by_directory else "missing"
                             ),
-                            "intended_sha256": None,
                         }
                     )
                     atomic_write(transaction / "backup" / rel, dst.read_bytes())
                 # Recovery iterates in reverse: restore/remove new-shape writes
                 # before recreating obsolete file paths that may replace dirs.
                 transaction_files.sort(
-                    key=lambda item: item["intended_sha256"] is not None
+                    key=lambda item: item["intended_state"] == "file"
                 )
                 transaction_manifest = {
                     "state": "prepared",
@@ -954,9 +893,8 @@ def main() -> int:
                     # create the new shape. Rollback backups recreate parents.
                     for rel in planned_deletions:
                         dst = target / rel
-                        item = transaction_by_path[rel.as_posix()]
-                        current_state, current_sha = target_state(dst)
-                        if current_state != "file" or current_sha != item["baseline_sha256"]:
+                        current_state = target_state(dst)
+                        if current_state != "file":
                             raise RuntimeError(
                                 f"Obsolete target changed after backup: {rel.as_posix()}"
                             )
@@ -967,14 +905,8 @@ def main() -> int:
                         dst = target / rel
                         existed = dst.exists()
                         item = transaction_by_path[rel.as_posix()]
-                        current_state, current_sha = target_state(dst)
-                        if (
-                            current_state != item["write_precondition_state"]
-                            or (
-                                current_state == item["baseline_state"]
-                                and current_sha != item["baseline_sha256"]
-                            )
-                        ):
+                        current_state = target_state(dst)
+                        if current_state != item["write_precondition_state"]:
                             raise RuntimeError(
                                 f"Target changed after backup: {rel.as_posix()}"
                             )
@@ -986,13 +918,10 @@ def main() -> int:
                         written += 1
                     for item in transaction_files:
                         dst = target / item["path"]
-                        actual_state, actual_sha = target_state(dst)
-                        if (
-                            actual_state != item["intended_state"]
-                            or actual_sha != item["intended_sha256"]
-                        ):
+                        actual_state = target_state(dst)
+                        if actual_state != item["intended_state"]:
                             raise RuntimeError(
-                                f"Final target CAS failed: {item['path']}"
+                                f"Final target state check failed: {item['path']}"
                             )
                     transaction_manifest["state"] = "committed"
                     atomic_write(

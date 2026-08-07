@@ -352,7 +352,7 @@ python3 /path/to/initagentrulespy/init.py
 | `.mcp.json` + `.cursor/mcp.json` | 2 (same content)                   | MCP server config. Same content written to both paths so Claude Code (reads `.mcp.json`) and Cursor (reads `.cursor/mcp.json`) share the same server set. Filesystem-MCP path is auto-set to your repo's absolute path. |
 | `manifest/`                      | 12 (1 + 11)                        | Master `fullpackage.xml` plus 11 pre-sharded `fullpackage/` full-org retrieve manifests (each shard fits under the 10k-component metadata-API limit).                                                                    |
 | `config/pmd-ruleset.xml`         | 1                                  | Sensible default Apex PMD ruleset. Tune thresholds for your project.                                                                                                                                                    |
-| `.initagentrulespy-manifest.json` | 1                                 | Install-tracking marker written into the target (kit protocol version + source-release digest + per-file hashes) so a later `--update` run can tell customized files from stale ones. The `.initagentrulespy-release.json` inventory ships inside `templates/` and is not copied out. |
+| `.initagentrulespy-manifest.json` | 1                                 | Install-tracking marker written into the target (kit protocol version + status + managed file paths) so later runs can identify files that became obsolete. |
 
 ### CLI reference
 
@@ -375,7 +375,7 @@ Options:
   --no-prompt             Never prompt; fall back to sentinel placeholders.
 ```
 
-`--force`, `--update`, and `--missing-only` are mutually exclusive. A re-run installs missing files, leaves identical files alone, and **fails by default if any managed file differs** (customized or stale) — pick `--update` (stage for merge), `--force` (re-baseline), or `--missing-only` (accept mixed versions). Before writing, `init.py` verifies `templates/` against the bundled `.initagentrulespy-release.json` (per-file SHA-256 + size) and refuses an incomplete/tampered kit; writes are atomic and transactional with a target lock and full rollback on failure.
+`--force`, `--update`, and `--missing-only` are mutually exclusive. A re-run installs missing files, leaves identical files alone, and **fails by default if any managed file differs** (customized or stale) — pick `--update` (stage for merge), `--force` (re-baseline), or `--missing-only` (accept mixed versions). Writes are atomic and transactional with a target lock and full rollback on failure.
 
 ### Placeholder substitution
 
