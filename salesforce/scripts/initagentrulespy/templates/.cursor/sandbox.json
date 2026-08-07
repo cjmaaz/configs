@@ -4,7 +4,11 @@
     "{{HOME_PATH}}/.sfdx",
     "{{HOME_PATH}}/.sf",
     "{{HOME_PATH}}/.config/sf",
-    "{{HOME_PATH}}/.cache"
+    "{{HOME_PATH}}/.cache",
+    "{{WORKSPACE_PATH}}/.sfdx",
+    "{{WORKSPACE_PATH}}/.sf",
+    "{{WORKSPACE_PATH}}/.config/sf",
+    "{{WORKSPACE_PATH}}/.cache"
   ],
   "networkPolicy": {
     "default": "deny",

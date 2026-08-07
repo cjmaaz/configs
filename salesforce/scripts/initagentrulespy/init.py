@@ -10,7 +10,7 @@ each file into a target directory, replacing six placeholder tokens:
                             — defaults to "CURR ORG" if --org-name not passed
   • {{JAVA_HOME}}        → detected JDK home (used in .vscode/settings.json)
   • {{PMD_PATH}}         → detected PMD binary absolute path
-  • {{WORKSPACE_PATH}}   → target dir absolute path (used in .mcp.json)
+  • {{WORKSPACE_PATH}}   → target dir absolute path (used in MCP + sandbox config)
   • {{HOME_PATH}}        → the current user's home dir (used in .cursor/sandbox.json)
 
 The placeholders are baked into templates/ ahead of time by the
@@ -276,10 +276,9 @@ def substitute_text(content: str, *, alias: str, org_name: str, pmd_path: str,
 
     The placeholders only appear in templates/ files where the relevant
     value belongs (e.g. {{JAVA_HOME}} only in .vscode/settings.json,
-    {{WORKSPACE_PATH}} only in the two MCP configs — .mcp.json and
-    .cursor/mcp.json — which share the same content, and {{HOME_PATH}} only
-    in .cursor/sandbox.json), so unconditional global replacement is safe —
-    nothing else collides with the {{...}} syntax.
+    {{WORKSPACE_PATH}} in the two MCP configs plus .cursor/sandbox.json,
+    and {{HOME_PATH}} only in .cursor/sandbox.json), so unconditional global
+    replacement is safe — nothing else collides with the {{...}} syntax.
     """
     def rendered(value: str) -> str:
         return json.dumps(value)[1:-1] if json_escape else value
@@ -880,7 +879,10 @@ def main() -> int:
     print(f"  Org name:    {org_name}    ({org_name_src})")
     print(f"  Java home:   {java_home}    ({java_src})")
     print(f"  PMD path:    {pmd_path}    ({pmd_src})")
-    print(f"  Workspace:   {workspace_path}    (used for {{{{WORKSPACE_PATH}}}} in .mcp.json)")
+    print(
+        f"  Workspace:   {workspace_path}    "
+        f"(used for {{{{WORKSPACE_PATH}}}} in MCP + sandbox config)"
+    )
     print(f"  Home:        {home_path}    (used for {{{{HOME_PATH}}}} in .cursor/sandbox.json)")
     print()
 
